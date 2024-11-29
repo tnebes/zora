@@ -14,6 +14,8 @@ const providers = [
 
 if (environment.production) {
   enableProdMode();
+} else {
+   console.log('Development mode');
 }
 
 platformBrowserDynamic(providers).bootstrapModule(AppModule)

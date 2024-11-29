@@ -1,23 +1,24 @@
+using Serilog;
+using zora.Extensions;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console(Serilog.Events.LogEventLevel.Debug)
+    .WriteTo.File("logs/zora-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7, rollOnFileSizeLimit: true, fileSizeLimitBytes: 1000000, shared: true)
+    .CreateLogger();
 
+builder.Host.UseSerilog();
+
+builder.Services.AddCustomServices();
 WebApplication app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
+if (true)
 {
-    app.UseHsts();
+    app.ConfigureForDevEnvironment();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
+app.ConfigureApplication().Run();
 
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller}/{action=Index}/{id?}");
-
-app.MapFallbackToFile("index.html");
-
-app.Run();
