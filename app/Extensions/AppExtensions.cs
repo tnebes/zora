@@ -1,12 +1,16 @@
-﻿using Swashbuckle.AspNetCore.SwaggerUI;
+﻿using System.Runtime.CompilerServices;
+using Swashbuckle.AspNetCore.SwaggerUI;
+using zora.Common.Enums;
+using zora.Services.Configuration;
 
 namespace zora.Extensions
 {
     public static class AppExtensions
     {
-        public static WebApplication ConfigureApplication(this WebApplication app)
+
+        public static WebApplication ConfigureApplication(this WebApplication app, ISecretsManagerService secretsManager)
         {
-            if (true) // TODO change me
+            if (secretsManager.CurrentEnvironment.IsDevelopment())
             {
                 app.ConfigureSwagger();
             }

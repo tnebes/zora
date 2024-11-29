@@ -1,4 +1,5 @@
-﻿using zora.Common.Enums;
+﻿using System.Runtime.CompilerServices;
+using zora.Common.Enums;
 
 namespace zora.Services.Configuration
 {

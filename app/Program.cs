@@ -1,5 +1,6 @@
 using Serilog;
 using zora.Extensions;
+using zora.Services.Configuration;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -10,5 +11,6 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 builder.Services.AddCustomServices(builder.Configuration);
 WebApplication app = builder.Build();
 
-app.ConfigureApplication().Run();
+ISecretsManagerService secretsManager = app.Services.GetRequiredService<ISecretsManagerService>();
 
+app.ConfigureApplication(secretsManager).Run();
