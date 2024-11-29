@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Swashbuckle.AspNetCore.SwaggerUI;
+﻿using Swashbuckle.AspNetCore.SwaggerUI;
 using zora.Common.Enums;
 using zora.Services.Configuration;
 

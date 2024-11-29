@@ -42,9 +42,9 @@ CREATE TABLE zora_permission (
       id BIGINT IDENTITY(1,1) PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       description TEXT,
-      permission_string VARCHAR(4) NOT NULL,
+      permission_string CHAR(5) NOT NULL,
       created_at DATETIME2 DEFAULT GETDATE(),
-      CONSTRAINT CHK_Permission_String CHECK (permission_string LIKE '[0-1][0-1][0-1][0-1]')
+      CONSTRAINT CHK_Permission_String CHECK (permission_string LIKE '[0-1][0-1][0-1][0-1][0-1]')
 )
 
 CREATE TABLE zora_role_permission (

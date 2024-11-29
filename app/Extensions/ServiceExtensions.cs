@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using zora.Common;
 
 namespace zora.Extensions
 {
@@ -108,12 +109,12 @@ namespace zora.Extensions
                 options.RequireHttpsMetadata = false; // TODO change Me
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
                     ValidAudience = "https://draucode.com",
                     ValidIssuer = "https://draucode.com",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("REPLACEME")),
-                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Constants.IssuerSigningKey)),
                     ValidateIssuerSigningKey = false
                 };
             }
@@ -123,10 +124,10 @@ namespace zora.Extensions
 
             return services;
         }
-        
+
         private static IServiceCollection AddZoraCors(this IServiceCollection services)
         {
-            Action<CorsOptions> corsOptions = options =>
+            static void corsOptions(CorsOptions options)
             {
                 options.AddPolicy("CorsPolicy", builder =>
                 {
@@ -134,7 +135,7 @@ namespace zora.Extensions
                            .AllowAnyMethod()
                            .AllowAnyHeader();
                 });
-            };
+            }
             services.AddCors(corsOptions);
             return services;
         }

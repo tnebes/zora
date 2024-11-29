@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using zora.Common.Enums;
+﻿using zora.Common.Enums;
 
 namespace zora.Services.Configuration
 {
@@ -46,7 +45,7 @@ namespace zora.Services.Configuration
                 throw new ArgumentNullException(nameof(key));
             }
 
-            string value = _configuration[key];
+            string? value = _configuration[key];
             if (string.IsNullOrEmpty(value))
             {
                 throw new KeyNotFoundException($"Secret with key '{key}' not found.");
