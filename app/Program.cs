@@ -3,15 +3,11 @@ using zora.Extensions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
-    .WriteTo.Console(Serilog.Events.LogEventLevel.Debug)
-    .WriteTo.File("logs/zora-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7, rollOnFileSizeLimit: true, fileSizeLimitBytes: 1000000, shared: true)
-    .CreateLogger();
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services));
 
-builder.Host.UseSerilog();
-
-builder.Services.AddCustomServices();
+builder.Services.AddCustomServices(builder.Configuration);
 WebApplication app = builder.Build();
 
 app.ConfigureApplication().Run();

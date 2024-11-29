@@ -11,14 +11,15 @@ namespace zora.Extensions
 {
     public static class ServiceExtensions
     {
-        public static IServiceCollection AddCustomServices(this IServiceCollection services)
+        public static IServiceCollection AddCustomServices(this IServiceCollection services, IConfiguration configuration)
         {
             return services.AddZoraControllers()
                 .AddEndpointsApiExplorer()
                 .AddSwaggerServices()
                 .AddZoraCors()
                 .AddZoraAuthenticationAndAuthorisation()
-                .AddZoraLogging();
+                .AddZoraLogging()
+                .AddSecretsManager(configuration);
         }
 
         private static IServiceCollection AddZoraControllers(this IServiceCollection services)
