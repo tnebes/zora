@@ -14,11 +14,5 @@ builder.Host.UseSerilog();
 builder.Services.AddCustomServices();
 WebApplication app = builder.Build();
 
-//if (app.Environment.IsDevelopment())
-if (true)
-{
-    app.ConfigureForDevEnvironment();
-}
-
 app.ConfigureApplication().Run();
 

@@ -6,48 +6,43 @@ namespace zora.Extensions
     {
         public static WebApplication ConfigureApplication(this WebApplication app)
         {
+            if (true) // TODO change me
+            {
+                app.ConfigureSwagger();
+            }
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.MapControllers();
             app.UseCors("CorsPolicy");
             app.UseStaticFiles();
             app.UseDefaultFiles();
+            app.MapControllers();
             app.MapFallbackToFile("index.html");
             return app;
         }
 
-        public static WebApplication ConfigureForDevEnvironment(this WebApplication app)
+        private static WebApplication ConfigureSwagger(this WebApplication app)
         {
-
-            ConfigObject swaggerConfigObject = new()
-            {
-                //DeepLinking = true,
-                //DisplayOperationId = true,
-                //DefaultModelsExpandDepth = 3,
-                //DefaultModelExpandDepth = 3,
-                //DefaultModelRendering = ModelRendering.Model,
-                //DisplayRequestDuration = true,
-                DocExpansion = DocExpansion.None,
-                //ShowExtensions = true,
-                //ShowCommonExtensions = true,
-                TryItOutEnabled = true
-            };
-
-            SwaggerUIOptions swaggerUIOptions = new()
-            {
-                RoutePrefix = string.Empty,
-                DocumentTitle = "Zora API",
-                HeadContent = "<style>body { background-color: #f0f0f0 !important; }</style>",
-                ConfigObject = swaggerConfigObject
-            };
-
-            swaggerUIOptions.SwaggerEndpoint("/swagger/v1/swagger.json", "Zora API V1");
-
-            
-            app.UseSwagger();
-            app.UseSwaggerUI(swaggerUIOptions);
+            app.ConfigureSwaggerOptions();
             Console.WriteLine("Swagger UI is available at /swagger");
+            return app;
+        }
+
+        private static WebApplication ConfigureSwaggerOptions(this WebApplication app)
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Zora API v1");
+                options.DocExpansion(DocExpansion.List);
+                options.DefaultModelsExpandDepth(-1);
+                options.DisplayRequestDuration();
+                options.EnableFilter();
+                options.EnableDeepLinking();
+                options.EnableValidator();
+                options.ShowExtensions();
+                options.EnableTryItOutByDefault();
+            });
             return app;
         }
     }
