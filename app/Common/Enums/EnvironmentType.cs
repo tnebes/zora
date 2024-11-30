@@ -1,21 +1,16 @@
-﻿namespace zora.Common.Enums
+﻿namespace zora.Common.Enums;
+
+public enum EnvironmentType
 {
-    public enum EnvironmentType
-    {
-        Development,
-        Production
-    }
+    Development,
+    Production
+}
 
-    public static class EnvironmentTypeExtensions
-    {
-        public static bool IsDevelopment(this EnvironmentType environmentType)
-        {
-            return environmentType == EnvironmentType.Development;
-        }
+public static class EnvironmentTypeExtensions
+{
+    public static bool IsDevelopment(this EnvironmentType environmentType) =>
+        environmentType == EnvironmentType.Development;
 
-        public static bool IsProduction(this EnvironmentType environmentType)
-        {
-            return environmentType == EnvironmentType.Production;
-        }
-    }
+    public static bool IsProduction(this EnvironmentType environmentType) =>
+        environmentType == EnvironmentType.Production;
 }

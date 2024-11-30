@@ -1,57 +1,31 @@
-﻿using zora.Common.Enums;
+using Serilog;
 
-namespace zora.Services.Configuration
+namespace zora.Services.Configuration;
+
+public class SecretsManagerService : ISecretsManagerService
 {
-    public interface ISecretsManagerService
-    {
-        /// <summary>
-        /// Gets a secret value by its key.
-        /// </summary>
-        /// <param name="key">The configuration key of the secret.</param>
-        /// <returns>The secret value.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown when the secret is not found.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when the key is null or empty.</exception>
-        string GetSecret(string key);
+    private readonly IConfiguration _configuration;
 
-        /// <summary>
-        /// Gets the current environment type.
-        /// </summary>
-        EnvironmentType CurrentEnvironment { get; }
+    public SecretsManagerService(IConfiguration configuration)
+    {
+        this._configuration = configuration;
     }
 
-    public class SecretsManagerService : ISecretsManagerService
+    public string GetSecret(string key)
     {
-        private readonly IConfiguration _configuration;
-        private readonly EnvironmentType _environmentType;
-
-        public SecretsManagerService(IConfiguration configuration, string environment)
+        if (string.IsNullOrEmpty(key))
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-
-            if (string.IsNullOrEmpty(environment))
-            {
-                throw new ArgumentNullException(nameof(environment));
-            }
-
-            _environmentType = Enum.Parse<EnvironmentType>(environment, true);
+            throw new ArgumentNullException(nameof(key));
         }
 
-        public EnvironmentType CurrentEnvironment => _environmentType;
+        string? value = this._configuration[key];
 
-        public string GetSecret(string key)
+        if (string.IsNullOrEmpty(value))
         {
-            if (string.IsNullOrEmpty(key))
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            string? value = _configuration[key];
-            if (string.IsNullOrEmpty(value))
-            {
-                throw new KeyNotFoundException($"Secret with key '{key}' not found.");
-            }
-
-            return value;
+            Log.Error($"Secret with key '{key}' not found.");
+            throw new KeyNotFoundException($"Secret with key '{key}' not found.");
         }
+
+        return value;
     }
 }

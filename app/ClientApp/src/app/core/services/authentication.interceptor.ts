@@ -1,14 +1,15 @@
-import { HttpHandler, HttpInterceptor, HttpRequest } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { AuthService } from "./authentication.service";
+import {HttpHandler, HttpInterceptor, HttpRequest} from "@angular/common/http";
+import {Injectable} from "@angular/core";
+import {AuthService} from "./authentication.service";
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {
+  }
 
   intercept(request: HttpRequest<any>, next: HttpHandler) {
     const token = this.authService.getToken();
-    
+
     if (token) {
       request = request.clone({
         setHeaders: {
@@ -16,7 +17,7 @@ export class AuthInterceptor implements HttpInterceptor {
         }
       });
     }
-    
+
     return next.handle(request);
   }
 }
