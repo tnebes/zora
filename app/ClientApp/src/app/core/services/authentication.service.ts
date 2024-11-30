@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs/internal/Observable';
 import { Constants } from '../constants';
 
@@ -10,8 +10,9 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  login(username: string, password: string) : Observable<string> {
-    return this.http.post<string>(`${Constants.API.TOKEN}`, { "username": username, "password": password });
+  login(username: string, password: string): Observable<string> {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' }); 
+    return this.http.post<string>(`${Constants.API.TOKEN}`, { username, password }, { headers });
   }
 
   saveToken(token: string) : void {

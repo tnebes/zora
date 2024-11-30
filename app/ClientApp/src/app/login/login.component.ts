@@ -16,7 +16,8 @@ export class LoginComponent {
     private router: Router
   ) {}
 
-  onLogin() {
+   onLogin() {
+      console.log('Submitting:', { username: this.username, password: this.password });
     this.authService.login(this.username, this.password)
       .subscribe({
         next: (token) => {

@@ -1,4 +1,4 @@
-﻿using Swashbuckle.AspNetCore.SwaggerUI;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using zora.Common.Enums;
 using zora.Services.Configuration;
 
@@ -9,14 +9,16 @@ namespace zora.Extensions
 
         public static WebApplication ConfigureApplication(this WebApplication app, ISecretsManagerService secretsManager)
         {
+            app.UseCors("CorsPolicy");
+
             if (secretsManager.CurrentEnvironment.IsDevelopment())
             {
                 app.ConfigureSwagger();
             }
+
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseCors("CorsPolicy");
             app.UseStaticFiles();
             app.UseDefaultFiles();
             app.MapControllers();
