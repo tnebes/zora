@@ -12,7 +12,7 @@ public static class SecretsManagerExtensions
             throw new ArgumentNullException(nameof(environment));
         }
 
-        services.AddSingleton<ISecretsManagerService>(new SecretsManagerService(configuration, environment));
+        services.AddSingleton<ISecretsManagerService>(new SecretsManagerService(configuration));
         return services;
     }
 }

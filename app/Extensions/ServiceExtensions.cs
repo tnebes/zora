@@ -6,7 +6,11 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Scrutor;
 using zora.Common;
+using zora.Common.Attributes;
+using zora.Common.Interfaces;
+using zora.Services;
 
 namespace zora.Extensions;
 
@@ -20,7 +24,40 @@ public static class ServiceExtensions
             .AddZoraCors()
             .AddZoraAuthenticationAndAuthorisation()
             .AddZoraLogging()
-            .AddSecretsManager(configuration);
+            .AddZoraServices();
+    }
+
+    private static IServiceCollection AddZoraServices(this IServiceCollection services)
+    {
+        services.Scan(scan => scan
+            .FromAssemblyOf<IZoraService>()
+            .AddClasses(classes => classes
+                .AssignableTo<IZoraService>()
+                .Where(type =>
+                    type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
+                    == ServiceLifetime.Singleton))
+            .AsImplementedInterfaces()
+            .WithSingletonLifetime()
+
+            .AddClasses(classes => classes
+                .AssignableTo<IZoraService>()
+                .Where(type =>
+                    type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
+                    == ServiceLifetime.Transient))
+            .AsImplementedInterfaces()
+            .WithTransientLifetime()
+
+            .AddClasses(classes => classes
+                .AssignableTo<IZoraService>()
+                .Where(type =>
+                    type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
+                    != ServiceLifetime.Singleton &&
+                    type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
+                    != ServiceLifetime.Transient))
+            .AsImplementedInterfaces()
+            .WithScopedLifetime());
+
+        return services;
     }
 
     private static IServiceCollection AddZoraControllers(this IServiceCollection services)

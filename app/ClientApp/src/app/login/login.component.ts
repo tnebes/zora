@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {AuthService} from '../core/services/authentication.service';
+import {AuthService, LoginResponse} from '../core/services/authentication.service';
 import {Router} from '@angular/router';
 
 @Component({
@@ -17,15 +17,14 @@ export class LoginComponent {
   ) {
   }
 
-  onLogin() {
-    console.log('Submitting:', {username: this.username, password: this.password});
+  public onLogin(): void {
     this.authService.login(this.username, this.password)
       .subscribe({
-        next: (token) => {
-          this.authService.saveToken(token);
+        next: (response: LoginResponse) => {
+          this.authService.saveToken(response.token);
           this.router.navigate(['/'], {replaceUrl: true});
         },
-        error: (error) => {
+        error: (error: Error) => {
           console.error('Login failed:', error);
         }
       });

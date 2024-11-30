@@ -1,9 +1,12 @@
 using Serilog;
+using zora.Common.Attributes;
 using zora.Common.Enums;
+using zora.Common.Interfaces;
 
 namespace zora.Services;
 
-public class EnvironmentManagerService : IEnvironmentManagerService
+[ServiceLifetime(ServiceLifetime.Singleton)]
+public class EnvironmentManagerService : IEnvironmentManagerService, IZoraService
 {
 
     public EnvironmentType CurrentEnvironment { get; }

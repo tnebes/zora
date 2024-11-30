@@ -3,6 +3,15 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable} from 'rxjs/internal/Observable';
 import {Constants} from '../constants';
 
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -11,20 +20,26 @@ export class AuthService {
   constructor(private readonly http: HttpClient) {
   }
 
-  login(username: string, password: string): Observable<string> {
-    const headers = new HttpHeaders({'Content-Type': 'application/json'});
-    return this.http.post<string>(`${Constants.API.TOKEN}`, {username, password}, {headers});
+  public login(username: string, password: string): Observable<LoginResponse> {
+    const loginRequest: LoginRequest = { username, password };
+    const headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
+
+    return this.http.post<LoginResponse>(
+      `${Constants.API.TOKEN}`,
+      loginRequest,
+      { headers }
+    );
   }
 
-  saveToken(token: string): void {
+  public saveToken(token: string): void {
     localStorage.setItem(Constants.API.JWT_TOKEN_KEY, token);
   }
 
-  getToken(): string | null {
+  public getToken(): string | null {
     return localStorage.getItem(Constants.API.JWT_TOKEN_KEY);
   }
 
-  logout(): void {
+  public logout(): void {
     localStorage.removeItem(Constants.API.JWT_TOKEN_KEY);
   }
 }
