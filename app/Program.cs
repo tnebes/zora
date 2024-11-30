@@ -1,6 +1,6 @@
 using Serilog;
+using zora.Core.Interfaces;
 using zora.Extensions;
-using zora.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 

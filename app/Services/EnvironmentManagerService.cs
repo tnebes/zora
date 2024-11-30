@@ -1,7 +1,7 @@
 using Serilog;
-using zora.Common.Attributes;
-using zora.Common.Enums;
-using zora.Common.Interfaces;
+using zora.Core.Attributes;
+using zora.Core.Enums;
+using zora.Core.Interfaces;
 
 namespace zora.Services;
 

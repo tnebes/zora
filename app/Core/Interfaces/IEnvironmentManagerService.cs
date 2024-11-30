@@ -1,6 +1,6 @@
-using zora.Common.Enums;
+using zora.Core.Enums;
 
-namespace zora.Services;
+namespace zora.Core.Interfaces;
 
 public interface IEnvironmentManagerService
 {

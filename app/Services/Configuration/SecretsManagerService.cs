@@ -1,6 +1,6 @@
 using Serilog;
-using zora.Common.Attributes;
-using zora.Common.Interfaces;
+using zora.Core.Attributes;
+using zora.Core.Interfaces;
 
 namespace zora.Services.Configuration;
 

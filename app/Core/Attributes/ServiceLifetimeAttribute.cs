@@ -1,6 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
-
-namespace zora.Common.Attributes
+namespace zora.Core.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class ServiceLifetimeAttribute : Attribute

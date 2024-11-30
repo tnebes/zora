@@ -3,18 +3,27 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using zora.Common;
+using zora.Core;
+using zora.Core.DTOs;
+using zora.Core.Interfaces;
 
 namespace zora.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
+[Produces("application/json")]
+[Consumes("application/json")]
+[ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+[ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType<int>(StatusCodes.Status200OK)]
 public class AuthenticationController : ControllerBase
 {
-    public class LoginRequest
+
+    private readonly IAuthenticationService _authenticationService;
+
+    public AuthenticationController(IAuthenticationService authenticationService)
     {
-        public required string Username { get; set; }
-        public required string Password { get; set; }
+        this._authenticationService = authenticationService;
     }
 
     [HttpPost("token")]
@@ -25,27 +34,20 @@ public class AuthenticationController : ControllerBase
     {
         try
         {
-            if (login.Username != "tnebes" || login.Password != "letmeinside1")
+            if (!this._authenticationService.IsValidLoginRequest(login))
             {
-                return this.Unauthorized("Invalid credentials");
+                return this.BadRequest();
             }
 
-            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-            byte[] key = Encoding.UTF8.GetBytes(Constants.IssuerSigningKey);
-
-            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+            if (this._authenticationService.AuthenticateUser(login))
             {
-                Expires = DateTime.UtcNow.AddHours(24),
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha256)
-            };
+                string? ipAddress = this.HttpContext.Connection.RemoteIpAddress?.ToString();
+                Log.Information($"User {login.Username} ({ipAddress}) failed to authenticate.");
+                return this.Unauthorized();
+            }
 
-            SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
-            string? jwt = tokenHandler.WriteToken(token);
-
+            string jwt = this._authenticationService.GetJwt();
             Log.Information($"User {login.Username} authenticated.");
-
             return this.Ok(new { token = jwt });
         }
         catch (Exception e)

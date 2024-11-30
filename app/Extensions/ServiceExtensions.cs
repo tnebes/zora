@@ -6,11 +6,9 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Scrutor;
-using zora.Common;
-using zora.Common.Attributes;
-using zora.Common.Interfaces;
-using zora.Services;
+using zora.Core;
+using zora.Core.Attributes;
+using zora.Core.Interfaces;
 
 namespace zora.Extensions;
 
@@ -142,8 +140,8 @@ public static class ServiceExtensions
 
         static void bearerOptions(JwtBearerOptions options)
         {
-            options.SaveToken = false; // TODO changeMe
-            options.RequireHttpsMetadata = false; // TODO change Me
+            options.SaveToken = true;
+            options.RequireHttpsMetadata = true;
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,

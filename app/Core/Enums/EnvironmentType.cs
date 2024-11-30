@@ -1,4 +1,4 @@
-﻿namespace zora.Common.Enums;
+﻿namespace zora.Core.Enums;
 
 public enum EnvironmentType
 {

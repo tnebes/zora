@@ -1,4 +1,4 @@
-namespace zora.Common;
+namespace zora.Core;
 
 public static class Constants
 {

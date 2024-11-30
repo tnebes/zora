@@ -1,4 +1,5 @@
 using Swashbuckle.AspNetCore.SwaggerUI;
+using zora.Core.Interfaces;
 using zora.Services;
 
 namespace zora.Extensions;
