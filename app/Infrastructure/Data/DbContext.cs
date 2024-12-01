@@ -18,14 +18,15 @@ public class DbContext : IDbContext
     public DbContext(IConfiguration configuration, ILogger<DbContext> logger)
     {
         this._logger = logger;
-        this._connectionString = configuration.GetConnectionString(Constants.ConnectionStringKey);
+        this._connectionString = configuration[Constants.ConnectionStringKey];
+
         if (string.IsNullOrEmpty(this._connectionString))
         {
             this._logger.LogError("Database connection string {KeyName} not found in secrets. Use dotnet user-secrets.",
                 Constants.ConnectionStringKey);
             throw new InvalidOperationException(
                 "Database connection string" + Constants.ConnectionStringKey +
-                "not found in environment variables. Use dotnet user-secrets.");
+                " not found in environment variables. Use dotnet user-secrets.");
         }
     }
 

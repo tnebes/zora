@@ -1,5 +1,18 @@
 # zora 🇬🇧
 
+## Instructions
+- Install and configure MSSQL
+- Install dotnet (9.x.x) core
+- Install nodejs (v22.x.x) and npm (v10.x.x)
+- Install angular  (19.x.x) cli (v14.x.x)
+- Clone the repository
+- Run the `db.sql` script in the MSSQL database using root user
+- Run `startup.sql` with the changed password in the MSSQL database using root user
+- `dotnet user-secrets`
+   - `dotnet user-secrets init`
+   - `dotnet user-secrets set "Zora:ConnectionString" "Server=localhost;Database=zora;User Id=zora_service;Password=your_password_here;TrustServerCertificate=True;"`
+   - `dotnet user-secrets set "Zora:SecretKey" "some_secret_key"`
+
 ## Acronym
 Platform for Work Organisation (Platforma **z**a **o**rganizaciju **ra**da)
 
