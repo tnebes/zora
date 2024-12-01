@@ -1,13 +1,17 @@
+#region
+
 using Swashbuckle.AspNetCore.SwaggerUI;
 using zora.API.Middleware;
 using zora.Core.Interfaces;
-using zora.Services;
+
+#endregion
 
 namespace zora.Extensions;
 
 public static class AppExtensions
 {
-    public static WebApplication ConfigureApplication(this WebApplication app, IEnvironmentManagerService environmentManager)
+    public static WebApplication ConfigureApplication(this WebApplication app,
+        IEnvironmentManagerService environmentManager)
     {
         app.UseCors("CorsPolicy");
 

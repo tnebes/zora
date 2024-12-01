@@ -13,20 +13,32 @@ namespace zora.Infrastructure.Services;
 
 public sealed class AuthenticationService : IAuthenticationService, IZoraService
 {
+    private readonly IConfiguration _configuration;
     private readonly ILogger<AuthenticationService> _logger;
     private readonly IUserService _userService;
 
-    public AuthenticationService(IUserService userService, ILogger<AuthenticationService> logger)
+    public AuthenticationService(IUserService userService, ILogger<AuthenticationService> logger,
+        IConfiguration configuration)
     {
         this._userService = userService;
         this._logger = logger;
+        this._configuration = configuration;
     }
 
     public string GetJwt()
     {
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-        byte[] key = Encoding.UTF8.GetBytes(Constants.IssuerSigningKey);
+        string? issuerSigningKey = this._configuration[Constants.IssuerSigningKey];
 
+        if (string.IsNullOrWhiteSpace(issuerSigningKey))
+        {
+            this._logger.LogError("{KeyName} not found in configuration. Use dotnet user-secrets.",
+                Constants.IssuerSigningKey);
+            throw new InvalidOperationException(
+                Constants.IssuerSigningKey + " not found in environment variables. Use dotnet user-secrets.");
+        }
+
+        byte[] key = Encoding.UTF8.GetBytes(issuerSigningKey);
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Expires = DateTime.UtcNow.AddHours(24),

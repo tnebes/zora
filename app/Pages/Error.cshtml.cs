@@ -1,6 +1,10 @@
+#region
+
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+
+#endregion
 
 namespace zora.Pages;
 

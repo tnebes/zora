@@ -1,15 +1,16 @@
-using Serilog;
+#region
+
 using zora.Core.Attributes;
 using zora.Core.Enums;
 using zora.Core.Interfaces;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
+
+#endregion
 
 namespace zora.Infrastructure.Services;
 
 [ServiceLifetime(ServiceLifetime.Singleton)]
 public sealed class EnvironmentManagerService : IEnvironmentManagerService, IZoraService
 {
-    public EnvironmentType CurrentEnvironment { get; }
     private readonly ILogger<EnvironmentManagerService> _logger;
 
     public EnvironmentManagerService(IConfiguration configuration, ILogger<EnvironmentManagerService> logger)
@@ -25,6 +26,8 @@ public sealed class EnvironmentManagerService : IEnvironmentManagerService, IZor
 
         this.CurrentEnvironment = Enum.Parse<EnvironmentType>(environment, true);
     }
+
+    public EnvironmentType CurrentEnvironment { get; }
 
     public bool IsDevelopment() => this.CurrentEnvironment.IsDevelopment();
 

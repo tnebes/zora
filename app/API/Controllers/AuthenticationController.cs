@@ -1,8 +1,11 @@
+#region
+
 using Microsoft.AspNetCore.Mvc;
 using zora.Core;
 using zora.Core.DTOs;
 using zora.Core.Interfaces;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
+
+#endregion
 
 namespace zora.Controllers;
 
@@ -13,11 +16,11 @@ namespace zora.Controllers;
 [ProducesResponseType<int>(StatusCodes.Status200OK)]
 public sealed class AuthenticationController : ControllerBase
 {
-
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger<AuthenticationController> _logger;
 
-    public AuthenticationController(IAuthenticationService authenticationService, ILogger<AuthenticationController> logger)
+    public AuthenticationController(IAuthenticationService authenticationService,
+        ILogger<AuthenticationController> logger)
     {
         this._authenticationService = authenticationService;
         this._logger = logger;

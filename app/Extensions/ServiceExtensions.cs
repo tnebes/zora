@@ -1,3 +1,5 @@
+#region
+
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
@@ -6,9 +8,12 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Interfaces;
+
+#endregion
 
 namespace zora.Extensions;
 
@@ -20,7 +25,7 @@ public static class ServiceExtensions
             .AddEndpointsApiExplorer()
             .AddSwaggerServices()
             .AddZoraCors()
-            .AddZoraAuthenticationAndAuthorisation()
+            .AddZoraAuthenticationAndAuthorisation(configuration)
             .AddZoraLogging()
             .AddZoraServices();
     }
@@ -36,7 +41,6 @@ public static class ServiceExtensions
                     == ServiceLifetime.Singleton))
             .AsImplementedInterfaces()
             .WithSingletonLifetime()
-
             .AddClasses(classes => classes
                 .AssignableTo<IZoraService>()
                 .Where(type =>
@@ -44,7 +48,6 @@ public static class ServiceExtensions
                     == ServiceLifetime.Transient))
             .AsImplementedInterfaces()
             .WithTransientLifetime()
-
             .AddClasses(classes => classes
                 .AssignableTo<IZoraService>()
                 .Where(type =>
@@ -129,32 +132,42 @@ public static class ServiceExtensions
         return services;
     }
 
-    private static IServiceCollection AddZoraAuthenticationAndAuthorisation(this IServiceCollection services)
+    private static IServiceCollection AddZoraAuthenticationAndAuthorisation(this IServiceCollection services,
+        IConfiguration configuration)
     {
-        static void authenticationOptions(AuthenticationOptions options)
+        static void AuthenticationOptions(AuthenticationOptions options)
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         }
 
-        static void bearerOptions(JwtBearerOptions options)
-        {
-            options.SaveToken = true;
-            options.RequireHttpsMetadata = true;
-            options.TokenValidationParameters = new TokenValidationParameters
+        services.AddAuthentication(AuthenticationOptions)
+            .AddJwtBearer(options =>
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidAudience = "https://draucode.com",
-                ValidIssuer = "https://draucode.com",
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Constants.IssuerSigningKey)),
-                ValidateIssuerSigningKey = false
-            };
-        }
+                string? issuerSigningKey = configuration[Constants.IssuerSigningKey];
 
-        services.AddAuthentication(authenticationOptions).AddJwtBearer(bearerOptions);
+                if (string.IsNullOrEmpty(issuerSigningKey))
+                {
+                    Log.Error("{KeyName} not found in configuration. Use dotnet user-secrets.",
+                        Constants.IssuerSigningKey);
+                    throw new InvalidOperationException(Constants.IssuerSigningKey +
+                                                        " not found in configuration. Use dotnet user-secrets.");
+                }
+
+                options.SaveToken = true;
+                options.RequireHttpsMetadata = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidAudience = "https://draucode.com",
+                    ValidIssuer = "https://draucode.com",
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(issuerSigningKey)),
+                    ValidateIssuerSigningKey = false
+                };
+            });
         services.AddAuthorization();
 
         return services;

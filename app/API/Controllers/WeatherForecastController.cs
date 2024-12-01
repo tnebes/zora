@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿#region
+
+using Microsoft.AspNetCore.Mvc;
+
+#endregion
 
 namespace zora.Controllers;
 
@@ -18,7 +22,8 @@ public class WeatherForecastController(ILogger<WeatherForecastController> logger
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
                 TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+                Summary = WeatherForecastController.Summaries[
+                    Random.Shared.Next(WeatherForecastController.Summaries.Length)]
             })
             .ToArray();
     }

@@ -1,6 +1,10 @@
+#region
+
 using Serilog;
 using zora.Core.Interfaces;
 using zora.Extensions;
+
+#endregion
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 

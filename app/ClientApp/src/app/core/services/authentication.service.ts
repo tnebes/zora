@@ -21,13 +21,13 @@ export class AuthService {
   }
 
   public login(username: string, password: string): Observable<LoginResponse> {
-    const loginRequest: LoginRequest = { username, password };
+    const loginRequest: LoginRequest = {username, password};
     const headers: HttpHeaders = new HttpHeaders({'Content-Type': 'application/json'});
 
     return this.http.post<LoginResponse>(
       `${Constants.API.TOKEN}`,
       loginRequest,
-      { headers }
+      {headers}
     );
   }
 

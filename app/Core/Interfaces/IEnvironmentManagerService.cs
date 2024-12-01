@@ -1,4 +1,8 @@
+#region
+
 using zora.Core.Enums;
+
+#endregion
 
 namespace zora.Core.Interfaces;
 

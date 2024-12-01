@@ -1,9 +1,9 @@
 #region
 
+using Serilog;
 using zora.Core.Attributes;
 using zora.Core.Interfaces;
 using zora.Services.Configuration;
-using Serilog;
 
 #endregion
 
@@ -14,10 +14,7 @@ public sealed class SecretsManagerService : ISecretsManagerService, IZoraService
 {
     private readonly IConfiguration _configuration;
 
-    public SecretsManagerService(IConfiguration configuration)
-    {
-        this._configuration = configuration;
-    }
+    public SecretsManagerService(IConfiguration configuration) => this._configuration = configuration;
 
     public string GetSecret(string key)
     {

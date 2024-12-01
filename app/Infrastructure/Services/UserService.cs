@@ -1,7 +1,5 @@
 #region
 
-using System.Text;
-using Microsoft.Win32.SafeHandles;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs;
@@ -14,8 +12,8 @@ namespace zora.Infrastructure.Services;
 [ServiceLifetime(ServiceLifetime.Scoped)]
 public sealed class UserService : IUserService
 {
-    private readonly IUserRepository _userRepository;
     private readonly ILogger<UserService> _logger;
+    private readonly IUserRepository _userRepository;
 
     public UserService(IUserRepository userRepository, ILogger<UserService> logger)
     {
