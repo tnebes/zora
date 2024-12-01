@@ -10,5 +10,5 @@ public interface IAuthenticationService
     string GetJwt();
     bool IsValidLoginRequest(LoginRequest login);
 
-    bool AuthenticateUser(LoginRequest login);
+    Task<bool> AuthenticateUser(LoginRequest login);
 }

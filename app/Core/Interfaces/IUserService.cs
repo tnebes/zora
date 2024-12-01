@@ -3,7 +3,7 @@ using zora.Core.DTOs;
 
 namespace zora.Core.Interfaces;
 
-public interface IUserService
+public interface IUserService : IZoraService
 {
-    bool ValidateUser(LoginRequest login);
+    Task<bool> ValidateUser(LoginRequest login);
 }

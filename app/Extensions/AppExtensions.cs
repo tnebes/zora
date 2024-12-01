@@ -1,4 +1,5 @@
 using Swashbuckle.AspNetCore.SwaggerUI;
+using zora.API.Middleware;
 using zora.Core.Interfaces;
 using zora.Services;
 
@@ -22,6 +23,7 @@ public static class AppExtensions
         app.UseDefaultFiles();
         app.MapControllers();
         app.MapFallbackToFile("index.html");
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
         return app;
     }
 

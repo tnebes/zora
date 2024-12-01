@@ -10,8 +10,6 @@ namespace zora.Controllers;
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
 [Consumes("application/json")]
-[ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
-[ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType<int>(StatusCodes.Status200OK)]
 public sealed class AuthenticationController : ControllerBase
 {
@@ -29,7 +27,7 @@ public sealed class AuthenticationController : ControllerBase
     [ProducesResponseType<int>(StatusCodes.Status200OK)]
     [ProducesResponseType<string>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<string>(StatusCodes.Status500InternalServerError)]
-    public IActionResult Authenticate([FromBody] LoginRequest login)
+    public async Task<IActionResult> Authenticate([FromBody] LoginRequest login)
     {
         try
         {
@@ -38,7 +36,7 @@ public sealed class AuthenticationController : ControllerBase
                 return this.BadRequest();
             }
 
-            if (this._authenticationService.AuthenticateUser(login))
+            if (!await this._authenticationService.AuthenticateUser(login))
             {
                 string? ipAddress = this.HttpContext.Connection.RemoteIpAddress?.ToString();
                 this._logger.LogInformation($"User {login.Username} ({ipAddress}) failed to authenticate.");
