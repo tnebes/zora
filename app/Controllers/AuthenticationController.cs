@@ -1,7 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using zora.Core;
 using zora.Core.DTOs;
@@ -16,7 +13,7 @@ namespace zora.Controllers;
 [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
 [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType<int>(StatusCodes.Status200OK)]
-public class AuthenticationController : ControllerBase
+public sealed class AuthenticationController : ControllerBase
 {
 
     private readonly IAuthenticationService _authenticationService;

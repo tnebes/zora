@@ -1,11 +1,12 @@
 using Serilog;
 using zora.Core.Attributes;
 using zora.Core.Interfaces;
+using zora.Services.Configuration;
 
-namespace zora.Services.Configuration;
+namespace zora.Infrastructure.Services.Configuration;
 
 [ServiceLifetime(ServiceLifetime.Singleton)]
-public class SecretsManagerService : ISecretsManagerService, IZoraService
+public sealed class SecretsManagerService : ISecretsManagerService, IZoraService
 {
     private readonly IConfiguration _configuration;
 

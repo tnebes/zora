@@ -5,9 +5,9 @@ using zora.Core;
 using zora.Core.DTOs;
 using zora.Core.Interfaces;
 
-namespace zora.Services;
+namespace zora.Infrastructure.Services;
 
-public class AuthenticationService : IAuthenticationService
+public sealed class AuthenticationService : IAuthenticationService, IZoraService
 {
     public string GetJwt()
     {

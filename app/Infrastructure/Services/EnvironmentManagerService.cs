@@ -3,10 +3,10 @@ using zora.Core.Attributes;
 using zora.Core.Enums;
 using zora.Core.Interfaces;
 
-namespace zora.Services;
+namespace zora.Infrastructure.Services;
 
 [ServiceLifetime(ServiceLifetime.Singleton)]
-public class EnvironmentManagerService : IEnvironmentManagerService, IZoraService
+public sealed class EnvironmentManagerService : IEnvironmentManagerService, IZoraService
 {
 
     public EnvironmentType CurrentEnvironment { get; }
