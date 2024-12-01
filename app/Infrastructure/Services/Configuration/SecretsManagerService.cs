@@ -1,7 +1,11 @@
-using Serilog;
+#region
+
 using zora.Core.Attributes;
 using zora.Core.Interfaces;
 using zora.Services.Configuration;
+using Serilog;
+
+#endregion
 
 namespace zora.Infrastructure.Services.Configuration;
 
@@ -26,8 +30,9 @@ public sealed class SecretsManagerService : ISecretsManagerService, IZoraService
 
         if (string.IsNullOrEmpty(value))
         {
-            Log.Error($"Secret with key '{key}' not found.");
-            throw new KeyNotFoundException($"Secret with key '{key}' not found.");
+            string? errorMessage = $"Secret with key '{key}' not found.";
+            Log.Error(errorMessage);
+            throw new KeyNotFoundException(errorMessage);
         }
 
         return value;

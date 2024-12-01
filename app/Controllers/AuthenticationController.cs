@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Serilog;
 using zora.Core;
 using zora.Core.DTOs;
 using zora.Core.Interfaces;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace zora.Controllers;
 
@@ -17,10 +17,12 @@ public sealed class AuthenticationController : ControllerBase
 {
 
     private readonly IAuthenticationService _authenticationService;
+    private readonly ILogger<AuthenticationController> _logger;
 
-    public AuthenticationController(IAuthenticationService authenticationService)
+    public AuthenticationController(IAuthenticationService authenticationService, ILogger<AuthenticationController> logger)
     {
         this._authenticationService = authenticationService;
+        this._logger = logger;
     }
 
     [HttpPost("token")]
@@ -39,17 +41,17 @@ public sealed class AuthenticationController : ControllerBase
             if (this._authenticationService.AuthenticateUser(login))
             {
                 string? ipAddress = this.HttpContext.Connection.RemoteIpAddress?.ToString();
-                Log.Information($"User {login.Username} ({ipAddress}) failed to authenticate.");
+                this._logger.LogInformation($"User {login.Username} ({ipAddress}) failed to authenticate.");
                 return this.Unauthorized();
             }
 
             string jwt = this._authenticationService.GetJwt();
-            Log.Information($"User {login.Username} authenticated.");
+            this._logger.LogInformation($"User {login.Username} authenticated.");
             return this.Ok(new { token = jwt });
         }
         catch (Exception e)
         {
-            Log.Error(e, "Error authenticating user.");
+            this._logger.LogError(e, "Error authenticating user.");
             return this.StatusCode(500, Constants.Error500Message);
         }
     }
