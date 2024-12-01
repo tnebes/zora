@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using zora.Core;
 using zora.Core.DTOs;
 using zora.Core.Interfaces;
+using zora.Services.Configuration;
 
 #endregion
 
@@ -16,28 +17,21 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthenticationService> _logger;
     private readonly IUserService _userService;
+    private readonly ISecretsManagerService _secretsManagerService;
 
     public AuthenticationService(IUserService userService, ILogger<AuthenticationService> logger,
-        IConfiguration configuration)
+        IConfiguration configuration, ISecretsManagerService secretsManagerService)
     {
         this._userService = userService;
         this._logger = logger;
         this._configuration = configuration;
+        this._secretsManagerService = secretsManagerService;
     }
 
     public string GetJwt()
     {
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-        string? issuerSigningKey = this._configuration[Constants.IssuerSigningKey];
-
-        if (string.IsNullOrWhiteSpace(issuerSigningKey))
-        {
-            this._logger.LogError("{KeyName} not found in configuration. Use dotnet user-secrets.",
-                Constants.IssuerSigningKey);
-            throw new InvalidOperationException(
-                Constants.IssuerSigningKey + " not found in environment variables. Use dotnet user-secrets.");
-        }
-
+        string? issuerSigningKey = this._secretsManagerService.GetSecret(Constants.IssuerSigningKey);
         byte[] key = Encoding.UTF8.GetBytes(issuerSigningKey);
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -59,6 +53,13 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
     {
         try
         {
+            if (this.isAuthenticated(login.Token))
+            {
+                this._logger.LogWarning("User {UserName} attempted to authenticate while already authenticated",
+                    login.Username);
+                throw new InvalidOperationException("User " + login.Username + " attempted to authenticate while already authenticated");
+            }
+
             return await this._userService.ValidateUser(login);
         }
         catch (Exception ex)
@@ -67,4 +68,34 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
             throw;
         }
     }
+
+    public bool isAuthenticated(string token)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            return false;
+        }
+
+        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+        string? issuerSigningKey = this._secretsManagerService.GetSecret(Constants.IssuerSigningKey);
+        byte[] key = Encoding.UTF8.GetBytes(issuerSigningKey);
+        TokenValidationParameters tokenValidationParameters = new()
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+
+        try
+        {
+            tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken _);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
 }

@@ -18,7 +18,8 @@ export class LoginComponent {
   }
 
   public onLogin(): void {
-    this.authService.login(this.username, this.password)
+    const token: string = this.authService.getToken();
+    this.authService.login(this.username, this.password, token)
       .subscribe({
         next: (response: LoginResponse) => {
           this.authService.saveToken(response.token);

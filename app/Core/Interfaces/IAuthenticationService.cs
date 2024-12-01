@@ -12,4 +12,5 @@ public interface IAuthenticationService
     bool IsValidLoginRequest(LoginRequest login);
 
     Task<bool> AuthenticateUser(LoginRequest login);
+    bool isAuthenticated(string token);
 }
