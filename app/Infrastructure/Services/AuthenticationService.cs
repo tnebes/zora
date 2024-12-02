@@ -92,10 +92,10 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
             tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken _);
             return true;
         }
-        catch
+        catch(Exception ex)
         {
+            this._logger.LogWarning(ex, "Invalid token provided");
             return false;
         }
     }
-
 }

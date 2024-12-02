@@ -18,10 +18,10 @@ public class DbContext : IDbContext
     private readonly ILogger<DbContext> _logger;
     private readonly ISecretsManagerService _secretsManagerService;
 
-    public DbContext(IConfiguration configuration, ILogger<DbContext> logger)
+    public DbContext(IConfiguration configuration, ILogger<DbContext> logger, ISecretsManagerService secretsManagerService)
     {
         this._logger = logger;
-        this._secretsManagerService = new SecretsManagerService(configuration);
+        this._secretsManagerService = secretsManagerService;
         this._connectionString = this._secretsManagerService.GetSecret(Constants.ConnectionStringKey);
 
         if (string.IsNullOrEmpty(this._connectionString))

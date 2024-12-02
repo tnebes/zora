@@ -1,5 +1,6 @@
 #region
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core;
 using zora.Core.DTOs;
@@ -53,6 +54,21 @@ public sealed class AuthenticationController : ControllerBase
         catch (Exception e)
         {
             this._logger.LogError(e, "Error authenticating user.");
+            return this.StatusCode(500, Constants.Error500Message);
+        }
+    }
+
+    [HttpGet("check")]
+    [Authorize]
+    public IActionResult CheckAuthStatus()
+    {
+        try
+        {
+            return this.Ok(new { isAuthenticated = true });
+        }
+        catch (Exception e)
+        {
+            this._logger.LogError(e, "Error checking authentication status.");
             return this.StatusCode(500, Constants.Error500Message);
         }
     }
