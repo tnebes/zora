@@ -2,7 +2,6 @@
 
 using System.Reflection;
 using System.Text;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpLogging;
@@ -132,17 +131,16 @@ public static class ServiceExtensions
         return services;
     }
 
-    private static IServiceCollection AddZoraAuthenticationAndAuthorisation(this IServiceCollection services,
+    private static IServiceCollection AddZoraAuthenticationAndAuthorisation(
+        this IServiceCollection services,
         IConfiguration configuration)
     {
-        static void AuthenticationOptions(AuthenticationOptions options)
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        }
-
-        services.AddAuthentication(AuthenticationOptions)
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
             .AddJwtBearer(options =>
             {
                 string? issuerSigningKey = configuration[Constants.IssuerSigningKey];
@@ -151,21 +149,39 @@ public static class ServiceExtensions
                 {
                     Log.Error("{KeyName} not found in configuration. Use dotnet user-secrets.",
                         Constants.IssuerSigningKey);
-                    throw new InvalidOperationException(Constants.IssuerSigningKey +
-                                                        " not found in configuration. Use dotnet user-secrets.");
+                    throw new InvalidOperationException(
+                        $"{Constants.IssuerSigningKey} not found in configuration. Use dotnet user-secrets.");
                 }
 
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = true;
-                options.TokenValidationParameters = new TokenValidationParameters
+
+                options.TokenValidationParameters.ValidateIssuer = false;
+                options.TokenValidationParameters.ValidateAudience = false;
+                options.TokenValidationParameters.ValidateLifetime = true;
+                options.TokenValidationParameters.ValidAudiences = ["https://draucode.com", "localhost"];
+                options.TokenValidationParameters.ValidIssuers = ["https://draucode.com", "localhost"];
+                options.TokenValidationParameters.IssuerSigningKey =
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(issuerSigningKey));
+                options.TokenValidationParameters.ValidateIssuerSigningKey = false;
+
+                options.Events = new JwtBearerEvents
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidAudience = "https://draucode.com",
-                    ValidIssuer = "https://draucode.com",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(issuerSigningKey)),
-                    ValidateIssuerSigningKey = false
+                    OnAuthenticationFailed = context =>
+                    {
+                        Log.Debug("Authentication failed: {Exception}", context.Exception);
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        Log.Debug("Token validated successfully");
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
+                    {
+                        Log.Debug("Authentication challenge issued");
+                        return Task.CompletedTask;
+                    }
                 };
             });
         services.AddAuthorization();
@@ -177,11 +193,21 @@ public static class ServiceExtensions
     {
         static void corsOptions(CorsOptions options)
         {
-            options.AddPolicy("CorsPolicy", builder =>
+            options.AddPolicy(Constants.ZoraCorsPolicyName, builder =>
             {
-                builder.AllowAnyOrigin()
+                builder.WithOrigins(
+                        "http://localhost:4200",
+                        "https://localhost:4200",
+                        "https://localhost:5001",
+                        "http://localhost:5000",
+                        "https://draucode.com",
+                        "http://draucode.com")
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
+                    .AllowAnyHeader()
+                    .AllowCredentials()
+                    .WithExposedHeaders("WWW-Authenticate")
+                    .SetPreflightMaxAge(TimeSpan.FromMinutes(10))
+                    .SetIsOriginAllowedToAllowWildcardSubdomains();
             });
         }
 

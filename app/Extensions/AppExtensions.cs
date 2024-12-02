@@ -1,7 +1,10 @@
 #region
 
+using System.Diagnostics;
+using Serilog;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using zora.API.Middleware;
+using zora.Core;
 using zora.Core.Interfaces;
 
 #endregion
@@ -13,21 +16,22 @@ public static class AppExtensions
     public static WebApplication ConfigureApplication(this WebApplication app,
         IEnvironmentManagerService environmentManager)
     {
-        app.UseCors("CorsPolicy");
+        app.ConfigureAdvancedLogging();
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
+        app.UseMiddleware<RequestLoggingMiddleware>();
+        app.UseMiddleware<JwtLoggingMiddleware>();
+        app.UseHttpsRedirection();
+        app.UseRouting();
+        app.UseCors(Constants.ZoraCorsPolicyName);
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.MapControllers();
 
         if (environmentManager.IsDevelopment())
         {
             app.ConfigureSwagger();
         }
 
-        app.UseHttpsRedirection();
-        app.UseAuthentication();
-        app.UseAuthorization();
-        app.UseStaticFiles();
-        app.UseDefaultFiles();
-        app.MapControllers();
-        app.MapFallbackToFile("index.html");
-        app.UseMiddleware<ExceptionHandlingMiddleware>();
         return app;
     }
 
@@ -52,6 +56,40 @@ public static class AppExtensions
             options.EnableValidator();
             options.ShowExtensions();
             options.EnableTryItOutByDefault();
+        });
+        return app;
+    }
+
+    private static WebApplication ConfigureAdvancedLogging(this WebApplication app)
+    {
+        app.Use(async (context, next) =>
+        {
+            Log.Information("Request {Method} {Path} started", context.Request.Method, context.Request.Path);
+
+            var timer = Stopwatch.StartNew();
+            try
+            {
+                await next();
+                timer.Stop();
+
+                Log.Information(
+                    "Request {Method} {Path} completed in {ElapsedMilliseconds}ms with status code {StatusCode}",
+                    context.Request.Method,
+                    context.Request.Path,
+                    timer.ElapsedMilliseconds,
+                    context.Response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                timer.Stop();
+                Log.Error(
+                    ex,
+                    "Request {Method} {Path} failed after {ElapsedMilliseconds}ms",
+                    context.Request.Method,
+                    context.Request.Path,
+                    timer.ElapsedMilliseconds);
+                throw;
+            }
         });
         return app;
     }

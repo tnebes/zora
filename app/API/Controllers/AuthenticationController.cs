@@ -8,10 +8,10 @@ using zora.Core.Interfaces;
 
 #endregion
 
-namespace zora.Controllers;
+namespace zora.API.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/authentication")]
 [Produces("application/json")]
 [Consumes("application/json")]
 [ProducesResponseType<int>(StatusCodes.Status200OK)]
@@ -31,6 +31,7 @@ public sealed class AuthenticationController : ControllerBase
     [ProducesResponseType<int>(StatusCodes.Status200OK)]
     [ProducesResponseType<string>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<string>(StatusCodes.Status500InternalServerError)]
+    [AllowAnonymous]
     public async Task<IActionResult> Authenticate([FromBody] LoginRequest login)
     {
         try
@@ -59,6 +60,7 @@ public sealed class AuthenticationController : ControllerBase
     }
 
     [HttpGet("check")]
+    [ProducesResponseType<int>(StatusCodes.Status200OK)]
     [Authorize]
     public IActionResult CheckAuthStatus()
     {

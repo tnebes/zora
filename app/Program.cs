@@ -7,14 +7,25 @@ using zora.Extensions;
 #endregion
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+try
+{
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services));
 
-builder.Host.UseSerilog((context, services, configuration) => configuration
-    .ReadFrom.Configuration(context.Configuration)
-    .ReadFrom.Services(services));
+    builder.Services.AddCustomServices(builder.Configuration);
+    WebApplication app = builder.Build();
 
-builder.Services.AddCustomServices(builder.Configuration);
-WebApplication app = builder.Build();
+    IEnvironmentManagerService environmentManager = app.Services.GetRequiredService<IEnvironmentManagerService>();
 
-IEnvironmentManagerService environmentManager = app.Services.GetRequiredService<IEnvironmentManagerService>();
-
-await app.ConfigureApplication(environmentManager).RunAsync();
+    await app.ConfigureApplication(environmentManager).RunAsync();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.Information("Commiting seppuku");
+    Log.CloseAndFlush();
+}

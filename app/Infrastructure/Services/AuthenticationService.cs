@@ -16,8 +16,8 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthenticationService> _logger;
-    private readonly IUserService _userService;
     private readonly ISecretsManagerService _secretsManagerService;
+    private readonly IUserService _userService;
 
     public AuthenticationService(IUserService userService, ILogger<AuthenticationService> logger,
         IConfiguration configuration, ISecretsManagerService secretsManagerService)
@@ -57,7 +57,8 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
             {
                 this._logger.LogWarning("User {UserName} attempted to authenticate while already authenticated",
                     login.Username);
-                throw new InvalidOperationException("User " + login.Username + " attempted to authenticate while already authenticated");
+                throw new InvalidOperationException("User " + login.Username +
+                                                    " attempted to authenticate while already authenticated");
             }
 
             return await this._userService.ValidateUser(login);
@@ -92,7 +93,7 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
             tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken _);
             return true;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             this._logger.LogWarning(ex, "Invalid token provided");
             return false;

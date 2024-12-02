@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {AuthService, LoginResponse} from '../core/services/authentication.service';
+import {AuthenticationService, LoginResponse} from '../core/services/authentication.service';
 import {Router} from '@angular/router';
 
 @Component({
@@ -12,7 +12,7 @@ export class LoginComponent {
   password: string = '';
 
   constructor(
-    private readonly authService: AuthService,
+    private readonly authService: AuthenticationService,
     private readonly router: Router
   ) {
   }

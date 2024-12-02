@@ -3,7 +3,6 @@
 using Microsoft.Data.SqlClient;
 using zora.Core.Attributes;
 using zora.Core.Interfaces;
-using zora.Infrastructure.Services.Configuration;
 using zora.Services.Configuration;
 using Constants = zora.Core.Constants;
 
@@ -18,7 +17,8 @@ public class DbContext : IDbContext
     private readonly ILogger<DbContext> _logger;
     private readonly ISecretsManagerService _secretsManagerService;
 
-    public DbContext(IConfiguration configuration, ILogger<DbContext> logger, ISecretsManagerService secretsManagerService)
+    public DbContext(IConfiguration configuration, ILogger<DbContext> logger,
+        ISecretsManagerService secretsManagerService)
     {
         this._logger = logger;
         this._secretsManagerService = secretsManagerService;
