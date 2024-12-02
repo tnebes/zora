@@ -6,6 +6,10 @@ BEGIN
     DROP DATABASE utakmica;
 END
 
+CREATE DATABASE utakmica;
+
+USE utakmica;
+
 CREATE TABLE klub (
     sifra BIGINT IDENTITY(1,1) PRIMARY KEY,
     naziv VARCHAR(255) NOT NULL,
