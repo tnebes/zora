@@ -12,6 +12,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
+        builder.ToTable("zora_users");
+
         builder.HasKey(u => u.Id);
 
         builder.Property(u => u.Username)
@@ -32,7 +34,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email)
             .IsUnique();
 
-        // Many-to-many relationship with roles
+        builder.Ignore(u => u.AssignedWorkItems);
+        builder.Ignore(u => u.CreatedWorkItems);
+        builder.Ignore(u => u.UpdatedWorkItems);
+
         builder.HasMany(u => u.Roles)
             .WithMany(r => r.Users)
             .UsingEntity(
@@ -53,7 +58,6 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
             .IsRequired()
             .HasMaxLength(255);
 
-        // Many-to-many relationship with permissions
         builder.HasMany(r => r.Permissions)
             .WithMany(p => p.Roles)
             .UsingEntity(

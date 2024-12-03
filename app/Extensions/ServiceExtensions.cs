@@ -231,7 +231,8 @@ public static class ServiceExtensions
             string? connectionString = configuration[Constants.ConnectionStringKey];
             if (string.IsNullOrEmpty(connectionString))
             {
-                Log.Error("{KeyName} not found in configuration. Use dotnet user-secrets.", Constants.ConnectionStringKey);
+                Log.Error("{KeyName} not found in configuration. Use dotnet user-secrets.",
+                    Constants.ConnectionStringKey);
                 throw new InvalidOperationException(
                     $"Database connection string {Constants.ConnectionStringKey} not found in configuration. Use dotnet user-secrets.");
             }
@@ -239,9 +240,9 @@ public static class ServiceExtensions
             options.UseSqlServer(connectionString, sqlOptions =>
             {
                 sqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 3,
-                    maxRetryDelay: TimeSpan.FromSeconds(3),
-                    errorNumbersToAdd: null);
+                    3,
+                    TimeSpan.FromSeconds(3),
+                    null);
             });
 
 #if DEBUG

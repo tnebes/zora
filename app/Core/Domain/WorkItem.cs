@@ -21,7 +21,7 @@ public abstract class WorkItem : BaseEntity
     public long? UpdatedById { get; set; }
     public User? UpdatedBy { get; set; }
     public ICollection<Permission> Permissions { get; set; } = new List<Permission>();
-    public ICollection<Asset> Assets { get; set; } = new List<Asset>();
+    public virtual ICollection<Asset> Assets { get; set; } = new List<Asset>();
     public ICollection<WorkItemRelationship> SourceRelationships { get; set; } = new List<WorkItemRelationship>();
     public ICollection<WorkItemRelationship> TargetRelationships { get; set; } = new List<WorkItemRelationship>();
 }

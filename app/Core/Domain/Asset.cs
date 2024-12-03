@@ -12,5 +12,5 @@ public class Asset : BaseEntity
     public DateTime? UpdatedAt { get; set; }
     public long? UpdatedById { get; set; }
     public User? UpdatedBy { get; set; }
-    public ICollection<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
+    public virtual ICollection<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
 }

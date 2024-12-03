@@ -8,7 +8,7 @@ using zora.Core.Domain;
 
 namespace zora.Infrastructure.EntityConfigurations;
 
-public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
+public class WorkItemConfigurations : IEntityTypeConfiguration<WorkItem>
 {
     public void Configure(EntityTypeBuilder<WorkItem> builder)
     {
@@ -40,7 +40,6 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
         builder.Property(w => w.ActualHours)
             .HasColumnType("decimal(10,2)");
 
-        // User relationships
         builder.HasOne(w => w.Assignee)
             .WithMany()
             .HasForeignKey(w => w.AssigneeId)
@@ -63,10 +62,23 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
 
         builder.HasMany(w => w.Permissions)
             .WithMany()
-            .UsingEntity(
+            .UsingEntity<Dictionary<string, object>>(
                 "zora_permission_work_items",
-                l => l.HasOne(typeof(Permission)).WithMany().HasForeignKey("permission_id"),
-                r => r.HasOne(typeof(WorkItem)).WithMany().HasForeignKey("work_item_id")
+                j => j
+                    .HasOne<Permission>()
+                    .WithMany()
+                    .HasForeignKey("permission_id")
+                    .OnDelete(DeleteBehavior.Cascade),
+                j => j
+                    .HasOne<WorkItem>()
+                    .WithMany()
+                    .HasForeignKey("work_item_id")
+                    .OnDelete(DeleteBehavior.Cascade),
+                j =>
+                {
+                    j.HasKey("permission_id", "work_item_id");
+                    j.ToTable("zora_permission_work_items");
+                }
             );
 
         builder.HasMany(w => w.Assets)
