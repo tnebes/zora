@@ -12,7 +12,13 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
 {
     public void Configure(EntityTypeBuilder<WorkItem> builder)
     {
+        builder.ToTable("zora_work_items");
+
         builder.HasKey(w => w.Id);
+
+        builder.Property(w => w.Type)
+            .IsRequired()
+            .HasMaxLength(50);
 
         builder.Property(w => w.Name)
             .IsRequired()
@@ -34,6 +40,7 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
         builder.Property(w => w.ActualHours)
             .HasColumnType("decimal(10,2)");
 
+        // User relationships
         builder.HasOne(w => w.Assignee)
             .WithMany()
             .HasForeignKey(w => w.AssigneeId)
@@ -48,6 +55,11 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
             .WithMany()
             .HasForeignKey(w => w.UpdatedById)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasDiscriminator(w => w.Type)
+            .HasValue<ZoraProgram>("Program")
+            .HasValue<Project>("Project")
+            .HasValue<ZoraTask>("Task");
 
         builder.HasMany(w => w.Permissions)
             .WithMany()
@@ -65,14 +77,7 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
                 r => r.HasOne(typeof(WorkItem)).WithMany().HasForeignKey("work_item_id")
             );
 
-        builder.HasMany(w => w.SourceRelationships)
-            .WithOne(r => r.SourceItem)
-            .HasForeignKey(r => r.SourceItemId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(w => w.TargetRelationships)
-            .WithOne(r => r.TargetItem)
-            .HasForeignKey(r => r.TargetItemId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Ignore(w => w.SourceRelationships);
+        builder.Ignore(w => w.TargetRelationships);
     }
 }
