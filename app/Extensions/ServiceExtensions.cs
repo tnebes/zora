@@ -5,12 +5,14 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Interfaces;
+using zora.Infrastructure.Data;
 
 #endregion
 
@@ -26,6 +28,7 @@ public static class ServiceExtensions
             .AddZoraCors()
             .AddZoraAuthenticationAndAuthorisation(configuration)
             .AddZoraLogging()
+            .AddZoraDbContext(configuration)
             .AddZoraServices();
     }
 
@@ -218,6 +221,38 @@ public static class ServiceExtensions
     private static IServiceCollection AddZoraLogging(this IServiceCollection services)
     {
         services.AddHttpLogging(logging => logging.LoggingFields = HttpLoggingFields.All);
+        return services;
+    }
+
+    private static IServiceCollection AddZoraDbContext(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            string? connectionString = configuration[Constants.ConnectionStringKey];
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                Log.Error("{KeyName} not found in configuration. Use dotnet user-secrets.", Constants.ConnectionStringKey);
+                throw new InvalidOperationException(
+                    $"Database connection string {Constants.ConnectionStringKey} not found in configuration. Use dotnet user-secrets.");
+            }
+
+            options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(3),
+                    errorNumbersToAdd: null);
+            });
+
+#if DEBUG
+            options.EnableSensitiveDataLogging();
+            options.EnableDetailedErrors();
+#endif
+        });
+
+        services.AddScoped<IDbContext>(provider =>
+            provider.GetRequiredService<ApplicationDbContext>());
+
         return services;
     }
 }

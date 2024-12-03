@@ -12,20 +12,39 @@
             <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
           </li>
 
-          <!-- Show Login when not authenticated -->
           <li *ngIf="!isAuthenticated" class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark" [routerLink]="['/login']">Login</a>
+            <a class="nav-link text-dark primary" [routerLink]="['/login']">Login</a>
           </li>
 
-          <!-- Show Logout when authenticated -->
-          <li *ngIf="isAuthenticated" class="nav-item">
-            <a class="nav-link text-dark" href="#" (click)="$event.preventDefault(); logout()">Logout</a>
-          </li>
+          <ng-container *ngIf="isAuthenticated">
+            <li class="nav-item" [routerLinkActive]="['link-active']">
+              <a class="nav-link text-dark" [routerLink]="['/programs']">Programs</a>
+            </li>
 
-          <!-- Protected routes visible only when authenticated -->
-          <li *ngIf="isAuthenticated" class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark" [routerLink]="['/fetch-data']">Fetch data</a>
-          </li>
+            <li class="nav-item" [routerLinkActive]="['link-active']">
+              <a class="nav-link text-dark" [routerLink]="['/projects']">Projects</a>
+            </li>
+
+            <li class="nav-item" [routerLinkActive]="['link-active']">
+              <a class="nav-link text-dark" [routerLink]="['/tasks']">Tasks</a>
+            </li>
+
+            <li class="nav-item" [routerLinkActive]="['link-active']">
+              <a class="nav-link text-dark" [routerLink]="['/control-panel']">Control Panel</a>
+            </li>
+
+            <li class="nav-item" [routerLinkActive]="['link-active']">
+              <a class="nav-link text-dark" [routerLink]="['/users']">Profile</a>
+            </li>
+
+            <li class="nav-item" [routerLinkActive]="['link-active']">
+              <a class="nav-link text-dark" [routerLink]="['/users']">Users</a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link text-dark" href="#" (click)="$event.preventDefault(); logout()">Logout</a>
+            </li>
+          </ng-container>
         </ul>
       </div>
     </div>

@@ -33,6 +33,8 @@ export class AuthenticationService {
       `${Constants.TOKEN}`,
       loginRequest,
       {headers}
+    ).pipe(
+      tap(() => this.setAuthState(true))
     );
   }
 

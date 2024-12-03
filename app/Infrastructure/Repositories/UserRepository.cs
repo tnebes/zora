@@ -1,56 +1,92 @@
 #region
 
-using Dapper;
-using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.Interfaces;
+using zora.Infrastructure.Data;
 
 #endregion
 
 namespace zora.Infrastructure.Repositories;
 
 [ServiceLifetime(ServiceLifetime.Scoped)]
-public class UserRepository : IUserRepository
+public class UserRepository : BaseRepository<User>, IUserRepository
 {
-    private readonly IDbContext _dbContext;
-    private readonly ILogger<UserRepository> _logger;
-
-    public UserRepository(IDbContext dbContext, ILogger<UserRepository> logger)
+    public UserRepository(
+        ApplicationDbContext dbContext,
+        ILogger<UserRepository> logger)
+        : base(dbContext, logger)
     {
-        this._dbContext = dbContext;
-        this._logger = logger;
     }
 
     public async Task<User> GetUserByUsernameAsync(string username)
     {
         try
         {
-            const string query = """
-                                                 SELECT id AS Id,
-                                                        username AS Username,
-                                                        password AS Password,
-                                                        email AS Email,
-                                                        created_at AS CreatedAt
-                                                 FROM zora_users
-                                                 WHERE username = @Username
-                                 """;
-
-            await using SqlConnection connection = await this._dbContext.CreateConnectionAsync();
-            return await connection.QueryFirstOrDefaultAsync<User>(query, new { Username = username })
+            return await this.DbSet
+                       .FirstOrDefaultAsync(u => u.Username == username)
                    ?? throw new KeyNotFoundException($"User with username '{username}' not found.");
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Error retrieving user by username {Username}", username);
+            this.Logger.LogError(ex, "Error retrieving user by username {Username}", username);
             throw;
         }
     }
 
-    public Task<User> GetUserByEmailAsync(string email) => throw new NotImplementedException();
+    public async Task<User> GetUserByEmailAsync(string email)
+    {
+        try
+        {
+            return await this.DbSet
+                       .FirstOrDefaultAsync(u => u.Email == email)
+                   ?? throw new KeyNotFoundException($"User with email '{email}' not found.");
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error retrieving user by email {Email}", email);
+            throw;
+        }
+    }
 
-    public Task<bool> ValidateUserCredentialsAsync(string username, string password) =>
-        throw new NotImplementedException();
+    public async Task<bool> ValidateUserCredentialsAsync(string username, string password)
+    {
+        try
+        {
+            User? user = await this.DbSet
+                .FirstOrDefaultAsync(u => u.Username == username);
 
-    public Task<User> GetUserByIdAsync(long id) => throw new NotImplementedException();
+            // Note: You should implement proper password hashing here
+            return user?.Password == password;
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error validating credentials for username {Username}", username);
+            throw;
+        }
+    }
+
+    public async Task<User> GetUserByIdAsync(long id)
+    {
+        try
+        {
+            return await this.DbSet
+                       .Include(u => u.Roles)
+                       .ThenInclude(r => r.Permissions)
+                       .FirstOrDefaultAsync(u => u.Id == id)
+                   ?? throw new KeyNotFoundException($"User with ID '{id}' not found.");
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error retrieving user by ID {Id}", id);
+            throw;
+        }
+    }
+
+    public Task<IEnumerable<User>> GetUsersWithRolesAsync() => throw new NotImplementedException();
+
+    public Task<bool> IsUsernameUniqueAsync(string username) => throw new NotImplementedException();
+
+    public Task<bool> IsEmailUniqueAsync(string email) => throw new NotImplementedException();
 }

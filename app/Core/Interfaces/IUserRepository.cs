@@ -12,4 +12,7 @@ public interface IUserRepository : IZoraService
     Task<User> GetUserByEmailAsync(string email);
     Task<bool> ValidateUserCredentialsAsync(string username, string password);
     Task<User> GetUserByIdAsync(long id);
+    Task<IEnumerable<User>> GetUsersWithRolesAsync();
+    Task<bool> IsUsernameUniqueAsync(string username);
+    Task<bool> IsEmailUniqueAsync(string email);
 }

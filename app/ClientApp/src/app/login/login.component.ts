@@ -12,17 +12,17 @@ export class LoginComponent {
   password: string = '';
 
   constructor(
-    private readonly authService: AuthenticationService,
+    private readonly authenticationService: AuthenticationService,
     private readonly router: Router
   ) {
   }
 
   public onLogin(): void {
-    const token: string = this.authService.getToken();
-    this.authService.login(this.username, this.password, token)
+    const token: string = this.authenticationService.getToken();
+    this.authenticationService.login(this.username, this.password, token)
       .subscribe({
         next: (response: LoginResponse) => {
-          this.authService.saveToken(response.token);
+          this.authenticationService.saveToken(response.token);
           this.router.navigate(['/'], {replaceUrl: true});
         },
         error: (error: Error) => {

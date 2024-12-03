@@ -16,7 +16,8 @@ try
     builder.Services.AddCustomServices(builder.Configuration);
     WebApplication app = builder.Build();
 
-    IEnvironmentManagerService environmentManager = app.Services.GetRequiredService<IEnvironmentManagerService>();
+    IEnvironmentManagerService environmentManager =
+        app.Services.GetRequiredService<IEnvironmentManagerService>();
 
     await app.ConfigureApplication(environmentManager).RunAsync();
 }
