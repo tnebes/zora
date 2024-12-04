@@ -237,6 +237,7 @@ public static class ServiceExtensions
                     $"Database connection string {Constants.ConnectionStringKey} not found in configuration. Use dotnet user-secrets.");
             }
 
+            options.UseLazyLoadingProxies();
             options.UseSqlServer(connectionString, sqlOptions =>
             {
                 sqlOptions.EnableRetryOnFailure(

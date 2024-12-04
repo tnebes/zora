@@ -12,7 +12,6 @@ public class AssetDto
     public string? UpdatedByUsername { get; set; }
 }
 
-// src/Core/DTOs/AssetWithWorkItemsDto.cs
 public class AssetWithWorkItemsDto : AssetDto
 {
     public ICollection<WorkItemDto> WorkItems { get; set; } = new List<WorkItemDto>();

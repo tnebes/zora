@@ -45,7 +45,15 @@ public class ApplicationDbContext : DbContext, IDbContext
 
         if (connection.State != ConnectionState.Open)
         {
-            await connection.OpenAsync();
+            try
+            {
+                await connection.OpenAsync();
+            }
+            catch (SqlException ex)
+            {
+                this._logger.LogError(ex, "Failed to open database connection");
+                throw;
+            }
         }
 
         return connection;
@@ -59,13 +67,15 @@ public class ApplicationDbContext : DbContext, IDbContext
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                this._logger.LogError("Database connection string {KeyName} not found in secrets.",
-                    Constants.ConnectionStringKey);
-                throw new InvalidOperationException(
-                    $"Database connection string {Constants.ConnectionStringKey} not found in secrets.");
+                const string errorMessage = "Database connection string {KeyName} not found in secrets.";
+                this._logger.LogError(errorMessage, Constants.ConnectionStringKey);
+                throw new InvalidOperationException(string.Format(errorMessage, Constants.ConnectionStringKey));
             }
 
-            optionsBuilder.UseSqlServer(connectionString);
+            optionsBuilder
+                .UseSqlServer(connectionString)
+                .EnableSensitiveDataLogging()
+                .EnableDetailedErrors();
         }
     }
 
@@ -73,6 +83,14 @@ public class ApplicationDbContext : DbContext, IDbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        ApplicationDbContext.ConfigureTableNames(modelBuilder);
+        ApplicationDbContext.ConfigureIndexes(modelBuilder);
+    }
+
+    private static void ConfigureTableNames(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<User>().ToTable("zora_users");
         modelBuilder.Entity<Role>().ToTable("zora_roles");
         modelBuilder.Entity<Permission>().ToTable("zora_permissions");
@@ -82,13 +100,22 @@ public class ApplicationDbContext : DbContext, IDbContext
         modelBuilder.Entity<ZoraTask>().ToTable("zora_tasks");
         modelBuilder.Entity<Asset>().ToTable("assets");
         modelBuilder.Entity<WorkItemRelationship>().ToTable("zora_work_item_relationships");
+    }
+
+    private static void ConfigureIndexes(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<WorkItem>()
+            .HasIndex(w => w.Type)
+            .HasDatabaseName("IX_WorkItem_Types");
 
         modelBuilder.Entity<WorkItem>()
-            .HasDiscriminator(w => w.Type)
-            .HasValue<ZoraProgram>("Program")
-            .HasValue<Project>("Project")
-            .HasValue<ZoraTask>("Task");
+            .HasIndex(w => w.Status)
+            .HasDatabaseName("IX_WorkItem_Statuses");
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        modelBuilder.Entity<WorkItem>()
+            .HasIndex(w => w.AssigneeId)
+            .HasDatabaseName("IX_WorkItem_AssigneeIds");
+
+        // TODO add other indices
     }
 }

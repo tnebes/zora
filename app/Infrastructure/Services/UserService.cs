@@ -30,7 +30,7 @@ public sealed class UserService : IUserService
                 return false;
             }
 
-            User? user = await this._userRepository.GetUserByUsernameAsync(login.Username);
+            User? user = await this._userRepository.GetByUsernameAsync(login.Username);
             if (user == null)
             {
                 return false;
