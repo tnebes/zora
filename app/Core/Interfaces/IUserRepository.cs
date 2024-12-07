@@ -6,7 +6,7 @@ using zora.Core.Domain;
 
 namespace zora.Core.Interfaces;
 
-public interface IUserRepository : IZoraService
+public interface IUserRepository
 {
     Task<User?> GetByIdAsync(long id);
     Task<User?> GetByUsernameAsync(string username);

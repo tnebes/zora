@@ -33,16 +33,23 @@ public class AuthorisationController : ControllerBase, IZoraService
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> IsAuthorised([FromBody] PermissionRequestDto? permissionRequest)
     {
-        ValidationResult validationResult =
-            this._authorisationService.ValidateRequestAndClaims(permissionRequest, this.User);
-
-        if (!validationResult.IsValid)
+        try
         {
-            return this.StatusCode(validationResult.StatusCode, validationResult.ErrorMessage);
+            ValidationResult validationResult =
+                this._authorisationService.ValidateRequestAndClaims(permissionRequest, this.User);
+
+            if (!validationResult.IsValid)
+            {
+                return this.StatusCode(validationResult.StatusCode, validationResult.ErrorMessage);
+            }
+
+            bool isAuthorised = await this._authorisationService.IsAuthorisedAsync(permissionRequest);
+
+            return isAuthorised ? this.Ok() : this.Forbid();
+        } catch (Exception ex)
+        {
+            this._logger.LogError(ex, "An error occurred while checking authorisation");
+            return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
-
-        bool isAuthorised = await this._authorisationService.IsAuthorisedAsync(permissionRequest);
-
-        return isAuthorised ? this.Ok() : this.Forbid();
     }
 }

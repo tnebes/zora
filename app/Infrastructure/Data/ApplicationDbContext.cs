@@ -14,7 +14,7 @@ using zora.Services.Configuration;
 namespace zora.Infrastructure.Data;
 
 [ServiceLifetime(ServiceLifetime.Scoped)]
-public class ApplicationDbContext : DbContext, IDbContext
+public class ApplicationDbContext : DbContext, IDbContext, IZoraService
 {
     private readonly ILogger<ApplicationDbContext> _logger;
     private readonly ISecretsManagerService _secretsManagerService;
@@ -115,7 +115,5 @@ public class ApplicationDbContext : DbContext, IDbContext
         modelBuilder.Entity<WorkItem>()
             .HasIndex(w => w.AssigneeId)
             .HasDatabaseName("IX_WorkItem_AssigneeIds");
-
-        // TODO add other indices
     }
 }

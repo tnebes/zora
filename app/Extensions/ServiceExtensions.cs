@@ -22,7 +22,8 @@ public static class ServiceExtensions
 {
     public static IServiceCollection AddCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
-        return services.AddZoraControllers()
+        return services.AddCache()
+            .AddZoraControllers()
             .AddEndpointsApiExplorer()
             .AddSwaggerServices()
             .AddZoraCors()
@@ -255,6 +256,12 @@ public static class ServiceExtensions
         services.AddScoped<IDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
 
+        return services;
+    }
+
+    private static IServiceCollection AddCache(this IServiceCollection services)
+    {
+        services.AddMemoryCache();
         return services;
     }
 }

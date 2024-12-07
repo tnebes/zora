@@ -9,7 +9,7 @@ using zora.Infrastructure.Data;
 
 namespace zora.Infrastructure.Repositories;
 
-public class UserRoleRepository : BaseCompositeRepository<UserRole>, IUserRoleRepository
+public class UserRoleRepository : BaseCompositeRepository<UserRole>, IUserRoleRepository, IZoraService
 {
     public UserRoleRepository(
         ApplicationDbContext dbContext,

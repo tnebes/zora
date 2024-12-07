@@ -6,7 +6,7 @@ using zora.Core.DTOs;
 
 namespace zora.Core.Interfaces;
 
-public interface IUserService : IZoraService
+public interface IUserService
 {
     Task<bool> ValidateUser(LoginRequestDto login);
 }

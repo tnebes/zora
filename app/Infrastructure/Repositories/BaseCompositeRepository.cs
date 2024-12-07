@@ -3,6 +3,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using zora.Core.Domain;
+using zora.Core.Interfaces;
 using zora.Infrastructure.Data;
 
 #endregion
@@ -13,9 +14,9 @@ public abstract class BaseCompositeRepository<T> where T : BaseCompositeEntity
 {
     protected readonly ApplicationDbContext DbContext;
     protected readonly DbSet<T> DbSet;
-    protected readonly ILogger Logger;
+    protected readonly ILogger<BaseCompositeRepository<T>> Logger;
 
-    protected BaseCompositeRepository(ApplicationDbContext dbContext, ILogger logger)
+    protected BaseCompositeRepository(ApplicationDbContext dbContext, ILogger<BaseCompositeRepository<T>> logger)
     {
         this.DbContext = dbContext;
         this.DbSet = dbContext.Set<T>();

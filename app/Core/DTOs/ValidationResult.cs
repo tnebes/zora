@@ -1,8 +1,14 @@
 namespace zora.Core.DTOs;
 
-public sealed class ValidationResult
+public class ValidationResult
 {
-    public bool IsValid { get; set; }
-    public string? ErrorMessage { get; set; }
-    public int StatusCode { get; set; }
+    public bool IsValid { get; private set; }
+    public string? ErrorMessage { get; private set; }
+    public int StatusCode { get; private set; }
+
+    public static ValidationResult Success() =>
+        new() { IsValid = true };
+
+    public static ValidationResult Fail(string message, int statusCode) =>
+        new() { IsValid = false, ErrorMessage = message, StatusCode = statusCode };
 }

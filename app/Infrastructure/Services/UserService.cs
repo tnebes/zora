@@ -10,7 +10,7 @@ using zora.Core.Interfaces;
 namespace zora.Infrastructure.Services;
 
 [ServiceLifetime(ServiceLifetime.Scoped)]
-public sealed class UserService : IUserService
+public sealed class UserService : IUserService, IZoraService
 {
     private readonly ILogger<UserService> _logger;
     private readonly IUserRepository _userRepository;
