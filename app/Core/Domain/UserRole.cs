@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace zora.Core.Domain;
 
 [Table("zora_user_roles")]
-public class UserRole
+public class UserRole : BaseCompositeEntity
 {
     [Column("user_id")] public long UserId { get; set; }
 

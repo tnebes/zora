@@ -63,13 +63,13 @@ public class ApplicationDbContext : DbContext, IDbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            string? connectionString = this._secretsManagerService.GetSecret(Constants.ConnectionStringKey);
+            string? connectionString = this._secretsManagerService.GetSecret(Constants.CONNECTION_STRING_KEY);
 
             if (string.IsNullOrEmpty(connectionString))
             {
                 const string errorMessage = "Database connection string {KeyName} not found in secrets.";
-                this._logger.LogError(errorMessage, Constants.ConnectionStringKey);
-                throw new InvalidOperationException(string.Format(errorMessage, Constants.ConnectionStringKey));
+                this._logger.LogError(errorMessage, Constants.CONNECTION_STRING_KEY);
+                throw new InvalidOperationException(string.Format(errorMessage, Constants.CONNECTION_STRING_KEY));
             }
 
             optionsBuilder

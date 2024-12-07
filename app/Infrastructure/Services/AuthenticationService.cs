@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using zora.Core;
+using zora.Core.Attributes;
 using zora.Core.DTOs;
 using zora.Core.Interfaces;
 using zora.Services.Configuration;
@@ -12,6 +13,7 @@ using zora.Services.Configuration;
 
 namespace zora.Infrastructure.Services;
 
+[ServiceLifetime(ServiceLifetime.Scoped)]
 public sealed class AuthenticationService : IAuthenticationService, IZoraService
 {
     private readonly IConfiguration _configuration;
@@ -31,7 +33,7 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
     public string GetJwt()
     {
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-        string? issuerSigningKey = this._secretsManagerService.GetSecret(Constants.IssuerSigningKey);
+        string? issuerSigningKey = this._secretsManagerService.GetSecret(Constants.ISSUER_SIGNING_KEY);
         byte[] key = Encoding.UTF8.GetBytes(issuerSigningKey);
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -46,10 +48,10 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
         return jwt;
     }
 
-    public bool IsValidLoginRequest(LoginRequest login) =>
+    public bool IsValidLoginRequest(LoginRequestDto login) =>
         !string.IsNullOrWhiteSpace(login.Username) && !string.IsNullOrWhiteSpace(login.Password);
 
-    public async Task<bool> AuthenticateUser(LoginRequest login)
+    public async Task<bool> AuthenticateUser(LoginRequestDto login)
     {
         try
         {
@@ -78,7 +80,7 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
         }
 
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-        string? issuerSigningKey = this._secretsManagerService.GetSecret(Constants.IssuerSigningKey);
+        string? issuerSigningKey = this._secretsManagerService.GetSecret(Constants.ISSUER_SIGNING_KEY);
         byte[] key = Encoding.UTF8.GetBytes(issuerSigningKey);
         TokenValidationParameters tokenValidationParameters = new()
         {

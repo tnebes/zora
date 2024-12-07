@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace zora.Core.Domain;
 
 [Table("zora_permission_work_items")]
-public class PermissionWorkItem : BaseEntity
+public class PermissionWorkItem : BaseCompositeEntity
 {
     [Column("permission_id")] public long PermissionId { get; set; }
 

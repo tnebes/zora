@@ -32,7 +32,7 @@ public sealed class AuthenticationController : ControllerBase
     [ProducesResponseType<string>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<string>(StatusCodes.Status500InternalServerError)]
     [AllowAnonymous]
-    public async Task<IActionResult> Authenticate([FromBody] LoginRequest login)
+    public async Task<IActionResult> Authenticate([FromBody] LoginRequestDto login)
     {
         try
         {
@@ -55,7 +55,7 @@ public sealed class AuthenticationController : ControllerBase
         catch (Exception e)
         {
             this._logger.LogError(e, "Error authenticating user.");
-            return this.StatusCode(500, Constants.Error500Message);
+            return this.StatusCode(500, Constants.ERROR_500_MESSAGE);
         }
     }
 
@@ -71,7 +71,7 @@ public sealed class AuthenticationController : ControllerBase
         catch (Exception e)
         {
             this._logger.LogError(e, "Error checking authentication status.");
-            return this.StatusCode(500, Constants.Error500Message);
+            return this.StatusCode(500, Constants.ERROR_500_MESSAGE);
         }
     }
 }

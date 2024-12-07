@@ -8,5 +8,5 @@ namespace zora.Core.Interfaces;
 
 public interface IUserService : IZoraService
 {
-    Task<bool> ValidateUser(LoginRequest login);
+    Task<bool> ValidateUser(LoginRequestDto login);
 }

@@ -9,8 +9,8 @@ namespace zora.Core.Interfaces;
 public interface IAuthenticationService
 {
     string GetJwt();
-    bool IsValidLoginRequest(LoginRequest login);
+    bool IsValidLoginRequest(LoginRequestDto login);
 
-    Task<bool> AuthenticateUser(LoginRequest login);
+    Task<bool> AuthenticateUser(LoginRequestDto login);
     bool isAuthenticated(string token);
 }

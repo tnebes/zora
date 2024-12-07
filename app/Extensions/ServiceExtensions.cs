@@ -82,12 +82,12 @@ public static class ServiceExtensions
                 {
                     Name = "Tomislav Nebes",
                     Email = "tnebes@draucode.com",
-                    Url = new Uri(Constants.ZoraUrl)
+                    Url = new Uri(Constants.ZORA_URL)
                 },
                 License = new OpenApiLicense
                 {
                     Name = "Educational License",
-                    Url = new Uri(Constants.ZoraUrl)
+                    Url = new Uri(Constants.ZORA_URL)
                 }
             };
 
@@ -146,14 +146,14 @@ public static class ServiceExtensions
             })
             .AddJwtBearer(options =>
             {
-                string? issuerSigningKey = configuration[Constants.IssuerSigningKey];
+                string? issuerSigningKey = configuration[Constants.ISSUER_SIGNING_KEY];
 
                 if (string.IsNullOrEmpty(issuerSigningKey))
                 {
                     Log.Error("{KeyName} not found in configuration. Use dotnet user-secrets.",
-                        Constants.IssuerSigningKey);
+                        Constants.ISSUER_SIGNING_KEY);
                     throw new InvalidOperationException(
-                        $"{Constants.IssuerSigningKey} not found in configuration. Use dotnet user-secrets.");
+                        $"{Constants.ISSUER_SIGNING_KEY} not found in configuration. Use dotnet user-secrets.");
                 }
 
                 options.SaveToken = true;
@@ -196,7 +196,7 @@ public static class ServiceExtensions
     {
         static void corsOptions(CorsOptions options)
         {
-            options.AddPolicy(Constants.ZoraCorsPolicyName, builder =>
+            options.AddPolicy(Constants.ZORA_CORS_POLICY_NAME, builder =>
             {
                 builder.WithOrigins(
                         "http://localhost:4200",
@@ -228,13 +228,13 @@ public static class ServiceExtensions
     {
         services.AddDbContext<ApplicationDbContext>(options =>
         {
-            string? connectionString = configuration[Constants.ConnectionStringKey];
+            string? connectionString = configuration[Constants.CONNECTION_STRING_KEY];
             if (string.IsNullOrEmpty(connectionString))
             {
                 Log.Error("{KeyName} not found in configuration. Use dotnet user-secrets.",
-                    Constants.ConnectionStringKey);
+                    Constants.CONNECTION_STRING_KEY);
                 throw new InvalidOperationException(
-                    $"Database connection string {Constants.ConnectionStringKey} not found in configuration. Use dotnet user-secrets.");
+                    $"Database connection string {Constants.CONNECTION_STRING_KEY} not found in configuration. Use dotnet user-secrets.");
             }
 
             options.UseLazyLoadingProxies();

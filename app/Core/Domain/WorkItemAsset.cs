@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace zora.Core.Domain;
 
 [Table("zora_work_item_assets")]
-public class WorkItemAsset
+public class WorkItemAsset : BaseCompositeEntity
 {
     [Column("work_item_id")] public long WorkItemId { get; set; }
 

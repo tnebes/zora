@@ -21,7 +21,7 @@ public sealed class UserService : IUserService
         this._logger = logger;
     }
 
-    public async Task<bool> ValidateUser(LoginRequest login)
+    public async Task<bool> ValidateUser(LoginRequestDto login)
     {
         try
         {
