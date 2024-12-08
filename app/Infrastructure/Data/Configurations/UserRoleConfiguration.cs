@@ -1,6 +1,10 @@
+#region
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using zora.Core.Domain;
+
+#endregion
 
 namespace zora.Infrastructure.Data.Configurations;
 

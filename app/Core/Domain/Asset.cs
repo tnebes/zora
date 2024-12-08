@@ -1,6 +1,5 @@
 #region
 
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 #endregion
@@ -32,6 +31,5 @@ public class Asset : BaseEntity
 
     public virtual ICollection<WorkItemAsset> WorkItemAssets { get; set; } = new List<WorkItemAsset>();
 
-    [NotMapped]
-    public virtual IEnumerable<WorkItem> WorkItems => this.WorkItemAssets.Select(wia => wia.WorkItem);
+    [NotMapped] public virtual IEnumerable<WorkItem> WorkItems => this.WorkItemAssets.Select(wia => wia.WorkItem);
 }

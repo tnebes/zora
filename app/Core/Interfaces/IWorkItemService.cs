@@ -1,5 +1,9 @@
+#region
+
 using zora.Core.Domain;
 using zora.Core.Enums;
+
+#endregion
 
 namespace zora.Core.Interfaces;
 

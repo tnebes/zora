@@ -1,6 +1,5 @@
 #region
 
-using Serilog.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs;

@@ -1,6 +1,10 @@
+#region
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using zora.Core.Domain;
+
+#endregion
 
 namespace zora.Infrastructure.Data.Configurations;
 
@@ -19,16 +23,16 @@ public class AssetConfiguration : IEntityTypeConfiguration<Asset>
             .HasColumnName("name")
             .IsRequired()
             .HasMaxLength(255)
-            .IsUnicode(true);
+            .IsUnicode();
 
         builder.Property(a => a.Description)
             .HasColumnName("description")
-            .IsUnicode(true);
+            .IsUnicode();
 
         builder.Property(a => a.AssetPath)
             .HasColumnName("asset_path")
             .IsRequired()
-            .IsUnicode(true);
+            .IsUnicode();
 
         builder.Property(a => a.CreatedAt)
             .HasColumnName("created_at");

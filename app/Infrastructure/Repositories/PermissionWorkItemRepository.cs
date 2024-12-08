@@ -12,7 +12,8 @@ namespace zora.Infrastructure.Repositories;
 public class PermissionWorkItemRepository : BaseCompositeRepository<PermissionWorkItem>, IPermissionWorkItemRepository,
     IZoraService
 {
-    public PermissionWorkItemRepository(ApplicationDbContext dbContext, ILogger<PermissionWorkItemRepository> logger) : base(dbContext, logger)
+    public PermissionWorkItemRepository(ApplicationDbContext dbContext, ILogger<PermissionWorkItemRepository> logger) :
+        base(dbContext, logger)
     {
     }
 

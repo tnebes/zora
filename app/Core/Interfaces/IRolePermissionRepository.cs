@@ -1,4 +1,8 @@
+#region
+
 using zora.Core.Domain;
+
+#endregion
 
 namespace zora.Core.Interfaces;
 

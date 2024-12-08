@@ -46,7 +46,8 @@ public class AuthorisationController : ControllerBase, IZoraService
             bool isAuthorised = await this._authorisationService.IsAuthorisedAsync(permissionRequest);
 
             return isAuthorised ? this.Ok() : this.Forbid();
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "An error occurred while checking authorisation");
             return this.StatusCode(StatusCodes.Status500InternalServerError);

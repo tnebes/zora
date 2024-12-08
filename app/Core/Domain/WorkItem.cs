@@ -2,10 +2,7 @@ namespace zora.Core.Domain;
 
 public abstract class WorkItem : BaseEntity
 {
-    protected WorkItem()
-    {
-        Type = GetType().Name;
-    }
+    protected WorkItem() => this.Type = this.GetType().Name;
 
     public long Id { get; set; }
 
