@@ -74,7 +74,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             return ValidationResult.Fail("Permission request cannot be null", StatusCodes.Status400BadRequest);
         }
 
-        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userIdClaim == null || !long.TryParse(userIdClaim, out long tokenUserId))
         {
             this._logger.LogWarning("Invalid or missing user ID in token");
@@ -113,7 +113,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
                 continue;
             }
 
-            var permissionRequest = new PermissionRequestDto
+            PermissionRequestDto permissionRequest = new PermissionRequestDto
             {
                 UserId = userId,
                 ResourceId = workItemRequirement.WorkItemId,
@@ -171,7 +171,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             return false;
         }
 
-        var ancestorRequest = new PermissionRequestDto
+        PermissionRequestDto ancestorRequest = new PermissionRequestDto
         {
             UserId = request.UserId,
             ResourceId = ancestor.Id,

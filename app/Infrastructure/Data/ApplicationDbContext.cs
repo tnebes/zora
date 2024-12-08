@@ -7,6 +7,7 @@ using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.Interfaces;
+using zora.Infrastructure.Data.Configurations;
 using zora.Services.Configuration;
 
 #endregion
@@ -82,8 +83,11 @@ public class ApplicationDbContext : DbContext, IDbContext, IZoraService
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<PermissionWorkItem>()
+            .HasKey(p => new { p.PermissionId, p.WorkItemId });
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        this.AddEntityConfigurations(modelBuilder);
 
         ApplicationDbContext.ConfigureTableNames(modelBuilder);
         ApplicationDbContext.ConfigureIndexes(modelBuilder);
@@ -102,8 +106,38 @@ public class ApplicationDbContext : DbContext, IDbContext, IZoraService
         modelBuilder.Entity<WorkItemRelationship>().ToTable("zora_work_item_relationships");
     }
 
+    private void AddEntityConfigurations(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
+        modelBuilder.ApplyConfiguration(new RolePermissionConfiguration());
+        modelBuilder.ApplyConfiguration(new PermissionConfiguration());
+        modelBuilder.ApplyConfiguration(new WorkItemAssetConfiguration());
+        modelBuilder.ApplyConfiguration(new AssetConfiguration());
+        modelBuilder.ApplyConfiguration(new WorkItemConfiguration());
+    }
+
     private static void ConfigureIndexes(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Username)
+            .HasDatabaseName("IX_User_Username");
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .HasDatabaseName("IX_User_Email");
+
+        modelBuilder.Entity<Role>()
+            .HasIndex(r => r.Name)
+            .HasDatabaseName("IX_Role_Name");
+
+        modelBuilder.Entity<Permission>()
+            .HasIndex(p => p.Name)
+            .HasDatabaseName("IX_Permission_Name");
+
+        modelBuilder.Entity<Permission>()
+            .HasIndex(p => p.PermissionString)
+            .HasDatabaseName("IX_Permission_String");
+
         modelBuilder.Entity<WorkItem>()
             .HasIndex(w => w.Type)
             .HasDatabaseName("IX_WorkItem_Types");
@@ -115,5 +149,69 @@ public class ApplicationDbContext : DbContext, IDbContext, IZoraService
         modelBuilder.Entity<WorkItem>()
             .HasIndex(w => w.AssigneeId)
             .HasDatabaseName("IX_WorkItem_AssigneeIds");
+
+        modelBuilder.Entity<WorkItem>()
+            .HasIndex(w => w.Name)
+            .HasDatabaseName("IX_WorkItem_Name");
+
+        modelBuilder.Entity<WorkItem>()
+            .HasIndex(w => w.CreatedById)
+            .HasDatabaseName("IX_WorkItem_CreatedBy");
+
+        modelBuilder.Entity<WorkItem>()
+            .HasIndex(w => w.UpdatedById)
+            .HasDatabaseName("IX_WorkItem_UpdatedBy");
+
+        modelBuilder.Entity<WorkItem>()
+            .HasIndex(w => w.DueDate)
+            .HasDatabaseName("IX_WorkItem_DueDates");
+
+        modelBuilder.Entity<WorkItem>()
+            .HasIndex(w => w.StartDate)
+            .HasDatabaseName("IX_WorkItem_StartDates");
+
+        modelBuilder.Entity<Project>()
+            .HasIndex(p => p.ProjectManagerId)
+            .HasDatabaseName("IX_Project_ProjectManager");
+
+        modelBuilder.Entity<Project>()
+            .HasIndex(p => p.ProgramId)
+            .HasDatabaseName("IX_Project_Program");
+
+        modelBuilder.Entity<ZoraTask>()
+            .HasIndex(t => t.ProjectId)
+            .HasDatabaseName("IX_Task_Project");
+
+        modelBuilder.Entity<ZoraTask>()
+            .HasIndex(t => t.Priority)
+            .HasDatabaseName("IX_Task_Priorities");
+
+        modelBuilder.Entity<ZoraTask>()
+            .HasIndex(t => t.ParentTaskId)
+            .HasDatabaseName("IX_Task_ParentTask");
+
+        modelBuilder.Entity<WorkItemRelationship>()
+            .HasIndex(w => w.RelationshipType)
+            .HasDatabaseName("IX_WorkItemRelationship_RelationshipTypes");
+
+        modelBuilder.Entity<Asset>()
+            .HasIndex(a => a.Name)
+            .HasDatabaseName("IX_Asset_Name");
+
+        modelBuilder.Entity<Asset>()
+            .HasIndex(a => a.CreatedById)
+            .HasDatabaseName("IX_Asset_CreatedBy");
+
+        modelBuilder.Entity<Asset>()
+            .HasIndex(a => a.UpdatedById)
+            .HasDatabaseName("IX_Asset_UpdatedBy");
+
+        modelBuilder.Entity<WorkItemAsset>()
+            .HasIndex(w => w.AssetId)
+            .HasDatabaseName("IX_WorkItemAsset_AssetIds");
+
+        modelBuilder.Entity<WorkItemAsset>()
+            .HasIndex(w => w.WorkItemId)
+            .HasDatabaseName("IX_WorkItemAsset_WorkItemIds");
     }
 }

@@ -1,10 +1,12 @@
 #region
 
+using Serilog.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs;
 using zora.Core.Enums;
 using zora.Core.Interfaces;
+using Constants = zora.Core.Constants;
 
 #endregion
 
@@ -41,6 +43,14 @@ public sealed class PermissionService : IPermissionService, IZoraService
 
             foreach (UserRole userRole in userRoles)
             {
+                if (string.Equals(userRole.Role.Name, Constants.ADMIN, StringComparison.Ordinal))
+                {
+                    this._logger.LogInformation(
+                        "User {UserId} is an administrator and has all permissions",
+                        request.UserId);
+                    return true;
+                }
+
                 IEnumerable<RolePermission> rolePermissions = await this._rolePermissionRepository
                     .GetByRoleIdAsync(userRole.RoleId);
 
