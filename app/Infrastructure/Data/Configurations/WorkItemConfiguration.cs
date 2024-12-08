@@ -12,11 +12,13 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
 {
     public void Configure(EntityTypeBuilder<WorkItem> builder)
     {
+        builder.UseTptMappingStrategy();
+
         builder.ToTable("zora_work_items");
 
         builder.HasKey(w => w.Id);
         builder.Property(w => w.Id)
-            .HasColumnName("id")
+            .HasColumnName("work_item_id")
             .UseIdentityColumn();
 
         builder.Property(w => w.Type)
@@ -33,6 +35,7 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
 
         builder.Property(w => w.Description)
             .HasColumnName("description")
+            .IsRequired(false)
             .IsUnicode();
 
         builder.Property(w => w.Status)
@@ -42,64 +45,68 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
             .IsUnicode();
 
         builder.Property(w => w.StartDate)
-            .HasColumnName("start_date");
+            .HasColumnName("start_date")
+            .IsRequired(false);
 
         builder.Property(w => w.DueDate)
-            .HasColumnName("due_date");
+            .HasColumnName("due_date")
+            .IsRequired(false);
 
         builder.Property(w => w.CompletionPercentage)
             .HasColumnName("completion_percentage")
-            .HasPrecision(5, 2);
+            .HasPrecision(5, 2)
+            .IsRequired(false);
 
         builder.Property(w => w.EstimatedHours)
             .HasColumnName("estimated_hours")
-            .HasPrecision(10, 2);
+            .HasPrecision(10, 2)
+            .IsRequired(false);
 
         builder.Property(w => w.ActualHours)
             .HasColumnName("actual_hours")
-            .HasPrecision(10, 2);
+            .HasPrecision(10, 2)
+            .IsRequired(false);
 
         builder.Property(w => w.CreatedAt)
-            .HasColumnName("created_at");
+            .HasColumnName("created_at")
+            .HasDefaultValueSql("GETDATE()");
 
         builder.Property(w => w.CreatedById)
-            .HasColumnName("created_by");
+            .HasColumnName("created_by")
+            .IsRequired(false);
 
         builder.Property(w => w.UpdatedAt)
-            .HasColumnName("updated_at");
+            .HasColumnName("updated_at")
+            .IsRequired(false);
 
         builder.Property(w => w.UpdatedById)
-            .HasColumnName("updated_by");
+            .HasColumnName("updated_by")
+            .IsRequired(false);
 
         builder.Property(w => w.AssigneeId)
-            .HasColumnName("assignee_id");
+            .HasColumnName("assignee_id")
+            .IsRequired(false);
 
         builder.HasOne(w => w.Assignee)
             .WithMany(u => u.AssignedWorkItems)
             .HasForeignKey(w => w.AssigneeId)
+            .HasConstraintName("FK_WorkItem_User_Assignee")
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(w => w.CreatedBy)
             .WithMany(u => u.CreatedWorkItems)
             .HasForeignKey(w => w.CreatedById)
+            .HasConstraintName("FK_WorkItem_User_CreatedBy")
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(w => w.UpdatedBy)
             .WithMany(u => u.UpdatedWorkItems)
             .HasForeignKey(w => w.UpdatedById)
+            .HasConstraintName("FK_WorkItem_User_UpdatedBy")
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne(w => w.Program)
-            .WithOne()
-            .HasForeignKey<ZoraProgram>(p => p.WorkItemId);
-
-        builder.HasOne(w => w.Project)
-            .WithOne()
-            .HasForeignKey<Project>(p => p.WorkItemId);
-
-        builder.HasOne(w => w.Task)
-            .WithOne()
-            .HasForeignKey<ZoraTask>(t => t.WorkItemId);
 
         builder.HasMany(w => w.SourceRelationships)
             .WithOne(r => r.SourceItem)
@@ -113,10 +120,21 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
 
         builder.HasMany(w => w.WorkItemAssets)
             .WithOne(wia => wia.WorkItem)
-            .HasForeignKey(wia => wia.WorkItemId);
+            .HasForeignKey(wia => wia.WorkItemId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(w => w.PermissionWorkItems)
             .WithOne(pw => pw.WorkItem)
-            .HasForeignKey(pw => pw.WorkItemId);
+            .HasForeignKey(pw => pw.WorkItemId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(w => w.Type)
+            .HasDatabaseName("IX_WorkItem_Types");
+
+        builder.HasIndex(w => w.Status)
+            .HasDatabaseName("IX_WorkItem_Statuses");
+
+        builder.HasIndex(w => w.AssigneeId)
+            .HasDatabaseName("IX_WorkItem_AssigneeIds");
     }
 }

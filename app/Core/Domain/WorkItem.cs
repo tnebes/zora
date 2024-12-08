@@ -1,14 +1,12 @@
-#region
-
-using System.ComponentModel.DataAnnotations.Schema;
-
-#endregion
-
 namespace zora.Core.Domain;
 
-public class WorkItem : BaseEntity
+public abstract class WorkItem : BaseEntity
 {
-    private IEnumerable<Asset>? _assets;
+    protected WorkItem()
+    {
+        Type = GetType().Name;
+    }
+
     public long Id { get; set; }
 
     public string Type { get; set; } = string.Empty;
@@ -16,8 +14,6 @@ public class WorkItem : BaseEntity
     public string Name { get; set; } = string.Empty;
 
     public string? Description { get; set; }
-
-    public long? AssigneeId { get; set; }
 
     public string Status { get; set; } = string.Empty;
 
@@ -39,17 +35,13 @@ public class WorkItem : BaseEntity
 
     public long? UpdatedById { get; set; }
 
+    public long? AssigneeId { get; set; }
+
     public virtual User? Assignee { get; set; }
 
     public virtual User? CreatedBy { get; set; }
 
     public virtual User? UpdatedBy { get; set; }
-
-    public virtual ZoraProgram? Program { get; set; }
-
-    public virtual Project? Project { get; set; }
-
-    public virtual ZoraTask? Task { get; set; }
 
     public virtual ICollection<WorkItemRelationship> SourceRelationships { get; set; } =
         new List<WorkItemRelationship>();
@@ -60,11 +52,4 @@ public class WorkItem : BaseEntity
     public virtual ICollection<WorkItemAsset> WorkItemAssets { get; set; } = new List<WorkItemAsset>();
 
     public virtual ICollection<PermissionWorkItem> PermissionWorkItems { get; set; } = new List<PermissionWorkItem>();
-
-    [NotMapped]
-    public virtual IEnumerable<Asset> Assets
-    {
-        get => this._assets ??= this.WorkItemAssets.Select(wia => wia.Asset);
-        set => this._assets = value;
-    }
 }

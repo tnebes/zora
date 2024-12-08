@@ -15,15 +15,32 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
         builder.ToTable("zora_permissions");
 
         builder.HasKey(p => p.Id);
+        builder.Property(p => p.Id)
+            .HasColumnName("id")
+            .UseIdentityColumn();
 
         builder.Property(p => p.Name)
+            .HasColumnName("name")
             .IsRequired()
-            .HasMaxLength(255);
+            .HasMaxLength(255)
+            .IsUnicode();
+
+        builder.Property(p => p.Description)
+            .HasColumnName("description")
+            .IsUnicode();
 
         builder.Property(p => p.PermissionString)
+            .HasColumnName("permission_string")
             .IsRequired()
-            .HasMaxLength(5);
+            .HasMaxLength(5)
+            .IsFixedLength()
+            .IsUnicode(false); // No need for Unicode for binary digits
 
+        builder.Property(p => p.CreatedAt)
+            .HasColumnName("created_at")
+            .HasDefaultValueSql("GETDATE()");
+
+        // Relationships
         builder.HasMany(p => p.RolePermissions)
             .WithOne(rp => rp.Permission)
             .HasForeignKey(rp => rp.PermissionId)
@@ -34,6 +51,7 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
             .HasForeignKey(pwi => pwi.PermissionId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Constraint for permission string format
         builder.HasCheckConstraint(
             "CHK_Permission_String",
             "permission_string LIKE '[0-1][0-1][0-1][0-1][0-1]'"

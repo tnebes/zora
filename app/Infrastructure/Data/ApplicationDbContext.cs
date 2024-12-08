@@ -83,13 +83,17 @@ public class ApplicationDbContext : DbContext, IDbContext, IZoraService
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<WorkItem>().UseTptMappingStrategy();
+
+        ApplicationDbContext.ConfigureTableNames(modelBuilder);
+
         modelBuilder.Entity<PermissionWorkItem>()
             .HasKey(p => new { p.PermissionId, p.WorkItemId });
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         this.AddEntityConfigurations(modelBuilder);
 
-        ApplicationDbContext.ConfigureTableNames(modelBuilder);
         ApplicationDbContext.ConfigureIndexes(modelBuilder);
     }
 
@@ -114,6 +118,13 @@ public class ApplicationDbContext : DbContext, IDbContext, IZoraService
         modelBuilder.ApplyConfiguration(new WorkItemAssetConfiguration());
         modelBuilder.ApplyConfiguration(new AssetConfiguration());
         modelBuilder.ApplyConfiguration(new WorkItemConfiguration());
+        modelBuilder.ApplyConfiguration(new PermissionWorkItemConfiguration());
+        modelBuilder.ApplyConfiguration(new ProjectConfiguration());
+        modelBuilder.ApplyConfiguration(new RoleConfiguration());
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
+        modelBuilder.ApplyConfiguration(new WorkItemRelationshipConfiguration());
+        modelBuilder.ApplyConfiguration(new ZoraProgramConfiguration());
+        modelBuilder.ApplyConfiguration(new ZoraTaskConfiguration());
     }
 
     private static void ConfigureIndexes(ModelBuilder modelBuilder)

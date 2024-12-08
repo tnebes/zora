@@ -245,7 +245,9 @@ public static class ServiceExtensions
                     3,
                     TimeSpan.FromSeconds(3),
                     null);
-            });
+            }).LogTo(
+                Log.Information, [DbLoggerCategory.Database.Command.Name],
+                LogLevel.Information);
 
 #if DEBUG
             options.EnableSensitiveDataLogging();

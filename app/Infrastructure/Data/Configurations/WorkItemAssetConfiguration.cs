@@ -1,10 +1,6 @@
-#region
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using zora.Core.Domain;
-
-#endregion
 
 namespace zora.Infrastructure.Data.Configurations;
 
@@ -12,7 +8,17 @@ public class WorkItemAssetConfiguration : IEntityTypeConfiguration<WorkItemAsset
 {
     public void Configure(EntityTypeBuilder<WorkItemAsset> builder)
     {
+        builder.ToTable("zora_work_item_assets");
+
         builder.HasKey(wia => new { wia.WorkItemId, wia.AssetId });
+
+        builder.Property(wia => wia.WorkItemId)
+            .HasColumnName("work_item_id")
+            .IsRequired();
+
+        builder.Property(wia => wia.AssetId)
+            .HasColumnName("asset_id")
+            .IsRequired();
 
         builder.HasOne(wia => wia.WorkItem)
             .WithMany(wi => wi.WorkItemAssets)

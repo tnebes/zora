@@ -56,7 +56,7 @@ CREATE TABLE zora_role_permissions (
 );
 
 CREATE TABLE zora_work_items (
-    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    work_item_id BIGINT IDENTITY(1,1) PRIMARY KEY,
     type VARCHAR(50) NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -81,21 +81,21 @@ CREATE TABLE zora_permission_work_items (
     work_item_id BIGINT,
     PRIMARY KEY (permission_id, work_item_id),
     FOREIGN KEY (permission_id) REFERENCES zora_permissions(id),
-    FOREIGN KEY (work_item_id) REFERENCES zora_work_items(id)
+    FOREIGN KEY (work_item_id) REFERENCES zora_work_items(work_item_id)
 );
 
 CREATE TABLE zora_programs (
     work_item_id BIGINT PRIMARY KEY,
     description TEXT,
-    FOREIGN KEY (work_item_id) REFERENCES zora_work_items(id)
+    FOREIGN KEY (work_item_id) REFERENCES zora_work_items(work_item_id)
 );
 
 CREATE TABLE zora_projects (
     work_item_id BIGINT PRIMARY KEY,
     program_id BIGINT,
     project_manager_id BIGINT,
-    FOREIGN KEY (work_item_id) REFERENCES zora_work_items(id),
-    FOREIGN KEY (program_id) REFERENCES zora_work_items(id),
+    FOREIGN KEY (work_item_id) REFERENCES zora_work_items(work_item_id),
+    FOREIGN KEY (program_id) REFERENCES zora_work_items(work_item_id),
     FOREIGN KEY (project_manager_id) REFERENCES zora_users (id)
 );
 
@@ -104,9 +104,9 @@ CREATE TABLE zora_tasks (
     project_id BIGINT,
     priority VARCHAR(50),
     parent_task_id BIGINT,
-    FOREIGN KEY (work_item_id) REFERENCES zora_work_items(id),
-    FOREIGN KEY (project_id) REFERENCES zora_work_items(id),
-    FOREIGN KEY (parent_task_id) REFERENCES zora_work_items(id)
+    FOREIGN KEY (work_item_id) REFERENCES zora_work_items(work_item_id),
+    FOREIGN KEY (project_id) REFERENCES zora_work_items(work_item_id),
+    FOREIGN KEY (parent_task_id) REFERENCES zora_work_items(work_item_id)
 );
 
 CREATE TABLE zora_work_item_relationships (
@@ -115,8 +115,8 @@ CREATE TABLE zora_work_item_relationships (
     target_item_id BIGINT,
     relationship_type VARCHAR(50),
     created_at DATETIME2 DEFAULT GETDATE(),
-    FOREIGN KEY (source_item_id) REFERENCES zora_work_items(id),
-    FOREIGN KEY (target_item_id) REFERENCES zora_work_items(id)
+    FOREIGN KEY (source_item_id) REFERENCES zora_work_items(work_item_id),
+    FOREIGN KEY (target_item_id) REFERENCES zora_work_items(work_item_id)
 );
 
 CREATE TABLE assets (
@@ -136,7 +136,7 @@ CREATE TABLE zora_work_item_assets (
     work_item_id BIGINT,
     asset_id BIGINT,
     PRIMARY KEY (work_item_id, asset_id),
-    FOREIGN KEY (work_item_id) REFERENCES zora_work_items(id),
+    FOREIGN KEY (work_item_id) REFERENCES zora_work_items(work_item_id),
     FOREIGN KEY (asset_id) REFERENCES assets(id)
 );
 
@@ -177,5 +177,3 @@ INSERT INTO zora_user_roles (user_id, role_id)
    SELECT u.id, r.id
       FROM zora_users u, zora_roles r
       WHERE u.username = 'tnebes' AND r.name = 'Admin';
-
-UPDATE zora_work_items SET assignee_id = 1 WHERE zora_work_items.id = 1;
