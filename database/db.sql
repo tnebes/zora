@@ -148,9 +148,34 @@ CREATE INDEX IX_WorkItemRelationship_RelationshipTypes ON zora_work_item_relatio
 CREATE INDEX IX_WorkItemAsset_AssetIds ON zora_work_item_assets(asset_id);
 CREATE INDEX IX_WorkItemAsset_WorkItemIds ON zora_work_item_assets(work_item_id);
 
+CREATE INDEX IX_User_Username ON zora_users(username);
+CREATE INDEX IX_User_Email ON zora_users(email);
+
+CREATE INDEX IX_Role_Name ON zora_roles(name);
+CREATE INDEX IX_Permission_Name ON zora_permissions(name);
+CREATE INDEX IX_Permission_String ON zora_permissions(permission_string);
+
+CREATE INDEX IX_WorkItem_Name ON zora_work_items(name);
+CREATE INDEX IX_WorkItem_CreatedBy ON zora_work_items(created_by);
+CREATE INDEX IX_WorkItem_UpdatedBy ON zora_work_items(updated_by);
+CREATE INDEX IX_WorkItem_DueDates ON zora_work_items(due_date);
+CREATE INDEX IX_WorkItem_StartDates ON zora_work_items(start_date);
+
+CREATE INDEX IX_Project_ProjectManager ON zora_projects(project_manager_id);
+CREATE INDEX IX_Project_Program ON zora_projects(program_id);
+
+CREATE INDEX IX_Task_Project ON zora_tasks(project_id);
+CREATE INDEX IX_Task_ParentTask ON zora_tasks(parent_task_id);
+
+CREATE INDEX IX_Asset_Name ON assets(name);
+CREATE INDEX IX_Asset_CreatedBy ON assets(created_by);
+CREATE INDEX IX_Asset_UpdatedBy ON assets(updated_by);
+
 INSERT INTO zora_users (username, password, email) VALUES ('tnebes', 'letmeinside', 'tnebes@draucode.com');
 INSERT INTO zora_roles (name) VALUES ('Admin');
 INSERT INTO zora_user_roles (user_id, role_id)
    SELECT u.id, r.id
       FROM zora_users u, zora_roles r
       WHERE u.username = 'tnebes' AND r.name = 'Admin';
+
+UPDATE zora_work_items SET assignee_id = 1 WHERE zora_work_items.id = 1;
