@@ -1,5 +1,6 @@
 #region
 
+using System.ComponentModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core;
@@ -15,6 +16,7 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [ProducesResponseType<int>(StatusCodes.Status200OK)]
+[Description("Authentication API")]
 public sealed class AuthenticationController : ControllerBase
 {
     private readonly IAuthenticationService _authenticationService;
@@ -31,6 +33,8 @@ public sealed class AuthenticationController : ControllerBase
     [ProducesResponseType<int>(StatusCodes.Status200OK)]
     [ProducesResponseType<string>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<string>(StatusCodes.Status500InternalServerError)]
+    [Tags("Authentication")]
+    [Description("Authenticate the user")]
     [AllowAnonymous]
     public async Task<IActionResult> Authenticate([FromBody] LoginRequestDto login)
     {
@@ -61,6 +65,9 @@ public sealed class AuthenticationController : ControllerBase
 
     [HttpGet("check")]
     [ProducesResponseType<int>(StatusCodes.Status200OK)]
+    [ProducesResponseType<string>(StatusCodes.Status500InternalServerError)]
+    [Tags("Authentication")]
+    [Description("Check if the user is authenticated")]
     [Authorize]
     public IActionResult CheckAuthStatus()
     {

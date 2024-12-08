@@ -9,7 +9,7 @@ namespace zora.Core.Interfaces;
 
 public interface IWorkItemService
 {
-    Task<WorkItem?> GetNearestAncestorOf(WorkItemType type, long permissionRequestResourceId);
+    Task<T?> GetNearestAncestorOf<T>(long resourceId) where T : WorkItem;
 
     Task<WorkItemType> GetWorkItemType(long workItemId);
 }

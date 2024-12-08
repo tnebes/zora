@@ -2,6 +2,7 @@
 
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpLogging;
@@ -66,7 +67,8 @@ public static class ServiceExtensions
 
     private static IServiceCollection AddZoraControllers(this IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllers()
+            .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         return services;
     }
 

@@ -1,5 +1,6 @@
 #region
 
+using System.ComponentModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core.DTOs;
@@ -14,6 +15,7 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [ProducesResponseType<int>(StatusCodes.Status200OK)]
+[Description("Authorisation API")]
 public class AuthorisationController : ControllerBase, IZoraService
 {
     private readonly IAuthorisationService _authorisationService;
@@ -31,6 +33,8 @@ public class AuthorisationController : ControllerBase, IZoraService
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [Tags("Authorisation")]
+    [Description("Check if the user is authorised to perform the requested action")]
     public async Task<IActionResult> IsAuthorised([FromBody] PermissionRequestDto? permissionRequest)
     {
         try

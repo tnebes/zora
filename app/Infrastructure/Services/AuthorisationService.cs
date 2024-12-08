@@ -17,8 +17,8 @@ namespace zora.Infrastructure.Services;
 [ServiceLifetime(ServiceLifetime.Scoped)]
 public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisationService, IZoraService
 {
-    private const string CACHE_KEY_PREFIX = "auth_";
-    private static readonly TimeSpan CACHE_DURATION = TimeSpan.FromMinutes(5);
+    private const string CacheKeyPrefix = "auth_";
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
     private readonly IMemoryCache _cache;
     private readonly ILogger<AuthorisationService> _logger;
     private readonly IPermissionService _permissionService;
@@ -45,7 +45,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
         }
 
         string cacheKey =
-            $"{AuthorisationService.CACHE_KEY_PREFIX}{permissionRequest.UserId}_{permissionRequest.ResourceId}_{permissionRequest.RequestedPermission}";
+            $"{AuthorisationService.CacheKeyPrefix}{permissionRequest.UserId}_{permissionRequest.ResourceId}_{permissionRequest.RequestedPermission}";
 
         if (this._cache.TryGetValue(cacheKey, out bool cachedResult))
         {
@@ -55,7 +55,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
         try
         {
             bool isAuthorized = await this.CheckAuthorizationAsync(permissionRequest);
-            this._cache.Set(cacheKey, isAuthorized, AuthorisationService.CACHE_DURATION);
+            this._cache.Set(cacheKey, isAuthorized, AuthorisationService.CacheDuration);
             return isAuthorized;
         }
         catch (Exception ex)
@@ -163,21 +163,65 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
     private async Task<bool> CheckAncestorPermissionsAsync(PermissionRequestDto request)
     {
         WorkItemType workItemType = await this._workItemService.GetWorkItemType(request.ResourceId);
-        WorkItem? ancestor = await this._workItemService.GetNearestAncestorOf(workItemType, request.ResourceId);
+        WorkItem? ancestor;
+
+        switch (workItemType)
+        {
+            case WorkItemType.TASK:
+                ancestor = await this._workItemService.GetNearestAncestorOf<Project>(request.ResourceId);
+                break;
+            case WorkItemType.PROJECT:
+                ancestor = await this._workItemService.GetNearestAncestorOf<ZoraProgram>(request.ResourceId);
+                break;
+            case WorkItemType.PROGRAM:
+                this._logger.LogInformation(
+                    "Program is the top level ancestor for resource {ResourceId}",
+                    request.ResourceId);
+                return false;
+            default:
+                this._logger.LogError("Unknown work item type: {WorkItemType}", workItemType);
+                return false;
+        }
 
         if (ancestor == null)
         {
-            this._logger.LogInformation("No ancestor found for resource {ResourceId}", request.ResourceId);
+            this._logger.LogInformation(
+                "No ancestor found for resource {ResourceId} of type {WorkItemType}",
+                request.ResourceId,
+                workItemType);
             return false;
         }
 
-        PermissionRequestDto ancestorRequest = new PermissionRequestDto
+        PermissionRequestDto ancestorRequest = new()
         {
             UserId = request.UserId,
             ResourceId = ancestor.Id,
             RequestedPermission = request.RequestedPermission
         };
 
-        return await this.IsAuthorisedAsync(ancestorRequest);
+        bool isAuthorised = await this.IsAuthorisedAsync(ancestorRequest);
+
+        if (isAuthorised)
+        {
+            this._logger.LogInformation(
+                "Authorised for user {UserId} on ancestor {AncestorId} of resource {ResourceId} with permission {Permission}",
+                request.UserId, ancestor.Id, request.ResourceId, request.RequestedPermission);
+            return true;
+        }
+
+        if (ancestor is Project project && project.ProgramId.HasValue)
+        {
+            return await this.CheckAncestorPermissionsAsync(new PermissionRequestDto
+            {
+                UserId = request.UserId,
+                ResourceId = project.ProgramId.Value,
+                RequestedPermission = request.RequestedPermission
+            });
+        }
+
+        this._logger.LogInformation(
+            "Not authorised for user {UserId} on ancestor {AncestorId} of resource {ResourceId} with permission {Permission}",
+            request.UserId, ancestor.Id, request.ResourceId, request.RequestedPermission);
+        return false;
     }
 }
