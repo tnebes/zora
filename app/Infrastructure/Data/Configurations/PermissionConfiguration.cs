@@ -34,13 +34,12 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
             .IsRequired()
             .HasMaxLength(5)
             .IsFixedLength()
-            .IsUnicode(false); // No need for Unicode for binary digits
+            .IsUnicode(false);
 
         builder.Property(p => p.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("GETDATE()");
 
-        // Relationships
         builder.HasMany(p => p.RolePermissions)
             .WithOne(rp => rp.Permission)
             .HasForeignKey(rp => rp.PermissionId)
@@ -51,7 +50,6 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
             .HasForeignKey(pwi => pwi.PermissionId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Constraint for permission string format
         builder.HasCheckConstraint(
             "CHK_Permission_String",
             "permission_string LIKE '[0-1][0-1][0-1][0-1][0-1]'"

@@ -15,6 +15,14 @@ public class WorkItemService : IWorkItemService, IZoraService
     private readonly ILogger<WorkItemService> _logger;
     private readonly IWorkItemRepository _workItemRepository;
 
+    public WorkItemService(
+        ILogger<WorkItemService> logger,
+        IWorkItemRepository workItemRepository)
+    {
+        this._logger = logger;
+        this._workItemRepository = workItemRepository;
+    }
+
     public async Task<T?> GetNearestAncestorOf<T>(long resourceId) where T : WorkItem
     {
         try

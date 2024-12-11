@@ -1,5 +1,5 @@
 namespace zora.Core.DTOs;
 
-public class WorkItemDto
+public sealed class WorkItemDto
 {
 }

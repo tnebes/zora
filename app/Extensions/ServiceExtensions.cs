@@ -24,6 +24,7 @@ public static class ServiceExtensions
     public static IServiceCollection AddCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
         return services.AddCache()
+            .AddConfigureMapper()
             .AddZoraControllers()
             .AddEndpointsApiExplorer()
             .AddSwaggerServices()
@@ -266,6 +267,12 @@ public static class ServiceExtensions
     private static IServiceCollection AddCache(this IServiceCollection services)
     {
         services.AddMemoryCache();
+        return services;
+    }
+
+    private static IServiceCollection AddConfigureMapper(this IServiceCollection services)
+    {
+        services.AddAutoMapper(typeof(Program).Assembly);
         return services;
     }
 }

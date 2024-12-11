@@ -167,13 +167,13 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
 
         switch (workItemType)
         {
-            case WorkItemType.TASK:
+            case WorkItemType.Task:
                 ancestor = await this._workItemService.GetNearestAncestorOf<Project>(request.ResourceId);
                 break;
-            case WorkItemType.PROJECT:
+            case WorkItemType.Project:
                 ancestor = await this._workItemService.GetNearestAncestorOf<ZoraProgram>(request.ResourceId);
                 break;
-            case WorkItemType.PROGRAM:
+            case WorkItemType.Program:
                 this._logger.LogInformation(
                     "Program is the top level ancestor for resource {ResourceId}",
                     request.ResourceId);

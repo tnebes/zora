@@ -30,7 +30,7 @@ public class WorkItemRepository : BaseRepository<WorkItem>, IWorkItemRepository,
         catch (Exception e)
         {
             this.Logger.LogError(e, "Error getting work item type for work item {WorkItemId}", workItemId);
-            return Task.FromResult(WorkItemType.NOT_DEFINED);
+            return Task.FromResult(WorkItemType.NotDefined);
         }
     }
 

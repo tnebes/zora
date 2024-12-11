@@ -1,6 +1,6 @@
 namespace zora.Core.DTOs;
 
-public class UserDto
+public sealed class UserDto
 {
     public long Id { get; set; }
     public string Username { get; set; } = string.Empty;

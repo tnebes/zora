@@ -1,6 +1,6 @@
 namespace zora.Core.DTOs;
 
-public class ValidationResult
+public sealed class ValidationResult
 {
     public bool IsValid { get; private set; }
     public string? ErrorMessage { get; private set; }

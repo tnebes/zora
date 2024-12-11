@@ -34,7 +34,7 @@ public class AuthorisationController : ControllerBase, IZoraService
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [Tags("Authorisation")]
-    [Description("Check if the user is authorised to perform the requested action")]
+    [Description("Check if the user is authorised to perform the requested action on a given resource")]
     public async Task<IActionResult> IsAuthorised([FromBody] PermissionRequestDto? permissionRequest)
     {
         try

@@ -2,10 +2,13 @@
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using FluentResults;
 using Microsoft.IdentityModel.Tokens;
 using zora.Core;
 using zora.Core.Attributes;
+using zora.Core.Domain;
 using zora.Core.DTOs;
+using zora.Core.Enums;
 using zora.Core.Interfaces;
 using zora.Services.Configuration;
 
@@ -17,53 +20,46 @@ namespace zora.Infrastructure.Services;
 public sealed class AuthenticationService : IAuthenticationService, IZoraService
 {
     private readonly IConfiguration _configuration;
+    private readonly IJwtService _jwtService;
     private readonly ILogger<AuthenticationService> _logger;
     private readonly ISecretsManagerService _secretsManagerService;
     private readonly IUserService _userService;
 
     public AuthenticationService(IUserService userService, ILogger<AuthenticationService> logger,
-        IConfiguration configuration, ISecretsManagerService secretsManagerService)
+        IConfiguration configuration, IJwtService jwtService, ISecretsManagerService secretsManagerService)
     {
         this._userService = userService;
         this._logger = logger;
         this._configuration = configuration;
         this._secretsManagerService = secretsManagerService;
-    }
-
-    public string GetJwt()
-    {
-        JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-        string? issuerSigningKey = this._secretsManagerService.GetSecret(Constants.ISSUER_SIGNING_KEY);
-        byte[] key = Encoding.UTF8.GetBytes(issuerSigningKey);
-        SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Expires = DateTime.UtcNow.AddHours(24),
-            SigningCredentials = new SigningCredentials(
-                new SymmetricSecurityKey(key),
-                SecurityAlgorithms.HmacSha256)
-        };
-
-        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
-        string? jwt = tokenHandler.WriteToken(token);
-        return jwt;
+        this._jwtService = jwtService;
     }
 
     public bool IsValidLoginRequest(LoginRequestDto login) =>
         !string.IsNullOrWhiteSpace(login.Username) && !string.IsNullOrWhiteSpace(login.Password);
 
-    public async Task<bool> AuthenticateUser(LoginRequestDto login)
+    public async Task<Result<User>> AuthenticateUser(LoginRequestDto login)
     {
         try
         {
-            if (this.isAuthenticated(login.Token))
+            if (this.IsAuthenticated(login.Token))
             {
                 this._logger.LogWarning("User {UserName} attempted to authenticate while already authenticated",
                     login.Username);
-                throw new InvalidOperationException("User " + login.Username +
-                                                    " attempted to authenticate while already authenticated");
+                return Result.Fail<User>(new Error("User is already authenticated")
+                    .WithMetadata(Constants.ERROR_TYPE, AuthenticationErrorType.UserAlreadyAuthenticated));
             }
 
-            return await this._userService.ValidateUser(login);
+            Result<User> userResult = await this._userService.ValidateUser(login);
+
+            if (userResult.IsFailed)
+            {
+                this._logger.LogInformation("User {Username} failed to authenticate", login.Username);
+                return Result.Fail<User>(new Error("Invalid credentials")
+                    .WithMetadata(Constants.ERROR_TYPE, AuthenticationErrorType.InvalidCredentials));
+            }
+
+            return userResult;
         }
         catch (Exception ex)
         {
@@ -72,7 +68,7 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
         }
     }
 
-    public bool isAuthenticated(string token)
+    public bool IsAuthenticated(string token)
     {
         if (string.IsNullOrEmpty(token))
         {
