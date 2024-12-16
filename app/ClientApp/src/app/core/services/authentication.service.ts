@@ -20,7 +20,6 @@ export class AuthenticationService {
 
   private readonly authStateSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public readonly authState$: Observable<boolean> = this.authStateSubject.asObservable();
-  public readonly isAdmin$: Observable<boolean> = this.isAdmin();
 
   constructor(private readonly http: HttpClient) {
   }
@@ -49,10 +48,6 @@ export class AuthenticationService {
           return of({isAuthenticated: false});
         })
       );
-  }
-
-  public isAdmin(): Observable<boolean> {
-    return of(true);
   }
 
   public saveToken(token: string): void {

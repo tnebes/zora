@@ -64,7 +64,7 @@ public class AuthorisationController : ControllerBase, IZoraService
     }
 
     [Authorize]
-    [HttpPost("is-admin")]
+    [HttpGet("is-admin")]
     [ProducesResponseType<int>(StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]

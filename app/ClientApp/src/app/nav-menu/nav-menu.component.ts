@@ -1,44 +1,63 @@
-import {Component, OnInit} from '@angular/core';
-import {Router} from '@angular/router';
-import {AuthenticationService} from '../core/services/authentication.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subject, takeUntil, combineLatest, Observable, of } from 'rxjs';
+import { AuthenticationService } from '../core/services/authentication.service';
+import { AuthorisationService } from '../core/services/authorisation.service';
 
 @Component({
-  selector: 'app-nav-menu',
-  templateUrl: './nav-menu.component.html',
-  styleUrls: ['./nav-menu.component.css']
+   selector: 'app-nav-menu',
+   templateUrl: './nav-menu.component.html',
+   styleUrls: ['./nav-menu.component.css']
 })
-export class NavMenuComponent implements OnInit {
-  public isExpanded: boolean = false;
-  public isAuthenticated: boolean = false;
-  public isAdmin: boolean = false;
+export class NavMenuComponent implements OnInit, OnDestroy {
+   public isExpanded: boolean = false;
+   public isAuthenticated$: Observable<boolean>;
+   public isAdmin$: Observable<boolean>;
 
-  constructor(private readonly authenticationService: AuthenticationService, private readonly router: Router) {
-  }
+   private readonly destroy$: Subject<void> = new Subject<void>();
 
-  public ngOnInit(): void {
-    this.authenticationService.authState$.subscribe((isAuthenticated: boolean) => {
-      this.isAuthenticated = isAuthenticated;
-    });
-    this.authenticationService.isAdmin$.subscribe((isAdmin: boolean) => {
-      this.isAdmin = isAdmin;
-    });
+   constructor(
+      private readonly authenticationService: AuthenticationService,
+      private readonly authorisationService: AuthorisationService,
+      private readonly router: Router
+   ) {
+      this.isAuthenticated$ = this.authenticationService.authState$;
+      this.isAdmin$ = this.authorisationService.isAdmin$;
+   }
 
-    this.authenticationService.checkAuthStatus().subscribe({
-      error: () => {
-      }
-    });
-  }
+   public ngOnInit(): void {
+      this.authenticationService.authState$.pipe(
+         takeUntil(this.destroy$)
+      ).subscribe((isAuthenticated: boolean) => {
+         if (isAuthenticated) {
+            this.authorisationService.checkAdminStatus().subscribe();
+         }
+      });
 
-  public collapse() {
-    this.isExpanded = false;
-  }
+      this.authenticationService.checkAuthStatus().pipe(
+         takeUntil(this.destroy$)
+      ).subscribe({
+         error: (error: Error) => {
+            console.error('Auth check failed:', error);
+         }
+      });
+   }
 
-  public toggle() {
-    this.isExpanded = !this.isExpanded;
-  }
+   public ngOnDestroy(): void {
+      this.destroy$.next();
+      this.destroy$.complete();
+   }
 
-  public logout(): void {
-    this.authenticationService.logout();
-    this.router.navigate(['/']);
-  }
+   public collapse(): void {
+      this.isExpanded = false;
+   }
+
+   public toggle(): void {
+      this.isExpanded = !this.isExpanded;
+   }
+
+   public logout(): void {
+      this.authenticationService.logout();
+      this.router.navigate(['/']);
+   }
 }
