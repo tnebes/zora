@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subject, takeUntil, combineLatest, Observable, of } from 'rxjs';
+import { Subject, takeUntil, Observable, map } from 'rxjs';
 import { AuthenticationService } from '../core/services/authentication.service';
 import { AuthorisationService } from '../core/services/authorisation.service';
 
@@ -13,6 +13,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
    public isExpanded: boolean = false;
    public isAuthenticated$: Observable<boolean>;
    public isAdmin$: Observable<boolean>;
+   public currentUserId$: Observable<string>;
 
    private readonly destroy$: Subject<void> = new Subject<void>();
 
@@ -23,6 +24,9 @@ export class NavMenuComponent implements OnInit, OnDestroy {
    ) {
       this.isAuthenticated$ = this.authenticationService.authState$;
       this.isAdmin$ = this.authorisationService.isAdmin$;
+      this.currentUserId$ = this.authenticationService.currentUser$.pipe(
+         map((user) => user ? user.id : '')
+      );
    }
 
    public ngOnInit(): void {
@@ -41,6 +45,10 @@ export class NavMenuComponent implements OnInit, OnDestroy {
             console.error('Auth check failed:', error);
          }
       });
+
+      this.authenticationService.currentUser().pipe(
+         takeUntil(this.destroy$)
+      ).subscribe();
    }
 
    public ngOnDestroy(): void {

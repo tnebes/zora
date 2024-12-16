@@ -1,9 +1,7 @@
 namespace zora.Core.DTOs;
 
-public sealed class UserDto
+public abstract class UserDto
 {
-    public long Id { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public DateTime ExpiryDateTime { get; set; }
+    public required string Id { get; set; }
+    public required string Username { get; set; }
 }

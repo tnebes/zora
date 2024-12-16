@@ -53,7 +53,6 @@ public class AuthorisationController : ControllerBase, IZoraService
             }
 
             bool isAuthorised = await this._authorisationService.IsAuthorisedAsync(permissionRequest);
-
             return isAuthorised ? this.Ok() : this.Forbid();
         }
         catch (Exception ex)
@@ -76,7 +75,6 @@ public class AuthorisationController : ControllerBase, IZoraService
         try
         {
             bool isAdmin = await this._roleService.IsAdmin(this.HttpContext.User);
-
             return isAdmin ? this.Ok() : this.Forbid();
         }
         catch (Exception ex)

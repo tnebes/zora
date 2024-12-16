@@ -13,6 +13,11 @@ export interface LoginResponse {
   token: string;
 }
 
+export interface User {
+   id: string;
+   username: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -20,6 +25,8 @@ export class AuthenticationService {
 
   private readonly authStateSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public readonly authState$: Observable<boolean> = this.authStateSubject.asObservable();
+  private readonly currentUserSubject: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
+  public readonly currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
 
   constructor(private readonly http: HttpClient) {
   }
@@ -48,7 +55,14 @@ export class AuthenticationService {
           return of({isAuthenticated: false});
         })
       );
-  }
+   }
+   
+   public currentUser = (): Observable<User> => {
+      return this.http.get<User>(`${Constants.CURRENT_USER}`)
+         .pipe(
+         tap((user: User) => this.currentUserSubject.next(user))
+      );
+   }
 
   public saveToken(token: string): void {
     localStorage.setItem(Constants.JWT_TOKEN_KEY, token);

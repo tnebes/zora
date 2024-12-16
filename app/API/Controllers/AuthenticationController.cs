@@ -123,4 +123,19 @@ public sealed class AuthenticationController : ControllerBase
             return this.StatusCode(500, Constants.ERROR_500_MESSAGE);
         }
     }
+
+    [HttpGet("current-user")]
+    [ProducesResponseType(typeof(MinimalUserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [Tags("Authentication")]
+    [Description("Returns minimal information about the current user")]
+    [Authorize]
+    public async Task<MinimalUserDto> GetCurrentUser()
+    {
+        long userId = this.HttpContext.User.GetUserId();
+        Result<User> user = await this._userService.GetUserByIdAsync(userId);
+        return this._mapper.Map<MinimalUserDto>(user.Value);
+    }
 }
