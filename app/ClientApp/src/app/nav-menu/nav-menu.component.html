@@ -29,16 +29,8 @@
               <a class="nav-link text-dark" [routerLink]="['/tasks']">Tasks</a>
             </li>
 
-            <li class="nav-item" [routerLinkActive]="['link-active']">
+            <li *ngIf="isAdmin" class="nav-item" [routerLinkActive]="['link-active']">
               <a class="nav-link text-dark" [routerLink]="['/control-panel']">Control Panel</a>
-            </li>
-
-            <li class="nav-item" [routerLinkActive]="['link-active']">
-              <a class="nav-link text-dark" [routerLink]="['/users']">Profile</a>
-            </li>
-
-            <li class="nav-item" [routerLinkActive]="['link-active']">
-              <a class="nav-link text-dark" [routerLink]="['/users']">Users</a>
             </li>
 
             <li class="nav-item">

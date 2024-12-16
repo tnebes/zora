@@ -14,28 +14,33 @@ namespace zora.API.Controllers;
 [Route("api/v1/authorisation")]
 [Produces("application/json")]
 [Consumes("application/json")]
-[ProducesResponseType<int>(StatusCodes.Status200OK)]
 [Description("Authorisation API")]
 public class AuthorisationController : ControllerBase, IZoraService
 {
     private readonly IAuthorisationService _authorisationService;
     private readonly ILogger<AuthorisationController> _logger;
+    private readonly IRoleService _roleService;
 
-    public AuthorisationController(IAuthorisationService authorisationService, ILogger<AuthorisationController> logger)
+    public AuthorisationController(IAuthorisationService authorisationService,
+        IPermissionService permissionService,
+        IUserRoleService userRoleService,
+        IRoleService roleService,
+        ILogger<AuthorisationController> logger)
     {
         this._authorisationService = authorisationService;
+        this._roleService = roleService;
         this._logger = logger;
     }
 
     [Authorize]
     [HttpPost("is-authorised")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<int>(StatusCodes.Status200OK)]
+    [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status403Forbidden)]
     [Tags("Authorisation")]
     [Description("Check if the user is authorised to perform the requested action on a given resource")]
-    public async Task<IActionResult> IsAuthorised([FromBody] PermissionRequestDto? permissionRequest)
+    public async Task<IActionResult> IsAuthorised([FromBody] PermissionRequestDto permissionRequest)
     {
         try
         {
@@ -54,6 +59,29 @@ public class AuthorisationController : ControllerBase, IZoraService
         catch (Exception ex)
         {
             this._logger.LogError(ex, "An error occurred while checking authorisation");
+            return this.StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    [Authorize]
+    [HttpPost("is-admin")]
+    [ProducesResponseType<int>(StatusCodes.Status200OK)]
+    [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status403Forbidden)]
+    [Tags("Authorisation")]
+    [Description("Check if the user is admin")]
+    public async Task<IActionResult> IsAdmin()
+    {
+        try
+        {
+            bool isAdmin = await this._roleService.IsAdmin(this.HttpContext.User);
+
+            return isAdmin ? this.Ok() : this.Forbid();
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "An error occurred while checking if the user is admin");
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }

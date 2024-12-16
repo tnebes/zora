@@ -1,11 +1,11 @@
 #region
 
 using System.ComponentModel;
-using System.Security.Claims;
 using AutoMapper;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using zora.API.Extensions;
 using zora.Core;
 using zora.Core.Domain;
 using zora.Core.DTOs;
@@ -20,7 +20,6 @@ namespace zora.API.Controllers;
 [Route("api/v1/authentication")]
 [Produces("application/json")]
 [Consumes("application/json")]
-[ProducesResponseType<int>(StatusCodes.Status200OK)]
 [Description("Authentication API")]
 public sealed class AuthenticationController : ControllerBase
 {
@@ -46,8 +45,8 @@ public sealed class AuthenticationController : ControllerBase
 
     [HttpPost("token")]
     [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType<string>(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType<string>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Authentication")]
     [Description("Authenticate the user")]
     [AllowAnonymous]
@@ -89,9 +88,9 @@ public sealed class AuthenticationController : ControllerBase
 
     [HttpGet("check")]
     [ProducesResponseType(typeof(AuthenticationStatusDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Authentication")]
     [Description("Check if the user is authenticated")]
     [Authorize]
@@ -99,15 +98,8 @@ public sealed class AuthenticationController : ControllerBase
     {
         try
         {
-            string userId = this.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-
-            if (!long.TryParse(userId, out long userIdLong))
-            {
-                this._logger.LogError("Invalid user ID format in token: {UserId}", userId);
-                return this.StatusCode(500, Constants.ERROR_500_MESSAGE);
-            }
-
-            Result<User> userResult = await this._userService.GetUserByIdAsync(userIdLong);
+            long userId = this.HttpContext.User.GetUserId();
+            Result<User> userResult = await this._userService.GetUserByIdAsync(userId);
 
             if (userResult.IsFailed)
             {

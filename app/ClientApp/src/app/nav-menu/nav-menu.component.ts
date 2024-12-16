@@ -10,6 +10,7 @@ import {AuthenticationService} from '../core/services/authentication.service';
 export class NavMenuComponent implements OnInit {
   public isExpanded: boolean = false;
   public isAuthenticated: boolean = false;
+  public isAdmin: boolean = false;
 
   constructor(private readonly authenticationService: AuthenticationService, private readonly router: Router) {
   }
@@ -17,6 +18,9 @@ export class NavMenuComponent implements OnInit {
   public ngOnInit(): void {
     this.authenticationService.authState$.subscribe((isAuthenticated: boolean) => {
       this.isAuthenticated = isAuthenticated;
+    });
+    this.authenticationService.isAdmin$.subscribe((isAdmin: boolean) => {
+      this.isAdmin = isAdmin;
     });
 
     this.authenticationService.checkAuthStatus().subscribe({

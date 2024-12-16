@@ -163,14 +163,14 @@ public static class ServiceExtensions
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = true;
 
-                options.TokenValidationParameters.ValidateIssuer = false;
-                options.TokenValidationParameters.ValidateAudience = false;
+                options.TokenValidationParameters.ValidateIssuer = true;
+                options.TokenValidationParameters.ValidateAudience = true;
                 options.TokenValidationParameters.ValidateLifetime = true;
-                options.TokenValidationParameters.ValidAudiences = ["https://draucode.com", "localhost"];
-                options.TokenValidationParameters.ValidIssuers = ["https://draucode.com", "localhost"];
+                options.TokenValidationParameters.ValidAudiences = [Constants.ZORA_URL, "https://localhost:4200"];
+                options.TokenValidationParameters.ValidIssuers = [Constants.ZORA_URL, "https://localhost:5001"];
                 options.TokenValidationParameters.IssuerSigningKey =
                     new SymmetricSecurityKey(Encoding.UTF8.GetBytes(issuerSigningKey));
-                options.TokenValidationParameters.ValidateIssuerSigningKey = false;
+                options.TokenValidationParameters.ValidateIssuerSigningKey = true;
 
                 options.Events = new JwtBearerEvents
                 {

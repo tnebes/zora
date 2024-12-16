@@ -9,5 +9,6 @@ public enum ResourceType
     Task,
     Project,
     Program,
-    Asset
+    Asset,
+    Route
 }

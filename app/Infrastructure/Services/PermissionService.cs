@@ -5,7 +5,6 @@ using zora.Core.Domain;
 using zora.Core.DTOs;
 using zora.Core.Enums;
 using zora.Core.Interfaces;
-using Constants = zora.Core.Constants;
 
 #endregion
 
@@ -18,38 +17,38 @@ public sealed class PermissionService : IPermissionService, IZoraService
     private readonly IPermissionRepository _permissionRepository;
     private readonly IPermissionWorkItemRepository _permissionWorkItemRepository;
     private readonly IRolePermissionRepository _rolePermissionRepository;
-    private readonly IUserRoleRepository _userRoleRepository;
+    private readonly IUserRoleService _userRoleService;
 
     public PermissionService(
         ILogger<PermissionService> logger,
-        IUserRoleRepository userRoleRepository,
         IRolePermissionRepository rolePermissionRepository,
         IPermissionRepository permissionRepository,
-        IPermissionWorkItemRepository permissionWorkItemRepository)
+        IPermissionWorkItemRepository permissionWorkItemRepository,
+        IUserRoleService userRoleService)
     {
         this._logger = logger;
-        this._userRoleRepository = userRoleRepository;
         this._rolePermissionRepository = rolePermissionRepository;
         this._permissionRepository = permissionRepository;
         this._permissionWorkItemRepository = permissionWorkItemRepository;
+        this._userRoleService = userRoleService;
     }
 
     public async Task<bool> HasDirectPermissionAsync(PermissionRequestDto request)
     {
         try
         {
-            IEnumerable<UserRole> userRoles = await this._userRoleRepository.GetByUserIdAsync(request.UserId);
+            List<UserRole> userRoles = (await this._userRoleService.GetUserRolesByUserIdAsync(request.UserId)).ToList();
+
+            if (this._userRoleService.IsAdminAsync(userRoles).Result)
+            {
+                this._logger.LogInformation(
+                    "User {UserId} is an administrator and has all permissions",
+                    request.UserId);
+                return true;
+            }
 
             foreach (UserRole userRole in userRoles)
             {
-                if (string.Equals(userRole.Role.Name, Constants.ADMIN, StringComparison.Ordinal))
-                {
-                    this._logger.LogInformation(
-                        "User {UserId} is an administrator and has all permissions",
-                        request.UserId);
-                    return true;
-                }
-
                 IEnumerable<RolePermission> rolePermissions = await this._rolePermissionRepository
                     .GetByRoleIdAsync(userRole.RoleId);
 
@@ -92,6 +91,7 @@ public sealed class PermissionService : IPermissionService, IZoraService
         }
     }
 
+    // TODO does this account for C also giving R access?
     private static bool DoesPermissionGrantAccess(string permissionString, PermissionFlag requestedPermission)
     {
         int permissions = Convert.ToInt32(permissionString, 2);

@@ -3,6 +3,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Memory;
+using zora.API.Extensions;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs;
@@ -74,17 +75,21 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             return ValidationResult.Fail("Permission request cannot be null", StatusCodes.Status400BadRequest);
         }
 
-        string? userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null || !long.TryParse(userIdClaim, out long tokenUserId))
+        long userIdClaim;
+        try
         {
-            this._logger.LogWarning("Invalid or missing user ID in token");
-            return ValidationResult.Fail("Invalid or missing user ID in token", StatusCodes.Status401Unauthorized);
+            userIdClaim = user.GetUserId();
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting user ID from claims");
+            return ValidationResult.Fail("Error getting user ID from claims", StatusCodes.Status400BadRequest);
         }
 
-        if (tokenUserId != permissionRequest.UserId)
+        if (userIdClaim != permissionRequest.UserId)
         {
             this._logger.LogWarning("User ID mismatch. Token ID: {TokenId}, Request ID: {RequestId}",
-                tokenUserId, permissionRequest.UserId);
+                userIdClaim, permissionRequest.UserId);
             return ValidationResult.Fail("User ID in request does not match authenticated user",
                 StatusCodes.Status403Forbidden);
         }
@@ -106,10 +111,14 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
                 continue;
             }
 
-            string? userIdString = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!long.TryParse(userIdString, out long userId))
+            long userId;
+            try
             {
-                this._logger.LogWarning("Unable to parse user ID from claims");
+                userId = context.User.GetUserId();
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError(ex, "Error getting user ID from claims");
                 continue;
             }
 
@@ -174,7 +183,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
                 ancestor = await this._workItemService.GetNearestAncestorOf<ZoraProgram>(request.ResourceId);
                 break;
             case WorkItemType.Program:
-                this._logger.LogInformation(
+                this._logger.LogWarning(
                     "Program is the top level ancestor for resource {ResourceId}",
                     request.ResourceId);
                 return false;
