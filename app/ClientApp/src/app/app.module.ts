@@ -10,12 +10,13 @@ import {HomeComponent} from './home/home.component';
 import {LoginComponent} from './login/login.component';
 import {AuthInterceptor} from './core/services/authentication.interceptor';
 import {LoginModule} from './login/login.module';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavMenuComponent,
-    HomeComponent
+    HomeComponent,
   ],
   imports: [
     BrowserModule.withServerTransition({appId: 'ng-cli-universal'}),
@@ -25,8 +26,12 @@ import {LoginModule} from './login/login.module';
     RouterModule.forRoot([
       {path: '', component: HomeComponent, pathMatch: 'full'},
       {path: 'login', component: LoginComponent},
-      {path: 'control-panel', loadChildren: () => import('./control-panel/control-panel.module').then(m => m.ControlPanelModule)}
-    ])
+      {
+        path: 'control-panel',
+        loadChildren: () => import('./control-panel/control-panel.module').then(m => m.ControlPanelModule)
+      }
+    ]),
+    BrowserAnimationsModule
   ],
   providers: [
     {

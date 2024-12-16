@@ -1,8 +1,14 @@
+#region
+
 using AutoMapper;
+using zora.Core.Domain;
+using zora.Core.DTOs;
+
+#endregion
 
 namespace zora.API.Mapping;
 
 public class MinimalUserMappingProfile : Profile
 {
-    public MinimalUserMappingProfile() => this.CreateMap<Core.Domain.User, Core.DTOs.MinimalUserDto>();
+    public MinimalUserMappingProfile() => this.CreateMap<User, MinimalUserDto>();
 }

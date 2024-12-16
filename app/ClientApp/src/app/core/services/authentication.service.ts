@@ -14,8 +14,8 @@ export interface LoginResponse {
 }
 
 export interface User {
-   id: string;
-   username: string;
+  id: string;
+  username: string;
 }
 
 @Injectable({
@@ -55,14 +55,14 @@ export class AuthenticationService {
           return of({isAuthenticated: false});
         })
       );
-   }
-   
-   public currentUser = (): Observable<User> => {
-      return this.http.get<User>(`${Constants.CURRENT_USER}`)
-         .pipe(
-         tap((user: User) => this.currentUserSubject.next(user))
+  }
+
+  public currentUser = (): Observable<User> => {
+    return this.http.get<User>(`${Constants.CURRENT_USER}`)
+      .pipe(
+        tap((user: User) => this.currentUserSubject.next(user))
       );
-   }
+  }
 
   public saveToken(token: string): void {
     localStorage.setItem(Constants.JWT_TOKEN_KEY, token);

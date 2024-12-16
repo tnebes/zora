@@ -132,10 +132,18 @@ public sealed class AuthenticationController : ControllerBase
     [Tags("Authentication")]
     [Description("Returns minimal information about the current user")]
     [Authorize]
-    public async Task<MinimalUserDto> GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser()
     {
-        long userId = this.HttpContext.User.GetUserId();
-        Result<User> user = await this._userService.GetUserByIdAsync(userId);
-        return this._mapper.Map<MinimalUserDto>(user.Value);
+        try
+        {
+            long userId = this.HttpContext.User.GetUserId();
+            Result<User> user = await this._userService.GetUserByIdAsync(userId);
+            return this.Ok(this._mapper.Map<MinimalUserDto>(user.Value));
+        }
+        catch (Exception e)
+        {
+            this._logger.LogError(e, "Error getting current user");
+            return this.StatusCode(500, Constants.ERROR_500_MESSAGE);
+        }
     }
 }

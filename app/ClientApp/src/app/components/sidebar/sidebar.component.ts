@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 
 interface MenuItem {
   path: string;
@@ -46,9 +46,9 @@ interface MenuItem {
 })
 export class SidebarComponent {
   public readonly menuItems: MenuItem[] = [
-    { path: './users', label: 'Users', icon: 'bi-people' },
-    { path: './groups', label: 'Groups', icon: 'bi-collection' },
-    { path: './roles', label: 'Roles', icon: 'bi-person-badge' },
-    { path: './permissions', label: 'Permissions', icon: 'bi-shield-lock' }
+    {path: './users', label: 'Users', icon: 'bi-people'},
+    {path: './groups', label: 'Groups', icon: 'bi-collection'},
+    {path: './roles', label: 'Roles', icon: 'bi-person-badge'},
+    {path: './permissions', label: 'Permissions', icon: 'bi-shield-lock'}
   ];
 }
