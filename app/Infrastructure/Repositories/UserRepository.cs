@@ -39,4 +39,9 @@ public class UserRepository : BaseRepository<User>, IUserRepository, IZoraServic
         return !await this.FindByCondition(user => user.Email == email)
             .AnyAsync();
     }
+
+    public async Task<IEnumerable<User>> GetAllUsersAsync() => await base.GetAllAsync();
+
+    public async Task<(IEnumerable<User>, int totalCount)> GetUsersAsync(int page, int pageSize) =>
+        await this.GetPagedAsync(page, pageSize);
 }

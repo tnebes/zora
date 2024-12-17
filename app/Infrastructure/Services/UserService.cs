@@ -113,5 +113,54 @@ public sealed class UserService : IUserService, IZoraService
         }
     }
 
+    public async Task<UserResponseDto<FullUserDto>> GetFullUsersAsync(int page = 1, int pageSize = 50)
+    {
+        try
+        {
+            (IEnumerable<User> rawUsers, int totalCount) = await this._userRepository.GetUsersAsync(page, pageSize);
+
+            List<User> users = rawUsers.ToList();
+            if (users.Count == 0)
+            {
+                return new UserResponseDto<FullUserDto>
+                {
+                    Items = [],
+                    Total = totalCount,
+                    Page = page,
+                    PageSize = pageSize
+                };
+            }
+
+            return new UserResponseDto<FullUserDto>
+            {
+                Items = users.Select(u => new FullUserDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Email,
+                    CreatedAt = u.CreatedAt,
+                    Roles = u.UserRoles.Select(ur => ur.Role.Name)
+                }),
+                Total = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error retrieving paginated users. Page: {Page}, PageSize: {PageSize}",
+                page, pageSize);
+            return new UserResponseDto<FullUserDto>
+            {
+                Items = [],
+                Total = 0,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+    }
+
+    public Task<IEnumerable<User>> GetAllFullUsers() => this._userRepository.GetAllUsersAsync();
+
     private static string HashPassword(string password) => BCrypt.Net.BCrypt.HashPassword(password);
 }

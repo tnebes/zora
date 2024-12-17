@@ -1,7 +1,7 @@
 namespace zora.Core.DTOs;
 
-public abstract class UserDto
+public class UserDto
 {
-    public required string Id { get; set; }
+    public required long Id { get; set; }
     public required string Username { get; set; }
 }

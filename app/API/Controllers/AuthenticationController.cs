@@ -101,6 +101,7 @@ public sealed class AuthenticationController : ControllerBase
             long userId = this.HttpContext.User.GetUserId();
             Result<User> userResult = await this._userService.GetUserByIdAsync(userId);
 
+            // TODO ugly as sin
             if (userResult.IsFailed)
             {
                 IError error = userResult.Errors[0];
@@ -125,7 +126,7 @@ public sealed class AuthenticationController : ControllerBase
     }
 
     [HttpGet("current-user")]
-    [ProducesResponseType(typeof(MinimalUserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
@@ -138,7 +139,23 @@ public sealed class AuthenticationController : ControllerBase
         {
             long userId = this.HttpContext.User.GetUserId();
             Result<User> user = await this._userService.GetUserByIdAsync(userId);
-            return this.Ok(this._mapper.Map<MinimalUserDto>(user.Value));
+
+            // TODO ugly as sin
+            if (user.IsFailed)
+            {
+                IError error = user.Errors[0];
+                ErrorType errorType = error.Metadata.TryGetValue("errorType", out object? value)
+                    ? (ErrorType)(value ?? ErrorType.SystemError)
+                    : ErrorType.SystemError;
+
+                return errorType switch
+                {
+                    ErrorType.NotFound => this.NotFound(error.Message),
+                    _ => this.StatusCode(404, Constants.ERROR_404_MESSAGE)
+                };
+            }
+
+            return this.Ok(this._mapper.Map<UserDto>(user.Value));
         }
         catch (Exception e)
         {

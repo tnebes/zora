@@ -50,6 +50,38 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
     }
 
+    protected virtual async Task<IEnumerable<T>> GetAllAsync(int page, int pageSize)
+    {
+        try
+        {
+            return await this.DbSet.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex,
+                "Error retrieving all entities of type {EntityType} on page {Page} with page size {PageSize}",
+                typeof(T).Name, page, pageSize);
+            throw;
+        }
+    }
+
+    protected async Task<(IEnumerable<T>, int totalCount)> GetPagedAsync(int page, int pageSize)
+    {
+        try
+        {
+            int totalCount = await this.DbSet.CountAsync();
+            IEnumerable<T> entities = await this.DbSet.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return (entities, totalCount);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex,
+                "Error retrieving paged entities of type {EntityType} on page {Page} with page size {PageSize}",
+                typeof(T).Name, page, pageSize);
+            throw;
+        }
+    }
+
     protected virtual async Task<T> AddAsync(T entity)
     {
         try

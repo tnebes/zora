@@ -6,11 +6,15 @@ export interface User {
   roles?: string[];
 }
 
-export interface UserResponse {
-  items: User[];
+export interface Response {
+  items: Object[];
   total: number;
   page: number;
   pageSize: number;
+}
+
+export interface UserResponse extends Response {
+  items: User[];
 }
 
 export interface UserQueryParams {
