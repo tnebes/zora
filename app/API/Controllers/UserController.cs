@@ -4,6 +4,7 @@ using System.ComponentModel;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
 using zora.Core.Interfaces;
