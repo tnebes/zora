@@ -1,10 +1,10 @@
 #region
 
-using zora.Core.DTOs.Interface;
+using zora.Core.DTOs.Responses.Interface;
 
 #endregion
 
-namespace zora.Core.DTOs;
+namespace zora.Core.DTOs.Responses;
 
 public sealed class UserResponseDto<T> : IResponseDto<T> where T : UserDto
 {

@@ -2,6 +2,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using zora.Core.Domain;
+using zora.Core.DTOs.Requests;
 using zora.Core.Interfaces;
 using zora.Infrastructure.Data;
 
@@ -22,6 +23,9 @@ public class UserRepository : BaseRepository<User>, IUserRepository, IZoraServic
     public async Task<User?> GetByUsernameAsync(string username) =>
         await this.FindByCondition(user => user.Username == username).FirstOrDefaultAsync();
 
+    public async Task<(IEnumerable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams) =>
+        await this.GetPagedAsync(queryParams.Page, queryParams.PageSize);
+
     public async Task<User?> GetByEmailAsync(string email)
     {
         return await this.FindByCondition(user => user.Email == email)
@@ -39,9 +43,4 @@ public class UserRepository : BaseRepository<User>, IUserRepository, IZoraServic
         return !await this.FindByCondition(user => user.Email == email)
             .AnyAsync();
     }
-
-    public async Task<IEnumerable<User>> GetAllUsersAsync() => await base.GetAllAsync();
-
-    public async Task<(IEnumerable<User>, int totalCount)> GetUsersAsync(int page, int pageSize) =>
-        await this.GetPagedAsync(page, pageSize);
 }

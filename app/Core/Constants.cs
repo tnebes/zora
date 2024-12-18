@@ -11,4 +11,6 @@ public static class Constants
     public const string ADMIN = "Admin";
     public const string ERROR_TYPE = "errorType";
     public const int TOKEN_EXPIRATION_HOURS = 24;
+    public const int MAX_RESULTS_PER_PAGE = 1000;
+    public const int DEFAULT_PAGE_SIZE = 50;
 }

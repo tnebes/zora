@@ -2,7 +2,7 @@
 
 using AutoMapper;
 using zora.Core.Domain;
-using zora.Core.DTOs;
+using zora.Core.DTOs.Responses;
 
 #endregion
 

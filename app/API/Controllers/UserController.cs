@@ -4,10 +4,10 @@ using System.ComponentModel;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using zora.Core.Domain;
-using zora.Core.DTOs;
+using zora.Core.DTOs.Requests;
+using zora.Core.DTOs.Responses;
 using zora.Core.Interfaces;
-using zora.Infrastructure.Helpers;
+using Constants = zora.Core.Constants;
 
 #endregion
 
@@ -45,20 +45,30 @@ public class UserController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Users")]
-    [Description("Get all users")]
+    [Description("Get all users with pagination, searching and sorting support")]
     [Authorize]
-    public async Task<IActionResult> GetUsers()
+    public async Task<IActionResult> GetUsers([FromQuery] QueryParamsDto queryParams)
     {
         try
         {
             if (!this._roleService.IsAdmin(this.User).Result)
             {
-                return this.Unauthorized();
+                // TODO FIXME this could have been handled by the validation in the DTO
+                // but since we are relying on this stupid hack so that the admin
+                // can see all users, we need to do this here
+                // very bad design
+                queryParams.Page = Math.Max(1, queryParams.Page);
+                queryParams.PageSize = Math.Clamp(queryParams.PageSize, Constants.DEFAULT_PAGE_SIZE,
+                    Constants.MAX_RESULTS_PER_PAGE);
+            }
+            else
+            {
+                queryParams.Page = Math.Max(1, queryParams.Page);
+                queryParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, queryParams.PageSize);
             }
 
-            IEnumerable<User> users = (await this._userService.GetAllFullUsers()).ToList();
-            int userCount = users.Count();
-            return this.Ok(users.ToFullUserResponseDto(userCount, 1, userCount, this._mapper));
+            UserResponseDto<FullUserDto> users = await this._userService.GetUsersDtoAsync(queryParams);
+            return this.Ok(users);
         }
         catch (Exception ex)
         {

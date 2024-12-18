@@ -9,6 +9,8 @@ using zora.API.Extensions;
 using zora.Core;
 using zora.Core.Domain;
 using zora.Core.DTOs;
+using zora.Core.DTOs.Requests;
+using zora.Core.DTOs.Responses;
 using zora.Core.Enums;
 using zora.Core.Interfaces;
 
@@ -99,12 +101,12 @@ public sealed class AuthenticationController : ControllerBase
         try
         {
             long userId = this.HttpContext.User.GetUserId();
-            Result<User> userResult = await this._userService.GetUserByIdAsync(userId);
+            Result<User> user = await this._userService.GetUserByIdAsync(userId);
 
             // TODO ugly as sin
-            if (userResult.IsFailed)
+            if (user.IsFailed)
             {
-                IError error = userResult.Errors[0];
+                IError error = user.Errors[0];
                 ErrorType errorType = error.Metadata.TryGetValue("errorType", out object? value)
                     ? (ErrorType)(value ?? ErrorType.SystemError)
                     : ErrorType.SystemError;
@@ -116,7 +118,7 @@ public sealed class AuthenticationController : ControllerBase
                 };
             }
 
-            return this.Ok(this._mapper.Map<AuthenticationStatusDto>(userResult.Value));
+            return this.Ok(this._mapper.Map<AuthenticationStatusDto>(user.Value));
         }
         catch (Exception e)
         {

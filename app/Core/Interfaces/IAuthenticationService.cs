@@ -2,7 +2,7 @@
 
 using FluentResults;
 using zora.Core.Domain;
-using zora.Core.DTOs;
+using zora.Core.DTOs.Requests;
 
 #endregion
 

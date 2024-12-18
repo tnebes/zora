@@ -2,7 +2,7 @@
 
 using zora.Core.Attributes;
 using zora.Core.Domain;
-using zora.Core.DTOs;
+using zora.Core.DTOs.Requests;
 using zora.Core.Enums;
 using zora.Core.Interfaces;
 

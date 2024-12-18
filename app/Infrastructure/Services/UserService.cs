@@ -1,12 +1,15 @@
 #region
 
+using AutoMapper;
 using FluentResults;
 using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
-using zora.Core.DTOs;
+using zora.Core.DTOs.Requests;
+using zora.Core.DTOs.Responses;
 using zora.Core.Enums;
 using zora.Core.Interfaces;
+using zora.Infrastructure.Helpers;
 
 #endregion
 
@@ -16,11 +19,13 @@ namespace zora.Infrastructure.Services;
 public sealed class UserService : IUserService, IZoraService
 {
     private readonly ILogger<UserService> _logger;
+    private readonly IMapper _mapper;
     private readonly IUserRepository _userRepository;
 
-    public UserService(IUserRepository userRepository, ILogger<UserService> logger)
+    public UserService(IUserRepository userRepository, IMapper mapper, ILogger<UserService> logger)
     {
         this._userRepository = userRepository;
+        this._mapper = mapper;
         this._logger = logger;
     }
 
@@ -65,6 +70,20 @@ public sealed class UserService : IUserService, IZoraService
                 .WithMetadata(Constants.ERROR_TYPE, AuthenticationErrorType.SystemError)
                 .WithMetadata("exception", ex));
         }
+    }
+
+    public async Task<IEnumerable<User>> GetUsersAsync(QueryParamsDto queryParams)
+    {
+        (IEnumerable<User> users, int _) = await this._userRepository.GetUsersAsync(queryParams);
+        return users;
+    }
+
+    public async Task<UserResponseDto<FullUserDto>> GetUsersDtoAsync(QueryParamsDto queryParams)
+    {
+        (IEnumerable<User> users, int totalCount) = await this._userRepository.GetUsersAsync(queryParams);
+        UserResponseDto<FullUserDto> response =
+            users.ToFullUserResponseDto(totalCount, queryParams.Page, queryParams.PageSize, this._mapper);
+        return await Task.FromResult(response);
     }
 
     public async Task<Result<User>> GetUserByIdAsync(long userId)
@@ -112,55 +131,6 @@ public sealed class UserService : IUserService, IZoraService
                 .WithMetadata("exception", ex));
         }
     }
-
-    public async Task<UserResponseDto<FullUserDto>> GetFullUsersAsync(int page = 1, int pageSize = 50)
-    {
-        try
-        {
-            (IEnumerable<User> rawUsers, int totalCount) = await this._userRepository.GetUsersAsync(page, pageSize);
-
-            List<User> users = rawUsers.ToList();
-            if (users.Count == 0)
-            {
-                return new UserResponseDto<FullUserDto>
-                {
-                    Items = [],
-                    Total = totalCount,
-                    Page = page,
-                    PageSize = pageSize
-                };
-            }
-
-            return new UserResponseDto<FullUserDto>
-            {
-                Items = users.Select(u => new FullUserDto
-                {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Email = u.Email,
-                    CreatedAt = u.CreatedAt,
-                    Roles = u.UserRoles.Select(ur => ur.Role.Name)
-                }),
-                Total = totalCount,
-                Page = page,
-                PageSize = pageSize
-            };
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error retrieving paginated users. Page: {Page}, PageSize: {PageSize}",
-                page, pageSize);
-            return new UserResponseDto<FullUserDto>
-            {
-                Items = [],
-                Total = 0,
-                Page = page,
-                PageSize = pageSize
-            };
-        }
-    }
-
-    public Task<IEnumerable<User>> GetAllFullUsers() => this._userRepository.GetAllUsersAsync();
 
     private static string HashPassword(string password) => BCrypt.Net.BCrypt.HashPassword(password);
 }

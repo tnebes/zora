@@ -1,8 +1,4 @@
-#region
-
-#endregion
-
-namespace zora.Core.DTOs;
+namespace zora.Core.DTOs.Responses;
 
 public sealed class FullUserDto : UserDto
 {

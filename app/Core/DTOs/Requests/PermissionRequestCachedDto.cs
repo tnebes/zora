@@ -1,4 +1,4 @@
-namespace zora.Core.DTOs;
+namespace zora.Core.DTOs.Requests;
 
 public sealed class PermissionRequestCachedDto
 {
