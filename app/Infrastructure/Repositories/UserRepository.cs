@@ -43,4 +43,9 @@ public class UserRepository : BaseRepository<User>, IUserRepository, IZoraServic
         return !await this.FindByCondition(user => user.Email == email)
             .AnyAsync();
     }
+
+    public void Delete(User user) => this.DbSet.Remove(user);
+    public Task SaveChangesAsync() => this.DbContext.SaveChangesAsync();
+
+    public void SoftDelete(User user) => this.DbSet.Update(user);
 }

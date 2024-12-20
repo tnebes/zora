@@ -87,6 +87,10 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
             .HasColumnName("assignee_id")
             .IsRequired(false);
 
+        builder.Property(w => w.Deleted)
+            .HasColumnName("deleted")
+            .HasDefaultValue(false);
+
         builder.HasOne(w => w.Assignee)
             .WithMany(u => u.AssignedWorkItems)
             .HasForeignKey(w => w.AssigneeId)

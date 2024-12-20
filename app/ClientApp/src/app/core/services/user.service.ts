@@ -1,7 +1,8 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {User, UserResponse, UserQueryParams} from '../models/user.interface';
+import {User, UserResponse} from '../models/user.interface';
+import {UserQueryParams} from '../models/user-query-params.interface';
 import {environment} from '../../../environments/environment';
 import {Constants} from '../constants';
 
@@ -32,5 +33,13 @@ export class UserService {
 
   public deleteUser(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  createUser(user: User): Observable<User> {
+    return this.http.post<User>(this.apiUrl, user);
+  }
+
+  updateUser(id: number, result: any): any {
+    return this.http.put(`${this.apiUrl}/${id}`, result);
   }
 }

@@ -67,7 +67,7 @@ public class DataSeeder : IZoraService, IDataSeeder
     {
         this._logger.LogInformation("Starting database seeding");
 
-        List<User> users = this._userFaker.Generate(1000);
+        List<User> users = this._userFaker.Generate(1500);
         await this._context.Users.AddRangeAsync(users);
         this._logger.LogInformation("Seeding users");
         await this._context.SaveChangesAsync();

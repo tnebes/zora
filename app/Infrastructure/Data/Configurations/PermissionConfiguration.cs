@@ -40,6 +40,10 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
             .HasColumnName("created_at")
             .HasDefaultValueSql("GETDATE()");
 
+        builder.Property(p => p.Deleted)
+            .HasColumnName("deleted")
+            .HasDefaultValue(false);
+
         builder.HasMany(p => p.RolePermissions)
             .WithOne(rp => rp.Permission)
             .HasForeignKey(rp => rp.PermissionId)

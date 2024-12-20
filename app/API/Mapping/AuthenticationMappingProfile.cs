@@ -15,6 +15,6 @@ public class AuthenticationMappingProfile : Profile
         this.CreateMap<User, AuthenticationStatusDto>()
             .ForMember(dest => dest.IsAuthenticated, opt => opt.MapFrom(src => true))
             .ForMember(dest => dest.Roles, opt =>
-                opt.MapFrom(src => Enumerable.Select(src.UserRoles, ur => ur.Role.Name)));
+                opt.MapFrom(src => src.UserRoles.Select(ur => ur.Role.Name)));
     }
 }

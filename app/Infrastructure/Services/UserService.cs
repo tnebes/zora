@@ -1,5 +1,6 @@
 #region
 
+using System.Security.Claims;
 using AutoMapper;
 using FluentResults;
 using zora.Core;
@@ -47,8 +48,7 @@ public sealed class UserService : IUserService, IZoraService
                     .WithMetadata(Constants.ERROR_TYPE, AuthenticationErrorType.UserNotFound));
             }
 
-            string hashedPassword = UserService.HashPassword(login.Password);
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(login.Password, hashedPassword);
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(login.Password, user.Value.Password);
 
             if (!isPasswordValid)
             {
@@ -84,6 +84,16 @@ public sealed class UserService : IUserService, IZoraService
         UserResponseDto<FullUserDto> response =
             users.ToFullUserResponseDto(totalCount, queryParams.Page, queryParams.PageSize, this._mapper);
         return await Task.FromResult(response);
+    }
+
+    public bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username) =>
+        httpContextUser.Identity?.Name == username;
+
+    public Task DeleteUserAsync(User user)
+    {
+        user.Deleted = true;
+        this._userRepository.SoftDelete(user);
+        return this._userRepository.SaveChangesAsync();
     }
 
     public async Task<Result<User>> GetUserByIdAsync(long userId)

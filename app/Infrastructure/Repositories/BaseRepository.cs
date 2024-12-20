@@ -24,11 +24,13 @@ public abstract class BaseRepository<T> where T : BaseEntity
         this.Logger = logger;
     }
 
+    protected virtual IQueryable<T> FilteredDbSet => this.DbSet.Where(entity => !EF.Property<bool>(entity, "Deleted"));
+
     protected virtual async Task<T?> GetByIdAsync(long id)
     {
         try
         {
-            return await this.DbSet.FindAsync(id);
+            return await this.FilteredDbSet.FirstOrDefaultAsync(e => e.Id == id);
         }
         catch (Exception ex)
         {
@@ -41,7 +43,7 @@ public abstract class BaseRepository<T> where T : BaseEntity
     {
         try
         {
-            return await this.DbSet.ToListAsync();
+            return await this.FilteredDbSet.ToListAsync();
         }
         catch (Exception ex)
         {
@@ -54,7 +56,7 @@ public abstract class BaseRepository<T> where T : BaseEntity
     {
         try
         {
-            return await this.DbSet.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return await this.FilteredDbSet.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         }
         catch (Exception ex)
         {
@@ -69,8 +71,8 @@ public abstract class BaseRepository<T> where T : BaseEntity
     {
         try
         {
-            int totalCount = await this.DbSet.CountAsync();
-            IEnumerable<T> entities = await this.DbSet.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            int totalCount = await this.FilteredDbSet.CountAsync();
+            IEnumerable<T> entities = await this.FilteredDbSet.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
             return (entities, totalCount);
         }
         catch (Exception ex)
@@ -130,7 +132,7 @@ public abstract class BaseRepository<T> where T : BaseEntity
     }
 
     protected virtual IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression) =>
-        this.DbSet.Where(expression);
+        this.FilteredDbSet.Where(expression);
 
-    protected virtual IQueryable<T> GetQueryable() => this.DbSet.AsQueryable();
+    protected virtual IQueryable<T> GetQueryable() => this.FilteredDbSet.AsQueryable();
 }

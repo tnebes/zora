@@ -25,6 +25,10 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasColumnName("project_manager_id")
             .IsRequired(false);
 
+        builder.Property(p => p.Deleted)
+            .HasColumnName("deleted")
+            .HasDefaultValue(false);
+
         builder.HasOne(p => p.Program)
             .WithMany(zp => zp.Projects)
             .HasForeignKey(p => p.ProgramId)

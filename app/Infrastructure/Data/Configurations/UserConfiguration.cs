@@ -41,6 +41,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("created_at")
             .HasDefaultValueSql("GETDATE()");
 
+        builder.Property(u => u.Deleted)
+            .HasColumnName("deleted")
+            .HasDefaultValue(false);
+
         builder.HasIndex(u => u.Username)
             .IsUnique()
             .HasDatabaseName("UQ_User_Username");

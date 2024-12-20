@@ -1,4 +1,4 @@
-use master;
+USE master;
 
 IF EXISTS (SELECT name FROM sys.databases WHERE name = 'zora')
 BEGIN
@@ -17,7 +17,8 @@ CREATE TABLE zora_users (
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    created_at DATETIME2 DEFAULT GETDATE()
+    created_at DATETIME2 DEFAULT GETDATE(),
+    deleted BIT DEFAULT 0
 );
 
 ALTER TABLE zora_users
@@ -25,33 +26,35 @@ ADD CONSTRAINT UQ_User_Username UNIQUE (username),
     CONSTRAINT UQ_User_Email UNIQUE (email);
 
 CREATE TABLE zora_roles (
-      id BIGINT IDENTITY(1,1) PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      created_at DATETIME2 DEFAULT GETDATE()
-)
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    created_at DATETIME2 DEFAULT GETDATE(),
+    deleted BIT DEFAULT 0
+);
 
 CREATE TABLE zora_user_roles (
     user_id BIGINT,
     role_id BIGINT,
     PRIMARY KEY (user_id, role_id),
     FOREIGN KEY (user_id) REFERENCES zora_users(id),
-    FOREIGN KEY (role_id) REFERENCES zora_roles (id)
+    FOREIGN KEY (role_id) REFERENCES zora_roles(id)
 );
 
 CREATE TABLE zora_permissions (
-      id BIGINT IDENTITY(1,1) PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description TEXT,
-      permission_string CHAR(5) NOT NULL,
-      created_at DATETIME2 DEFAULT GETDATE(),
-      CONSTRAINT CHK_Permission_String CHECK (permission_string LIKE '[0-1][0-1][0-1][0-1][0-1]')
-)
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    permission_string CHAR(5) NOT NULL,
+    created_at DATETIME2 DEFAULT GETDATE(),
+    deleted BIT DEFAULT 0,
+    CONSTRAINT CHK_Permission_String CHECK (permission_string LIKE '[0-1][0-1][0-1][0-1][0-1]')
+);
 
 CREATE TABLE zora_role_permissions (
     role_id BIGINT,
     permission_id BIGINT,
     PRIMARY KEY (role_id, permission_id),
-    FOREIGN KEY (role_id) REFERENCES zora_roles (id),
+    FOREIGN KEY (role_id) REFERENCES zora_roles(id),
     FOREIGN KEY (permission_id) REFERENCES zora_permissions(id)
 );
 
@@ -71,9 +74,10 @@ CREATE TABLE zora_work_items (
     created_by BIGINT,
     updated_at DATETIME2,
     updated_by BIGINT,
-    FOREIGN KEY (assignee_id) REFERENCES zora_users (id),
-    FOREIGN KEY (created_by) REFERENCES zora_users (id),
-    FOREIGN KEY (updated_by) REFERENCES zora_users (id)
+    deleted BIT DEFAULT 0,
+    FOREIGN KEY (assignee_id) REFERENCES zora_users(id),
+    FOREIGN KEY (created_by) REFERENCES zora_users(id),
+    FOREIGN KEY (updated_by) REFERENCES zora_users(id)
 );
 
 CREATE TABLE zora_permission_work_items (
@@ -87,6 +91,7 @@ CREATE TABLE zora_permission_work_items (
 CREATE TABLE zora_programs (
     work_item_id BIGINT PRIMARY KEY,
     description TEXT,
+    deleted BIT DEFAULT 0,
     FOREIGN KEY (work_item_id) REFERENCES zora_work_items(work_item_id)
 );
 
@@ -94,9 +99,10 @@ CREATE TABLE zora_projects (
     work_item_id BIGINT PRIMARY KEY,
     program_id BIGINT,
     project_manager_id BIGINT,
+    deleted BIT DEFAULT 0,
     FOREIGN KEY (work_item_id) REFERENCES zora_work_items(work_item_id),
     FOREIGN KEY (program_id) REFERENCES zora_work_items(work_item_id),
-    FOREIGN KEY (project_manager_id) REFERENCES zora_users (id)
+    FOREIGN KEY (project_manager_id) REFERENCES zora_users(id)
 );
 
 CREATE TABLE zora_tasks (
@@ -104,6 +110,7 @@ CREATE TABLE zora_tasks (
     project_id BIGINT,
     priority VARCHAR(50),
     parent_task_id BIGINT,
+    deleted BIT DEFAULT 0,
     FOREIGN KEY (work_item_id) REFERENCES zora_work_items(work_item_id),
     FOREIGN KEY (project_id) REFERENCES zora_work_items(work_item_id),
     FOREIGN KEY (parent_task_id) REFERENCES zora_work_items(work_item_id)
@@ -115,22 +122,24 @@ CREATE TABLE zora_work_item_relationships (
     target_item_id BIGINT,
     relationship_type VARCHAR(50),
     created_at DATETIME2 DEFAULT GETDATE(),
+    deleted BIT DEFAULT 0,
     FOREIGN KEY (source_item_id) REFERENCES zora_work_items(work_item_id),
     FOREIGN KEY (target_item_id) REFERENCES zora_work_items(work_item_id)
 );
 
 CREATE TABLE assets (
-      id BIGINT IDENTITY(1,1) PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description TEXT,
-      asset_path TEXT NOT NULL,
-      created_at DATETIME2 DEFAULT GETDATE(),
-      created_by BIGINT,
-      updated_at DATETIME2,
-      updated_by BIGINT,
-      FOREIGN KEY (created_by) REFERENCES zora_users (id),
-      FOREIGN KEY (updated_by) REFERENCES zora_users (id)
-)
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    asset_path TEXT NOT NULL,
+    created_at DATETIME2 DEFAULT GETDATE(),
+    created_by BIGINT,
+    updated_at DATETIME2,
+    updated_by BIGINT,
+    deleted BIT DEFAULT 0,
+    FOREIGN KEY (created_by) REFERENCES zora_users(id),
+    FOREIGN KEY (updated_by) REFERENCES zora_users(id)
+);
 
 CREATE TABLE zora_work_item_assets (
     work_item_id BIGINT,

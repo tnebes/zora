@@ -38,6 +38,10 @@ public class WorkItemRelationshipConfiguration : IEntityTypeConfiguration<WorkIt
             .HasColumnName("created_at")
             .HasDefaultValueSql("GETDATE()");
 
+        builder.Property(wir => wir.Deleted)
+            .HasColumnName("deleted")
+            .HasDefaultValue(false);
+
         builder.HasOne(wir => wir.SourceItem)
             .WithMany(wi => wi.SourceRelationships)
             .HasForeignKey(wir => wir.SourceItemId)

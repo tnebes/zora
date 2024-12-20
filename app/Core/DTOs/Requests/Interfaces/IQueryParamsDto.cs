@@ -1,5 +1,3 @@
-using zora.Core.Enums;
-
 namespace zora.Core.DTOs.Requests.Interfaces;
 
 public interface IQueryParamsDto<T> where T : Enum

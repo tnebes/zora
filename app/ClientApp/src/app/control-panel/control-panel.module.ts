@@ -15,6 +15,8 @@ import {UsersComponent} from '../components/users/users.component';
 import {GroupsComponent} from '../components/groups/groups.component';
 import {RolesComponent} from '../components/roles/roles.component';
 import {PermissionsComponent} from '../components/permissions/permissions.component';
+import {MatDialogModule} from '@angular/material/dialog';
+import {SharedModule} from '../shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -34,6 +36,8 @@ import {PermissionsComponent} from '../components/permissions/permissions.compon
     MatIconModule,
     MatButtonModule,
     MatFormFieldModule,
+    MatDialogModule,
+    SharedModule,
     RouterModule.forChild([
       {
         path: '',

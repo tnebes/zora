@@ -1,5 +1,6 @@
 #region
 
+using System.Security.Claims;
 using FluentResults;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
@@ -16,4 +17,6 @@ public interface IUserService
     Task<Result<User>> ValidateUser(LoginRequestDto login);
     Task<IEnumerable<User>> GetUsersAsync(QueryParamsDto queryParams);
     Task<UserResponseDto<FullUserDto>> GetUsersDtoAsync(QueryParamsDto queryParams);
+    bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username);
+    Task DeleteUserAsync(User user);
 }

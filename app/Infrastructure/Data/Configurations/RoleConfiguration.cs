@@ -29,6 +29,10 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
             .HasColumnName("created_at")
             .HasDefaultValueSql("GETDATE()");
 
+        builder.Property(r => r.Deleted)
+            .HasColumnName("deleted")
+            .HasDefaultValue(false);
+
         builder.HasMany(r => r.UserRoles)
             .WithOne(ur => ur.Role)
             .HasForeignKey(ur => ur.RoleId)

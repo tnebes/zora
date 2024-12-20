@@ -31,6 +31,10 @@ public class ZoraTaskConfiguration : IEntityTypeConfiguration<ZoraTask>
             .HasColumnName("parent_task_id")
             .IsRequired(false);
 
+        builder.Property(zt => zt.Deleted)
+            .HasColumnName("deleted")
+            .HasDefaultValue(false);
+
         builder.HasOne(zt => zt.Project)
             .WithMany(p => p.Tasks)
             .HasForeignKey(zt => zt.ProjectId)

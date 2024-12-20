@@ -46,6 +46,10 @@ public class AssetConfiguration : IEntityTypeConfiguration<Asset>
         builder.Property(a => a.UpdatedById)
             .HasColumnName("updated_by");
 
+        builder.Property(a => a.Deleted)
+            .HasColumnName("deleted")
+            .HasDefaultValue(false);
+
         builder.HasOne(a => a.CreatedBy)
             .WithMany()
             .HasForeignKey(a => a.CreatedById)

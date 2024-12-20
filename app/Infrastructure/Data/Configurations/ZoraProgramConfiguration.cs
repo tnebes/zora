@@ -22,6 +22,10 @@ public class ZoraProgramConfiguration : IEntityTypeConfiguration<ZoraProgram>
             .IsRequired(false)
             .IsUnicode();
 
+        builder.Property(zp => zp.Deleted)
+            .HasColumnName("deleted")
+            .HasDefaultValue(false);
+
         builder.HasMany(zp => zp.Projects)
             .WithOne(p => p.Program)
             .HasForeignKey(p => p.ProgramId)

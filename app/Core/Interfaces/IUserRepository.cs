@@ -15,4 +15,7 @@ public interface IUserRepository
     Task<User?> GetByEmailAsync(string email);
     Task<bool> IsUsernameUniqueAsync(string username);
     Task<bool> IsEmailUniqueAsync(string email);
+    void Delete(User user);
+    Task SaveChangesAsync();
+    void SoftDelete(User user);
 }

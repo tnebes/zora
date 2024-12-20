@@ -20,6 +20,6 @@ public class UserMappingProfile : Profile
             .ForMember(dest => dest.CreatedAt,
                 opt => opt.MapFrom(src => src.CreatedAt)) // TODO this displays milliseconds
             .ForMember(dest => dest.Roles, opt =>
-                opt.MapFrom(src => Enumerable.Select(src.UserRoles, ur => ur.Role.Name)));
+                opt.MapFrom(src => src.UserRoles.Select(ur => ur.Role.Name)));
     }
 }
