@@ -3,14 +3,15 @@
 using Microsoft.EntityFrameworkCore;
 using zora.Core.Domain;
 using zora.Core.Enums;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Repositories;
+using zora.Core.Interfaces.Services;
 using zora.Infrastructure.Data;
 
 #endregion
 
 namespace zora.Infrastructure.Repositories;
 
-public class WorkItemRepository : BaseRepository<WorkItem>, IWorkItemRepository, IZoraService
+public sealed class WorkItemRepository : BaseRepository<WorkItem>, IWorkItemRepository, IZoraService
 {
     public WorkItemRepository(ApplicationDbContext dbContext, ILogger<WorkItemRepository> logger) : base(dbContext,
         logger)

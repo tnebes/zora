@@ -7,8 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
-using zora.Core.Interfaces;
-using zora.Services.Configuration;
+using zora.Core.Interfaces.Services;
 
 #endregion
 

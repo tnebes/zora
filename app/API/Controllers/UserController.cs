@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Services;
 using Constants = zora.Core.Constants;
 
 #endregion
@@ -111,6 +111,42 @@ public class UserController : ControllerBase, IZoraService
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Failed to delete user with ID {UserId}", id);
+            return this.StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(UserResponseDto<FullUserDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [Tags("Users")]
+    [Description("Create a new user")]
+    [Authorize]
+    public async Task<IActionResult> CreateUser([FromBody] CreateMinimumUserDto createMinimumUserDto)
+    {
+        try
+        {
+            if (this._roleService.IsAdmin(this.User).Result)
+            {
+                Result<User> result = await this._userService.CreateAsync(createMinimumUserDto);
+                if (result.IsFailed)
+                {
+                    this._logger.LogWarning("Failed to create user");
+                    return this.BadRequest();
+                }
+
+                FullUserDto minimumUser = await this._userService.GetUserDtoByIdAsync(result.Value.Id);
+                this._logger.LogInformation("User with ID {UserId} created", minimumUser.Id);
+                return this.CreatedAtAction(nameof(this.CreateUser), new { id = minimumUser.Id }, minimumUser);
+            }
+
+            this._logger.LogWarning("User is not authorised to create a new user");
+            return this.Unauthorized();
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Failed to create user");
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }

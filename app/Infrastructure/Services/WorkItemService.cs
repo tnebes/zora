@@ -3,7 +3,8 @@
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.Enums;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Repositories;
+using zora.Core.Interfaces.Services;
 
 #endregion
 

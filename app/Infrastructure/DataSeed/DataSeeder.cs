@@ -2,7 +2,7 @@
 
 using Bogus;
 using zora.Core.Domain;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Services;
 using zora.Infrastructure.Data;
 
 #endregion

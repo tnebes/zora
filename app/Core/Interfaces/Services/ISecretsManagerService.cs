@@ -1,4 +1,4 @@
-namespace zora.Services.Configuration;
+namespace zora.Core.Interfaces.Services;
 
 public interface ISecretsManagerService
 {

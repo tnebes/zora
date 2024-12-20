@@ -4,7 +4,7 @@ using zora.Core.Domain;
 
 #endregion
 
-namespace zora.Core.Interfaces;
+namespace zora.Core.Interfaces.Repositories;
 
 public interface IPermissionWorkItemRepository
 {

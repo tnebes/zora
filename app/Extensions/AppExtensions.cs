@@ -5,7 +5,7 @@ using Serilog;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using zora.API.Middleware;
 using zora.Core;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Services;
 
 #endregion
 

@@ -1,7 +1,7 @@
 #region
 
 using Serilog;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Services;
 using zora.Extensions;
 
 #endregion

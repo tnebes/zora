@@ -5,7 +5,7 @@ import {MatTableDataSource} from '@angular/material/table';
 import {merge, of, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, switchMap, startWith, catchError, filter} from 'rxjs/operators';
 import {UserQueryParams} from '../../core/models/user-query-params.interface';
-import {User} from '../../core/models/user.interface';
+import {CreateUser, UpdateUser, User} from '../../core/models/user.interface';
 import {UserService} from '../../core/services/user.service';
 import {MatDialog} from '@angular/material/dialog';
 import {ConfirmDialogComponent} from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
@@ -18,7 +18,7 @@ import {Validators} from '@angular/forms';
   styleUrls: ['./users.component.scss']
 })
 export class UsersComponent implements OnInit, AfterViewInit {
-  private readonly userFields: DialogField[] = [
+  private userFields: DialogField[] = [
     {
       name: 'username',
       type: 'text',
@@ -38,13 +38,21 @@ export class UsersComponent implements OnInit, AfterViewInit {
       type: 'multiselect',
       label: 'Roles',
       required: true,
-      options: [
-        {value: 'admin', display: 'Administrator'},
-        {value: 'user', display: 'User'},
-        {value: 'guest', display: 'Guest'}
-      ]
+      options: []
     }
   ];
+
+  private createUserFields: DialogField[] = [
+    ...this.userFields,
+    {
+      name: 'password',
+      type: 'password',
+      label: 'Password',
+      required: true,
+      validators: [Validators.minLength(6)]
+    }
+  ];
+
   public readonly displayedColumns: string[] = ['username', 'email', 'createdAt', 'roles', 'actions'];
   public readonly dataSource: MatTableDataSource<User> = new MatTableDataSource();
   public totalItems: number = 0;
@@ -64,6 +72,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
   public ngAfterViewInit(): void {
     this.setupSearchAndSort();
+    this.addRoles();
   }
 
   public ngOnInit(): void {
@@ -105,11 +114,11 @@ export class UsersComponent implements OnInit, AfterViewInit {
   }
 
   public onCreate(): void {
-    const dialogRef = this.dialog.open(BaseDialogComponent<User>, {
+    const dialogRef = this.dialog.open(BaseDialogComponent<CreateUser>, {
       width: '500px',
       data: {
         title: 'Create User',
-        fields: this.userFields,
+        fields: this.createUserFields,
         mode: 'create'
       }
     });
@@ -129,8 +138,8 @@ export class UsersComponent implements OnInit, AfterViewInit {
       });
   }
 
-  public onEdit(user: User): void {
-    const dialogRef = this.dialog.open(BaseDialogComponent<User>, {
+  public onEdit(user: UpdateUser): void {
+    const dialogRef = this.dialog.open(BaseDialogComponent<UpdateUser>, {
       width: '500px',
       data: {
         title: 'Edit User',
@@ -143,7 +152,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
     dialogRef.afterClosed()
       .pipe(
         filter(result => !!result),
-        switchMap(result => this.userService.updateUser(user.id, result))
+        switchMap(result => this.userService.updateUser(user))
       )
       .subscribe({
         next: () => {
@@ -187,5 +196,12 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
   private loadUsers(): void {
     this.searchTerm.next(this.currentSearchValue);
+  }
+
+  private addRoles(): void {
+    const rolesField = this.userFields.find(field => field.name === 'roles');
+    if (rolesField && rolesField.options) {
+      rolesField.options.push({value: 1, display: 'Admin'});
+    }
   }
 }

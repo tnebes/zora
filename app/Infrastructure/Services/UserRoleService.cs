@@ -1,13 +1,17 @@
 #region
 
+using Microsoft.EntityFrameworkCore;
 using zora.Core;
+using zora.Core.Attributes;
 using zora.Core.Domain;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Repositories;
+using zora.Core.Interfaces.Services;
 
 #endregion
 
 namespace zora.Infrastructure.Services;
 
+[ServiceLifetime(ServiceLifetime.Scoped)]
 public class UserRoleService : IUserRoleService, IZoraService
 {
     private readonly ILogger<UserRoleService> _logger;
@@ -19,16 +23,16 @@ public class UserRoleService : IUserRoleService, IZoraService
         this._logger = logger;
     }
 
-    public Task<IEnumerable<UserRole>> GetUserRolesByUserIdAsync(long userId) =>
+    public IQueryable<UserRole> GetUserRolesByUserIdAsync(long userId) =>
         this._userRoleRepository.GetByUserIdAsync(userId);
 
     public Task<bool> IsRoleAsync(IEnumerable<UserRole> userRoles, string roleName) =>
         Task.FromResult(userRoles.Any(role => role.Role.Name == roleName));
 
-    public Task<bool> IsRoleAsync(long userId, string roleName)
+    public async Task<bool> IsRoleAsync(long userId, string roleName)
     {
-        IEnumerable<UserRole> userRoles = this.GetUserRolesByUserIdAsync(userId).Result;
-        return this.IsRoleAsync(userRoles, roleName);
+        IEnumerable<UserRole> userRoles = await this.GetUserRolesByUserIdAsync(userId).ToListAsync();
+        return await this.IsRoleAsync(userRoles, roleName);
     }
 
     public Task<bool> IsAdminAsync(IEnumerable<UserRole> userRoles) => this.IsRoleAsync(userRoles, Constants.ADMIN);

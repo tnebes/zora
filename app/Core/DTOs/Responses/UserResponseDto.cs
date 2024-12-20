@@ -6,7 +6,7 @@ using zora.Core.DTOs.Responses.Interface;
 
 namespace zora.Core.DTOs.Responses;
 
-public sealed class UserResponseDto<T> : IResponseDto<T> where T : UserDto
+public sealed class UserResponseDto<T> : IResponseDto<T> where T : MinimumUserDto
 {
     public required int Total { get; set; }
     public required int Page { get; set; }

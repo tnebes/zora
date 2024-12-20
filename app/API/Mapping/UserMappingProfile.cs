@@ -2,6 +2,8 @@
 
 using AutoMapper;
 using zora.Core.Domain;
+using zora.Core.DTOs;
+using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
 
 #endregion
@@ -12,7 +14,7 @@ public class UserMappingProfile : Profile
 {
     public UserMappingProfile()
     {
-        this.CreateMap<User, UserDto>();
+        this.CreateMap<User, MinimumUserDto>();
         this.CreateMap<User, FullUserDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
@@ -21,5 +23,6 @@ public class UserMappingProfile : Profile
                 opt => opt.MapFrom(src => src.CreatedAt)) // TODO this displays milliseconds
             .ForMember(dest => dest.Roles, opt =>
                 opt.MapFrom(src => src.UserRoles.Select(ur => ur.Role.Name)));
+        this.CreateMap<CreateMinimumUserDto, User>();
     }
 }

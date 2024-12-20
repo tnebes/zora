@@ -2,14 +2,15 @@
 
 using Microsoft.EntityFrameworkCore;
 using zora.Core.Domain;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Repositories;
+using zora.Core.Interfaces.Services;
 using zora.Infrastructure.Data;
 
 #endregion
 
 namespace zora.Infrastructure.Repositories;
 
-public class PermissionRepository : BaseRepository<Permission>, IPermissionRepository, IZoraService
+public sealed class PermissionRepository : BaseRepository<Permission>, IPermissionRepository, IZoraService
 {
     public PermissionRepository(ApplicationDbContext dbContext, ILogger<BaseRepository<Permission>> logger) : base(
         dbContext, logger)

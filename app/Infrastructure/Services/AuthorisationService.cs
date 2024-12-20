@@ -9,7 +9,7 @@ using zora.Core.Domain;
 using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
 using zora.Core.Enums;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Services;
 using zora.Core.Requirements;
 
 #endregion

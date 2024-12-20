@@ -12,7 +12,7 @@ using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
 using zora.Core.Enums;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Services;
 
 #endregion
 
@@ -128,7 +128,7 @@ public sealed class AuthenticationController : ControllerBase
     }
 
     [HttpGet("current-user")]
-    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(MinimumUserDto), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
@@ -157,7 +157,7 @@ public sealed class AuthenticationController : ControllerBase
                 };
             }
 
-            return this.Ok(this._mapper.Map<UserDto>(user.Value));
+            return this.Ok(this._mapper.Map<MinimumUserDto>(user.Value));
         }
         catch (Exception e)
         {

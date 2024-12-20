@@ -7,8 +7,8 @@ using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.Interfaces;
+using zora.Core.Interfaces.Services;
 using zora.Infrastructure.Data.Configurations;
-using zora.Services.Configuration;
 
 #endregion
 

@@ -3,27 +3,41 @@
 using Microsoft.EntityFrameworkCore;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Repositories;
+using zora.Core.Interfaces.Services;
 using zora.Infrastructure.Data;
 
 #endregion
 
 namespace zora.Infrastructure.Repositories;
 
-public class UserRepository : BaseRepository<User>, IUserRepository, IZoraService
+public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZoraService
 {
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
+
     public UserRepository(
         ApplicationDbContext dbContext,
         ILogger<UserRepository> logger) : base(dbContext, logger)
     {
     }
 
-    public new async Task<User?> GetByIdAsync(long id) => await this.DbSet.FirstOrDefaultAsync(user => user.Id == id);
+    public new async Task<User?> GetByIdAsync(long id)
+    {
+        await UserRepository.Semaphore.WaitAsync();
+        try
+        {
+            return await base.GetByIdAsync(id);
+        }
+        finally
+        {
+            UserRepository.Semaphore.Release();
+        }
+    }
 
     public async Task<User?> GetByUsernameAsync(string username) =>
         await this.FindByCondition(user => user.Username == username).FirstOrDefaultAsync();
 
-    public async Task<(IEnumerable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams) =>
+    public async Task<(IQueryable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams) =>
         await this.GetPagedAsync(queryParams.Page, queryParams.PageSize);
 
     public async Task<User?> GetByEmailAsync(string email)
@@ -48,4 +62,5 @@ public class UserRepository : BaseRepository<User>, IUserRepository, IZoraServic
     public Task SaveChangesAsync() => this.DbContext.SaveChangesAsync();
 
     public void SoftDelete(User user) => this.DbSet.Update(user);
+    public async Task<User> Add(User user) => await this.AddAsync(user);
 }

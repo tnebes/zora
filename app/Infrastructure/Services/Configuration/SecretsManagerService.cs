@@ -2,8 +2,7 @@
 
 using Serilog;
 using zora.Core.Attributes;
-using zora.Core.Interfaces;
-using zora.Services.Configuration;
+using zora.Core.Interfaces.Services;
 
 #endregion
 

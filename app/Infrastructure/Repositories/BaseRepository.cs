@@ -39,11 +39,11 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
     }
 
-    protected virtual async Task<IEnumerable<T>> GetAllAsync()
+    protected virtual IQueryable<T> GetAllAsync()
     {
         try
         {
-            return await this.FilteredDbSet.ToListAsync();
+            return this.FilteredDbSet;
         }
         catch (Exception ex)
         {
@@ -52,11 +52,11 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
     }
 
-    protected virtual async Task<IEnumerable<T>> GetAllAsync(int page, int pageSize)
+    protected virtual IQueryable<T> GetAllAsync(int page, int pageSize)
     {
         try
         {
-            return await this.FilteredDbSet.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return this.FilteredDbSet.Skip((page - 1) * pageSize).Take(pageSize);
         }
         catch (Exception ex)
         {
@@ -67,12 +67,12 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
     }
 
-    protected async Task<(IEnumerable<T>, int totalCount)> GetPagedAsync(int page, int pageSize)
+    protected async Task<(IQueryable<T>, int totalCount)> GetPagedAsync(int page, int pageSize)
     {
         try
         {
             int totalCount = await this.FilteredDbSet.CountAsync();
-            IEnumerable<T> entities = await this.FilteredDbSet.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            IQueryable<T> entities = this.FilteredDbSet.Skip((page - 1) * pageSize).Take(pageSize);
             return (entities, totalCount);
         }
         catch (Exception ex)

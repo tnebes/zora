@@ -2,6 +2,7 @@
 
 using AutoMapper;
 using zora.Core.Domain;
+using zora.Core.DTOs;
 using zora.Core.DTOs.Responses;
 
 #endregion
@@ -23,13 +24,13 @@ public static class UserDtoHelper
         };
     }
 
-    public static UserResponseDto<UserDto> ToUserResponseDto(this IEnumerable<User> users, int total, int page,
+    public static UserResponseDto<MinimumUserDto> ToUserResponseDto(this IEnumerable<User> users, int total, int page,
         int pageSize,
         IMapper mapper)
     {
-        return new UserResponseDto<UserDto>
+        return new UserResponseDto<MinimumUserDto>
         {
-            Items = users.Select(mapper.Map<UserDto>),
+            Items = users.Select(mapper.Map<MinimumUserDto>),
             Total = total,
             Page = page,
             PageSize = pageSize

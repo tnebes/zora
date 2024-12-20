@@ -8,7 +8,7 @@ using zora.Core.DTOs.Responses;
 
 #endregion
 
-namespace zora.Core.Interfaces;
+namespace zora.Core.Interfaces.Services;
 
 public interface IUserService
 {
@@ -19,4 +19,6 @@ public interface IUserService
     Task<UserResponseDto<FullUserDto>> GetUsersDtoAsync(QueryParamsDto queryParams);
     bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username);
     Task DeleteUserAsync(User user);
+    Task<Result<User>> CreateAsync(CreateMinimumUserDto createMinimumUserDto);
+    Task<FullUserDto> GetUserDtoByIdAsync(long id);
 }

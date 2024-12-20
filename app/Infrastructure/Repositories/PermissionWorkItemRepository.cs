@@ -2,14 +2,16 @@
 
 using Microsoft.EntityFrameworkCore;
 using zora.Core.Domain;
-using zora.Core.Interfaces;
+using zora.Core.Interfaces.Repositories;
+using zora.Core.Interfaces.Services;
 using zora.Infrastructure.Data;
 
 #endregion
 
 namespace zora.Infrastructure.Repositories;
 
-public class PermissionWorkItemRepository : BaseCompositeRepository<PermissionWorkItem>, IPermissionWorkItemRepository,
+public sealed class PermissionWorkItemRepository : BaseCompositeRepository<PermissionWorkItem>,
+    IPermissionWorkItemRepository,
     IZoraService
 {
     public PermissionWorkItemRepository(ApplicationDbContext dbContext, ILogger<PermissionWorkItemRepository> logger) :

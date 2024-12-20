@@ -4,7 +4,7 @@ using zora.Core.Enums;
 
 #endregion
 
-namespace zora.Core.Interfaces;
+namespace zora.Core.Interfaces.Services;
 
 public interface IEnvironmentManagerService
 {

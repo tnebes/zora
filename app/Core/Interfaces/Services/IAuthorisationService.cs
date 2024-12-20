@@ -6,7 +6,7 @@ using zora.Core.DTOs.Requests;
 
 #endregion
 
-namespace zora.Core.Interfaces;
+namespace zora.Core.Interfaces.Services;
 
 public interface IAuthorisationService
 {
