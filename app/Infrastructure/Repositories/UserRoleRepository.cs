@@ -19,10 +19,11 @@ public sealed class UserRoleRepository : BaseCompositeRepository<UserRole>, IUse
         ILogger<UserRoleRepository> logger) : base(dbContext, logger) =>
         this._logger = logger;
 
-    public IQueryable<UserRole> GetByUserIdAsync(long userId)
+    public async Task<IEnumerable<UserRole>> GetByUserIdAsync(long userId)
     {
-        return this.FindByCondition(ur => ur.UserId == userId)
-            .Include(ur => ur.Role);
+        return await this.FindByCondition(ur => ur.UserId == userId)
+            .Include(ur => ur.Role)
+            .ToListAsync();
     }
 
     public async Task<UserRole?> GetByCompositeKeyAsync(long userId, long roleId)

@@ -71,11 +71,11 @@ public class AuthorisationController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status403Forbidden)]
     [Tags("Authorisation")]
     [Description("Check if the user is admin")]
-    public async Task<IActionResult> IsAdmin()
+    public IActionResult IsAdmin()
     {
         try
         {
-            bool isAdmin = await this._roleService.IsAdmin(this.HttpContext.User);
+            bool isAdmin = this._roleService.IsAdmin(this.HttpContext.User);
             return isAdmin ? this.Ok() : this.Forbid();
         }
         catch (Exception ex)

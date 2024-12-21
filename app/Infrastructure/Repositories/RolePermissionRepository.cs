@@ -1,5 +1,6 @@
 #region
 
+using Microsoft.EntityFrameworkCore;
 using zora.Core.Domain;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
@@ -17,10 +18,10 @@ public sealed class RolePermissionRepository : BaseCompositeRepository<RolePermi
     {
     }
 
-    public IQueryable<RolePermission> GetByRoleIdAsync(long userRoleRoleId)
+    public async Task<IEnumerable<RolePermission>> GetByRoleIdAsync(long userRoleRoleId)
     {
         IQueryable<RolePermission> rolePermissions = this
             .FindByCondition(rolePermission => rolePermission.RoleId == userRoleRoleId);
-        return rolePermissions;
+        return await rolePermissions.ToListAsync();
     }
 }

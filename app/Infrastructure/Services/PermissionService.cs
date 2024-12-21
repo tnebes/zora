@@ -1,6 +1,5 @@
 #region
 
-using Microsoft.EntityFrameworkCore;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
@@ -40,7 +39,7 @@ public sealed class PermissionService : IPermissionService, IZoraService
         try
         {
             List<UserRole> userRoles =
-                await this._userRoleService.GetUserRolesByUserIdAsync(request.UserId).ToListAsync();
+                (await this._userRoleService.GetUserRolesByUserIdAsync(request.UserId)).ToList();
 
             if (this._userRoleService.IsAdminAsync(userRoles).Result)
             {
@@ -52,8 +51,8 @@ public sealed class PermissionService : IPermissionService, IZoraService
 
             foreach (UserRole userRole in userRoles)
             {
-                List<RolePermission> rolePermissions = await this._rolePermissionRepository
-                    .GetByRoleIdAsync(userRole.RoleId).ToListAsync();
+                IEnumerable<RolePermission> rolePermissions = await this._rolePermissionRepository
+                    .GetByRoleIdAsync(userRole.RoleId);
 
                 foreach (RolePermission rolePermission in rolePermissions)
                 {

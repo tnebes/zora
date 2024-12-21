@@ -10,7 +10,7 @@ using zora.Core.DTOs.Responses;
 
 namespace zora.API.Mapping;
 
-public class UserMappingProfile : Profile
+public sealed class UserMappingProfile : Profile
 {
     public UserMappingProfile()
     {

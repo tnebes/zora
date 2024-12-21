@@ -8,7 +8,7 @@ using zora.Core.DTOs;
 
 namespace zora.API.Mapping;
 
-public class AuthenticationMappingProfile : Profile
+public sealed class AuthenticationMappingProfile : Profile
 {
     public AuthenticationMappingProfile()
     {

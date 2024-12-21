@@ -11,7 +11,7 @@ public interface IUserRepository
 {
     Task<User?> GetByIdAsync(long id);
     Task<User?> GetByUsernameAsync(string username);
-    Task<(IQueryable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams);
+    Task<(IEnumerable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams);
     Task<User?> GetByEmailAsync(string email);
     Task<bool> IsUsernameUniqueAsync(string username);
     Task<bool> IsEmailUniqueAsync(string email);

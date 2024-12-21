@@ -7,5 +7,6 @@ public enum AuthenticationErrorType
     UserNotFound,
     ValidationError,
     SystemError,
-    UserAlreadyAuthenticated
+    UserAlreadyAuthenticated,
+    AuthenticationError
 }

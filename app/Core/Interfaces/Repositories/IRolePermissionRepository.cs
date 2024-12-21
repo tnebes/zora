@@ -8,5 +8,5 @@ namespace zora.Core.Interfaces.Repositories;
 
 public interface IRolePermissionRepository
 {
-    IQueryable<RolePermission> GetByRoleIdAsync(long userRoleRoleId);
+    Task<IEnumerable<RolePermission>> GetByRoleIdAsync(long userRoleRoleId);
 }

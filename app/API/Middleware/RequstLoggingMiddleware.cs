@@ -14,13 +14,13 @@ public class RequestLoggingMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         this._logger.LogInformation(
-            "Request {method} {url} => {statusCode}",
+            "Request {Method} {Url} => {StatusCode}",
             context.Request.Method,
             context.Request.Path,
             context.Response.StatusCode);
 
         this._logger.LogInformation(
-            "Authorization header: {auth}",
+            "Authorization header: {Auth}",
             context.Request.Headers.Authorization.ToString());
 
         await this._next(context);

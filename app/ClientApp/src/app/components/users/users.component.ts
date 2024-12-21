@@ -125,7 +125,6 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed()
       .pipe(
-        filter(result => !!result),
         switchMap(result => this.userService.createUser(result))
       )
       .subscribe({

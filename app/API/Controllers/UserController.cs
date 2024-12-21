@@ -23,18 +23,20 @@ namespace zora.API.Controllers;
 public class UserController : ControllerBase, IZoraService
 {
     private readonly ILogger<UserController> _logger;
+    private readonly IQueryService _queryService;
     private readonly IRoleService _roleService;
     private readonly IUserService _userService;
 
     public UserController(
-        IAuthorisationService authorisationService,
         IRoleService roleService,
         IUserService userService,
+        IQueryService queryService,
         ILogger<UserController> logger,
         IMapper mapper)
     {
         this._roleService = roleService;
         this._userService = userService;
+        this._queryService = queryService;
         this._logger = logger;
     }
 
@@ -53,16 +55,14 @@ public class UserController : ControllerBase, IZoraService
             // but since we are relying on this stupid hack so that the admin
             // can see all users, we need to do this here
             // very bad design
-            if (this._roleService.IsAdmin(this.User).Result)
+            if (this._roleService.IsAdmin(this.User))
             {
                 queryParams.Page = Math.Max(1, queryParams.Page);
                 queryParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, queryParams.PageSize);
             }
             else
             {
-                queryParams.Page = Math.Max(1, queryParams.Page);
-                queryParams.PageSize = Math.Clamp(queryParams.PageSize, Constants.DEFAULT_PAGE_SIZE,
-                    Constants.MAX_RESULTS_PER_PAGE);
+                this._queryService.NormaliseQueryParams(queryParams);
             }
 
             UserResponseDto<FullUserDto> users = await this._userService.GetUsersDtoAsync(queryParams);
@@ -97,7 +97,7 @@ public class UserController : ControllerBase, IZoraService
 
             User user = result.Value;
 
-            if (this._roleService.IsAdmin(this.User).Result || this._userService.ClaimIsUser(this.User, user.Username))
+            if (this._roleService.IsAdmin(this.User) || this._userService.ClaimIsUser(this.User, user.Username))
             {
                 await this._userService.DeleteUserAsync(user);
                 this._logger.LogInformation("User with ID {UserId} deleted", id);
@@ -127,7 +127,7 @@ public class UserController : ControllerBase, IZoraService
     {
         try
         {
-            if (this._roleService.IsAdmin(this.User).Result)
+            if (this._roleService.IsAdmin(this.User))
             {
                 Result<User> result = await this._userService.CreateAsync(createMinimumUserDto);
                 if (result.IsFailed)
@@ -141,7 +141,7 @@ public class UserController : ControllerBase, IZoraService
                 return this.CreatedAtAction(nameof(this.CreateUser), new { id = minimumUser.Id }, minimumUser);
             }
 
-            this._logger.LogWarning("User is not authorised to create a new user");
+            this._logger.LogWarning("User {Username} is not authorised to create a new user", this.User.Identity?.Name);
             return this.Unauthorized();
         }
         catch (Exception ex)

@@ -34,8 +34,10 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error retrieving entity of type {EntityType} with ID {Id}", typeof(T).Name, id);
-            throw;
+            this.Logger.LogError(ex,
+                "Error retrieving entity of type {EntityType} with ID {Id}. Exception: {ExceptionMessage}",
+                typeof(T).Name, id, ex.Message);
+            throw new InvalidOperationException($"Unable to retrieve entity of type {typeof(T).Name} with ID {id}", ex);
         }
     }
 
@@ -47,8 +49,10 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error retrieving all entities of type {EntityType}", typeof(T).Name);
-            throw;
+            this.Logger.LogError(ex,
+                "Error retrieving all entities of type {EntityType}. Exception: {ExceptionMessage}", typeof(T).Name,
+                ex.Message);
+            throw new InvalidOperationException($"Unable to retrieve all entities of type {typeof(T).Name}", ex);
         }
     }
 
@@ -61,9 +65,10 @@ public abstract class BaseRepository<T> where T : BaseEntity
         catch (Exception ex)
         {
             this.Logger.LogError(ex,
-                "Error retrieving all entities of type {EntityType} on page {Page} with page size {PageSize}",
-                typeof(T).Name, page, pageSize);
-            throw;
+                "Error retrieving paged entities of type {EntityType}. Page: {Page}, PageSize: {PageSize}. Exception: {ExceptionMessage}",
+                typeof(T).Name, page, pageSize, ex.Message);
+            throw new InvalidOperationException(
+                $"Unable to retrieve entities of type {typeof(T).Name} for page {page} with page size {pageSize}", ex);
         }
     }
 
@@ -78,9 +83,11 @@ public abstract class BaseRepository<T> where T : BaseEntity
         catch (Exception ex)
         {
             this.Logger.LogError(ex,
-                "Error retrieving paged entities of type {EntityType} on page {Page} with page size {PageSize}",
-                typeof(T).Name, page, pageSize);
-            throw;
+                "Error retrieving paged entities of type {EntityType}. Page: {Page}, PageSize: {PageSize}. Exception: {ExceptionMessage}",
+                typeof(T).Name, page, pageSize, ex.Message);
+            throw new InvalidOperationException(
+                $"Unable to retrieve paged entities of type {typeof(T).Name} for page {page} with page size {pageSize}",
+                ex);
         }
     }
 
@@ -94,8 +101,9 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error adding entity of type {EntityType}", typeof(T).Name);
-            throw;
+            this.Logger.LogError(ex, "Error adding entity of type {EntityType}. Exception: {ExceptionMessage}",
+                typeof(T).Name, ex.Message);
+            throw new InvalidOperationException($"Unable to add entity of type {typeof(T).Name}", ex);
         }
     }
 
@@ -108,8 +116,9 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error updating entity of type {EntityType}", typeof(T).Name);
-            throw;
+            this.Logger.LogError(ex, "Error updating entity of type {EntityType}. Exception: {ExceptionMessage}",
+                typeof(T).Name, ex.Message);
+            throw new InvalidOperationException($"Unable to update entity of type {typeof(T).Name}", ex);
         }
     }
 
@@ -126,8 +135,10 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error deleting entity of type {EntityType} with ID {Id}", typeof(T).Name, id);
-            throw;
+            this.Logger.LogError(ex,
+                "Error deleting entity of type {EntityType} with ID {Id}. Exception: {ExceptionMessage}",
+                typeof(T).Name, id, ex.Message);
+            throw new InvalidOperationException($"Unable to delete entity of type {typeof(T).Name} with ID {id}", ex);
         }
     }
 

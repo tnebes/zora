@@ -18,8 +18,6 @@ namespace zora.Infrastructure.Services;
 [ServiceLifetime(ServiceLifetime.Scoped)]
 public sealed class AuthenticationService : IAuthenticationService, IZoraService
 {
-    private readonly IConfiguration _configuration;
-    private readonly IJwtService _jwtService;
     private readonly ILogger<AuthenticationService> _logger;
     private readonly ISecretsManagerService _secretsManagerService;
     private readonly IUserService _userService;
@@ -29,9 +27,7 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
     {
         this._userService = userService;
         this._logger = logger;
-        this._configuration = configuration;
         this._secretsManagerService = secretsManagerService;
-        this._jwtService = jwtService;
     }
 
     public bool IsValidLoginRequest(LoginRequestDto login) =>
@@ -63,7 +59,8 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error authenticating user {Username}", login.Username);
-            throw;
+            return Result.Fail<User>(new Error("Error authenticating user")
+                .WithMetadata(Constants.ERROR_TYPE, AuthenticationErrorType.AuthenticationError));
         }
     }
 

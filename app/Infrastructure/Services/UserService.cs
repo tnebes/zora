@@ -106,7 +106,7 @@ public sealed class UserService : IUserService, IZoraService
         {
             User user = this._mapper.Map<User>(createMinimumUserDto);
 
-            if (!this.IsValid(user))
+            if (!UserService.IsValid(user))
             {
                 return Result.Fail<User>(new Error("Invalid user data")
                     .WithMetadata("errorType", ErrorType.ValidationError));
@@ -180,7 +180,7 @@ public sealed class UserService : IUserService, IZoraService
         }
     }
 
-    private bool IsValid(User user)
+    private static bool IsValid(User user)
     {
         return !string.IsNullOrWhiteSpace(user.Username) && !string.IsNullOrWhiteSpace(user.Email) &&
                !string.IsNullOrWhiteSpace(user.Password);

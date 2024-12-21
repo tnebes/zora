@@ -1,6 +1,5 @@
 #region
 
-using Microsoft.EntityFrameworkCore;
 using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
@@ -23,15 +22,16 @@ public class UserRoleService : IUserRoleService, IZoraService
         this._logger = logger;
     }
 
-    public IQueryable<UserRole> GetUserRolesByUserIdAsync(long userId) =>
-        this._userRoleRepository.GetByUserIdAsync(userId);
+    public async Task<IEnumerable<UserRole>> GetUserRolesByUserIdAsync(long userId) =>
+        await this._userRoleRepository.GetByUserIdAsync(userId);
+
 
     public Task<bool> IsRoleAsync(IEnumerable<UserRole> userRoles, string roleName) =>
         Task.FromResult(userRoles.Any(role => role.Role.Name == roleName));
 
     public async Task<bool> IsRoleAsync(long userId, string roleName)
     {
-        IEnumerable<UserRole> userRoles = await this.GetUserRolesByUserIdAsync(userId).ToListAsync();
+        IEnumerable<UserRole> userRoles = await this.GetUserRolesByUserIdAsync(userId);
         return await this.IsRoleAsync(userRoles, roleName);
     }
 

@@ -37,7 +37,7 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
     public async Task<User?> GetByUsernameAsync(string username) =>
         await this.FindByCondition(user => user.Username == username).FirstOrDefaultAsync();
 
-    public async Task<(IQueryable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams) =>
+    public async Task<(IEnumerable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams) =>
         await this.GetPagedAsync(queryParams.Page, queryParams.PageSize);
 
     public async Task<User?> GetByEmailAsync(string email)

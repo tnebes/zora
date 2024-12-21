@@ -8,7 +8,7 @@ namespace zora.Core.Interfaces.Repositories;
 
 public interface IUserRoleRepository
 {
-    IQueryable<UserRole> GetByUserIdAsync(long userId);
+    Task<IEnumerable<UserRole>> GetByUserIdAsync(long userId);
     Task<UserRole?> GetByCompositeKeyAsync(long userId, long roleId);
     Task<bool> ExistsAsync(long userId, long roleId);
     Task<bool> CreateAsync(UserRole entity);

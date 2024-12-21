@@ -29,5 +29,5 @@ catch (Exception ex)
 finally
 {
     Log.Information("Commiting seppuku");
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }

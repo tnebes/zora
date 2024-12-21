@@ -53,7 +53,6 @@ public class ApplicationDbContext : DbContext, IDbContext, IZoraService
             catch (SqlException ex)
             {
                 this._logger.LogError(ex, "Failed to open database connection");
-                throw;
             }
         }
 
@@ -70,7 +69,8 @@ public class ApplicationDbContext : DbContext, IDbContext, IZoraService
             {
                 const string errorMessage = "Database connection string {KeyName} not found in secrets.";
                 this._logger.LogError(errorMessage, Constants.CONNECTION_STRING_KEY);
-                throw new InvalidOperationException(string.Format(errorMessage, Constants.CONNECTION_STRING_KEY));
+                throw new InvalidOperationException(
+                    $"Database connection string {Constants.CONNECTION_STRING_KEY} not found in secrets.");
             }
 
             optionsBuilder

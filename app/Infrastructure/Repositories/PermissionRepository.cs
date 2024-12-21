@@ -12,11 +12,11 @@ namespace zora.Infrastructure.Repositories;
 
 public sealed class PermissionRepository : BaseRepository<Permission>, IPermissionRepository, IZoraService
 {
-    public PermissionRepository(ApplicationDbContext dbContext, ILogger<BaseRepository<Permission>> logger) : base(
+    public PermissionRepository(ApplicationDbContext dbContext, ILogger<PermissionRepository> logger) : base(
         dbContext, logger)
     {
     }
 
-    public new async Task<Permission?> GetByIdAsync(long id) =>
-        await this.DbSet.FirstOrDefaultAsync(permission => permission.Id == id);
+    public new async Task<Permission?> GetByIdAsync(long rolePermissionPermissionId) =>
+        await this.DbSet.FirstOrDefaultAsync(permission => permission.Id == rolePermissionPermissionId);
 }
