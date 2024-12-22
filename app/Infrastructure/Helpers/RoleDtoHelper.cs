@@ -20,7 +20,7 @@ public static class RoleDtoHelper
             Total = total,
             Page = page,
             PageSize = pageSize,
-            Items = roles.Select(mapper.Map<RoleDto>)
+            Items = mapper.Map<IEnumerable<RoleDto>>(roles)
         };
     }
 }

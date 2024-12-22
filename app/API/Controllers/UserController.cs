@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Responses.Interface;
 using zora.Core.Interfaces.Services;
 using Constants = zora.Core.Constants;
 
@@ -147,6 +148,54 @@ public class UserController : ControllerBase, IZoraService
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Failed to create user");
+            return this.StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    [HttpPut("{id}")]
+    [ProducesResponseType(typeof(UserResponseDto<FullUserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [Tags("Users")]
+    [Description("Update a user by ID")]
+    [Authorize]
+    public async Task<IActionResult> UpdateUser([FromRoute] long id, [FromBody] UpdateUserDto updateUserDto)
+    {
+        try
+        {
+            Result<User> result = await this._userService.GetUserByIdAsync(id);
+
+            if (result.IsFailed)
+            {
+                this._logger.LogWarning("User with ID {UserId} not found", id);
+                return this.NotFound();
+            }
+
+            User user = result.Value;
+
+            if (this._roleService.IsAdmin(this.User) || this._userService.ClaimIsUser(this.User, user.Username))
+            {
+                Result<User> updatedUser = await this._userService.UpdateUserAsync(user, updateUserDto);
+                if (updatedUser.IsFailed)
+                {
+                    this._logger.LogWarning("Failed to update user with ID {UserId}", id);
+                    return this.BadRequest();
+                }
+
+                FullUserDto fullUser = this._userService.ToDto<FullUserDto>(updatedUser.Value);
+                this._logger.LogInformation("User with ID {UserId} updated", id);
+                return this.Ok(fullUser);
+            }
+
+            this._logger.LogWarning("User with ID {Id} is not authorised to update user with ID {UserId}", id,
+                user.Id);
+            return this.Unauthorized();
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Failed to update user with ID {UserId}", id);
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }

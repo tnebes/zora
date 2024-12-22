@@ -6,8 +6,10 @@ using FluentResults;
 using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
+using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Responses.Interface;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
@@ -132,21 +134,43 @@ public sealed class UserService : IUserService, IZoraService
     }
 
     public async Task<FullUserDto> GetUserDtoByIdAsync(long id) =>
-        this._mapper.Map<FullUserDto>((await this.GetUserByIdAsync(id)).Value);
+        this.ToDto<FullUserDto>((await this.GetUserByIdAsync(id)).Value);
+
+    public async Task<Result<User>> UpdateUserAsync(User user, UpdateUserDto updateUserDto)
+    {
+        Result<User> originalUserResult = await this._userRepository.GetByIdAsync(user.Id);
+
+        if (originalUserResult.IsFailed)
+        {
+            return Result.Fail<User>(new Error("User not found")
+                .WithMetadata("errorType", ErrorType.NotFound));
+        }
+
+        User originalUser = originalUserResult.Value;
+        originalUser.Email = updateUserDto.Email;
+        originalUser.Username = updateUserDto.Username;
+
+        Result<User> updatedUser = await this._userRepository.Update(originalUser);
+
+        return updatedUser;
+    }
+
+    public T ToDto<T>(User updatedUserValue) where T : UserDto => this._mapper.Map<T>(updatedUserValue);
 
     public async Task<Result<User>> GetUserByIdAsync(long userId)
     {
         try
         {
-            User? user = await this._userRepository.GetByIdAsync(userId);
+            Result<User> userResult = await this._userRepository.GetByIdAsync(userId);
 
-            if (user == null)
+            if (userResult.IsFailed)
             {
+                this._logger.LogWarning("User with ID {UserId} not found", userId);
                 return Result.Fail<User>(new Error($"User with ID {userId} not found")
                     .WithMetadata("errorType", ErrorType.NotFound));
             }
 
-            return Result.Ok(user);
+            return userResult;
         }
         catch (Exception ex)
         {
@@ -161,15 +185,16 @@ public sealed class UserService : IUserService, IZoraService
     {
         try
         {
-            User? user = await this._userRepository.GetByUsernameAsync(username);
+            Result<User> userResult = await this._userRepository.GetByUsernameAsync(username);
 
-            if (user == null)
+            if (userResult.IsFailed)
             {
+                this._logger.LogWarning("User with username {Username} not found", username);
                 return Result.Fail<User>(new Error($"User with username {username} not found")
                     .WithMetadata("errorType", ErrorType.NotFound));
             }
 
-            return Result.Ok(user);
+            return userResult;
         }
         catch (Exception ex)
         {

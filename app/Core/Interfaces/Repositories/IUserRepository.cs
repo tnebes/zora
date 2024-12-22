@@ -1,5 +1,6 @@
 #region
 
+using FluentResults;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 
@@ -9,14 +10,15 @@ namespace zora.Core.Interfaces.Repositories;
 
 public interface IUserRepository
 {
-    Task<User?> GetByIdAsync(long id);
-    Task<User?> GetByUsernameAsync(string username);
+    Task<Result<User>> GetByIdAsync(long id);
+    Task<Result<User>> GetByUsernameAsync(string username);
     Task<(IEnumerable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams);
-    Task<User?> GetByEmailAsync(string email);
+    Task<Result<User>> GetByEmailAsync(string email);
     Task<bool> IsUsernameUniqueAsync(string username);
     Task<bool> IsEmailUniqueAsync(string email);
     void Delete(User user);
     Task SaveChangesAsync();
     void SoftDelete(User user);
     Task<User> Add(User user);
+    Task<Result<User>> Update(User originalUser);
 }

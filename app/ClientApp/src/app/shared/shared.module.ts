@@ -10,29 +10,29 @@ import {ConfirmDialogComponent} from './components/confirm-dialog/confirm-dialog
 import {BaseDialogComponent} from './components/base-dialog/base-dialog.component';
 
 @NgModule({
-  declarations: [
-    BaseDialogComponent,
-    ConfirmDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule
-  ],
-  exports: [
-    BaseDialogComponent,
-    ConfirmDialogComponent,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule
-  ]
+    declarations: [
+        BaseDialogComponent,
+        ConfirmDialogComponent
+    ],
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatDialogModule,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule
+    ],
+    exports: [
+        BaseDialogComponent,
+        ConfirmDialogComponent,
+        ReactiveFormsModule,
+        MatDialogModule,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule
+    ]
 })
 export class SharedModule {
 }

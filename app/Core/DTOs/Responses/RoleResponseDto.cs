@@ -8,8 +8,8 @@ namespace zora.Core.DTOs.Responses;
 
 public sealed class RoleResponseDto : IResponseDto<RoleDto>
 {
-    public int Total { get; set; }
-    public int Page { get; set; }
-    public int PageSize { get; set; }
-    public IEnumerable<RoleDto> Items { get; set; }
+    public required int Total { get; set; }
+    public required int Page { get; set; }
+    public required int PageSize { get; set; }
+    public required IEnumerable<RoleDto> Items { get; set; }
 }

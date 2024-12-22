@@ -61,7 +61,7 @@ public class RoleService : IRoleService, IZoraService
     public async Task<RoleResponseDto> GetRolesDtoAsync(QueryParamsDto queryParams)
     {
         (IEnumerable<Role> roles, int total) = await this.GetRolesAsync(queryParams);
-        return roles.ToRoleResponseDto(total, queryParams.Page, queryParams.PageSize, this._mapper);
+        return roles.AsEnumerable().ToRoleResponseDto(total, queryParams.Page, queryParams.PageSize, this._mapper);
     }
 
     private async Task<bool> IsValid(IEnumerable<long> roleIds)

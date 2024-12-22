@@ -1,14 +1,14 @@
 import {Component} from '@angular/core';
 
 interface MenuItem {
-  path: string;
-  label: string;
-  icon: string;
+    path: string;
+    label: string;
+    icon: string;
 }
 
 @Component({
-  selector: 'app-sidebar',
-  template: `
+    selector: 'app-sidebar',
+    template: `
     <nav class="sidebar">
       <ul class="nav flex-column">
         <li *ngFor="let item of menuItems" class="nav-item">
@@ -22,7 +22,7 @@ interface MenuItem {
       </ul>
     </nav>
   `,
-  styles: [`
+    styles: [`
     .sidebar {
       padding: 20px;
       height: 100%;
@@ -45,10 +45,10 @@ interface MenuItem {
   `]
 })
 export class SidebarComponent {
-  public readonly menuItems: MenuItem[] = [
-    {path: './users', label: 'Users', icon: 'bi-people'},
-    {path: './groups', label: 'Groups', icon: 'bi-collection'},
-    {path: './roles', label: 'Roles', icon: 'bi-person-badge'},
-    {path: './permissions', label: 'Permissions', icon: 'bi-shield-lock'}
-  ];
+    public readonly menuItems: MenuItem[] = [
+        {path: './users', label: 'Users', icon: 'bi-people'},
+        {path: './groups', label: 'Groups', icon: 'bi-collection'},
+        {path: './roles', label: 'Roles', icon: 'bi-person-badge'},
+        {path: './permissions', label: 'Permissions', icon: 'bi-shield-lock'}
+    ];
 }

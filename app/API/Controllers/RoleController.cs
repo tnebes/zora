@@ -52,6 +52,8 @@ public class RoleController : ControllerBase, IZoraService
                 return this.Unauthorized();
             }
 
+            this._queryService.NormaliseQueryParams(queryParams);
+
             RoleResponseDto roleResponse = await this._roleService.GetRolesDtoAsync(queryParams);
             return this.Ok(roleResponse);
         }

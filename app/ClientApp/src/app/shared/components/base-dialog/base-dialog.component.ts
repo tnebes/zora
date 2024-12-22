@@ -3,24 +3,24 @@ import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 
 export interface DialogField {
-  name: string;
-  type: 'text' | 'email' | 'password' | 'select' | 'multiselect';
-  label: string;
-  required?: boolean;
-  options?: Array<{ value: any; display: string }>;
-  validators?: Array<any>;
+    name: string;
+    type: 'text' | 'email' | 'password' | 'select' | 'multiselect';
+    label: string;
+    required?: boolean;
+    options?: Array<{ value: any; display: string }>;
+    validators?: Array<any>;
 }
 
 export interface BaseDialogData<T> {
-  title: string;
-  entity?: T;
-  fields: DialogField[];
-  mode: 'create' | 'edit';
+    title: string;
+    entity?: T;
+    fields: DialogField[];
+    mode: 'create' | 'edit';
 }
 
 @Component({
-  selector: 'app-base-dialog',
-  template: `
+    selector: 'app-base-dialog',
+    template: `
     <h2 mat-dialog-title>{{ data.title }}</h2>
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <mat-dialog-content>
@@ -75,7 +75,7 @@ export interface BaseDialogData<T> {
       </mat-dialog-actions>
     </form>
   `,
-  styles: [`
+    styles: [`
     .form-fields {
       display: flex;
       flex-direction: column;
@@ -87,49 +87,49 @@ export interface BaseDialogData<T> {
   `]
 })
 export class BaseDialogComponent<T> {
-  public form: FormGroup;
-  public isSubmitting: boolean = false;
+    public form: FormGroup;
+    public isSubmitting: boolean = false;
 
-  constructor(
-    public dialogRef: MatDialogRef<BaseDialogComponent<T>>,
-    @Inject(MAT_DIALOG_DATA) public data: BaseDialogData<T>,
-    private formBuilder: FormBuilder
-  ) {
-    this.form = this.createForm();
-  }
-
-  private createForm(): FormGroup {
-    const group: { [key: string]: any } = {};
-
-    this.data.fields.forEach(field => {
-      const validators = field.validators || [];
-      if (field.required) {
-        validators.push(Validators.required);
-      }
-
-      const initialValue = this.data.entity ?
-        (this.data.entity as any)[field.name] :
-        field.type === 'multiselect' ? [] : '';
-
-      group[field.name] = [initialValue, validators];
-    });
-
-    return this.formBuilder.group(group);
-  }
-
-  public getErrorMessage(fieldName: string): string {
-    const control = this.form.get(fieldName);
-    if (!control || !control.errors) return '';
-
-    if (control.errors['required']) return 'This field is required';
-    if (control.errors['email']) return 'Invalid email format';
-
-    return 'Invalid input';
-  }
-
-  public onSubmit(): void {
-    if (this.form.valid) {
-      this.dialogRef.close(this.form.value);
+    constructor(
+        public dialogRef: MatDialogRef<BaseDialogComponent<T>>,
+        @Inject(MAT_DIALOG_DATA) public data: BaseDialogData<T>,
+        private formBuilder: FormBuilder
+    ) {
+        this.form = this.createForm();
     }
-  }
+
+    private createForm(): FormGroup {
+        const group: { [key: string]: any } = {};
+
+        this.data.fields.forEach(field => {
+            const validators = field.validators || [];
+            if (field.required) {
+                validators.push(Validators.required);
+            }
+
+            const initialValue = this.data.entity ?
+                (this.data.entity as any)[field.name] :
+                field.type === 'multiselect' ? [] : '';
+
+            group[field.name] = [initialValue, validators];
+        });
+
+        return this.formBuilder.group(group);
+    }
+
+    public getErrorMessage(fieldName: string): string {
+        const control = this.form.get(fieldName);
+        if (!control || !control.errors) return '';
+
+        if (control.errors['required']) return 'This field is required';
+        if (control.errors['email']) return 'Invalid email format';
+
+        return 'Invalid input';
+    }
+
+    public onSubmit(): void {
+        if (this.form.valid) {
+            this.dialogRef.close(this.form.value);
+        }
+    }
 }

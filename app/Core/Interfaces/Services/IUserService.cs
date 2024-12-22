@@ -3,8 +3,10 @@
 using System.Security.Claims;
 using FluentResults;
 using zora.Core.Domain;
+using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Responses.Interface;
 
 #endregion
 
@@ -21,4 +23,6 @@ public interface IUserService
     Task DeleteUserAsync(User user);
     Task<Result<User>> CreateAsync(CreateMinimumUserDto createMinimumUserDto);
     Task<FullUserDto> GetUserDtoByIdAsync(long id);
+    Task<Result<User>> UpdateUserAsync(User user, UpdateUserDto updateUserDto);
+    T ToDto<T>(User updatedUserValue) where T : UserDto;
 }

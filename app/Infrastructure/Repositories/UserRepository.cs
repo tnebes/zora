@@ -1,6 +1,8 @@
 #region
 
+using FluentResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.Interfaces.Repositories;
@@ -21,12 +23,18 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
     {
     }
 
-    public new async Task<User?> GetByIdAsync(long id)
+    public new async Task<Result<User>> GetByIdAsync(long id)
     {
         await UserRepository.Semaphore.WaitAsync();
         try
         {
-            return await base.GetByIdAsync(id);
+            User? user = await base.GetByIdAsync(id);
+            if (user == null)
+            {
+                return Result.Fail<User>(new Error("User not found"));
+            }
+
+            return Result.Ok(user);
         }
         finally
         {
@@ -34,17 +42,8 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         }
     }
 
-    public async Task<User?> GetByUsernameAsync(string username) =>
-        await this.FindByCondition(user => user.Username == username).FirstOrDefaultAsync();
-
     public async Task<(IEnumerable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams) =>
         await this.GetPagedAsync(queryParams.Page, queryParams.PageSize);
-
-    public async Task<User?> GetByEmailAsync(string email)
-    {
-        return await this.FindByCondition(user => user.Email == email)
-            .FirstOrDefaultAsync();
-    }
 
     public async Task<bool> IsUsernameUniqueAsync(string username)
     {
@@ -59,8 +58,40 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
     }
 
     public void Delete(User user) => this.DbSet.Remove(user);
-    public Task SaveChangesAsync() => this.DbContext.SaveChangesAsync();
+    public async Task SaveChangesAsync() => await this.DbContext.SaveChangesAsync();
 
     public void SoftDelete(User user) => this.DbSet.Update(user);
     public async Task<User> Add(User user) => await this.AddAsync(user);
+
+    public async Task<Result<User>> Update(User originalUser)
+    {
+        EntityEntry<User> entityEntry = this.DbSet.Update(originalUser);
+        await this.SaveChangesAsync();
+        return Result.Ok(entityEntry.Entity);
+    }
+
+    public async Task<Result<User>> GetByUsernameAsync(string username)
+    {
+        User? user = await this.FindByCondition(user => user.Username == username).FirstOrDefaultAsync();
+
+        if (user == null)
+        {
+            return Result.Fail<User>(new Error("User not found"));
+        }
+
+        return Result.Ok(user);
+    }
+
+    public async Task<Result<User>> GetByEmailAsync(string email)
+    {
+        User? user = await this.FindByCondition(user => user.Email == email)
+            .FirstOrDefaultAsync();
+
+        if (user == null)
+        {
+            return Result.Fail(new Error("User not found"));
+        }
+
+        return Result.Ok(user);
+    }
 }

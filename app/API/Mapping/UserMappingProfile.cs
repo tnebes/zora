@@ -22,7 +22,7 @@ public sealed class UserMappingProfile : Profile
             .ForMember(dest => dest.CreatedAt,
                 opt => opt.MapFrom(src => src.CreatedAt)) // TODO this displays milliseconds
             .ForMember(dest => dest.Roles, opt =>
-                opt.MapFrom(src => src.UserRoles.Select(ur => ur.Role.Name)));
+                opt.MapFrom(src => src.UserRoles.ToDictionary(ur => ur.Role.Id, ur => ur.Role.Name)));
         this.CreateMap<CreateMinimumUserDto, User>();
     }
 }

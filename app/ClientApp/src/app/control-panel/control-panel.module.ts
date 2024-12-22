@@ -19,39 +19,39 @@ import {MatDialogModule} from '@angular/material/dialog';
 import {SharedModule} from '../shared/shared.module';
 
 @NgModule({
-  declarations: [
-    ControlPanelComponent,
-    SidebarComponent,
-    UsersComponent,
-    GroupsComponent,
-    RolesComponent,
-    PermissionsComponent
-  ],
-  imports: [
-    CommonModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatInputModule,
-    MatIconModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatDialogModule,
-    SharedModule,
-    RouterModule.forChild([
-      {
-        path: '',
-        component: ControlPanelComponent,
-        children: [
-          {path: '', redirectTo: 'users', pathMatch: 'full'},
-          {path: 'users', component: UsersComponent},
-          {path: 'groups', component: GroupsComponent},
-          {path: 'roles', component: RolesComponent},
-          {path: 'permissions', component: PermissionsComponent}
-        ]
-      }
-    ])
-  ]
+    declarations: [
+        ControlPanelComponent,
+        SidebarComponent,
+        UsersComponent,
+        GroupsComponent,
+        RolesComponent,
+        PermissionsComponent
+    ],
+    imports: [
+        CommonModule,
+        MatTableModule,
+        MatPaginatorModule,
+        MatSortModule,
+        MatInputModule,
+        MatIconModule,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatDialogModule,
+        SharedModule,
+        RouterModule.forChild([
+            {
+                path: '',
+                component: ControlPanelComponent,
+                children: [
+                    {path: '', redirectTo: 'users', pathMatch: 'full'},
+                    {path: 'users', component: UsersComponent},
+                    {path: 'groups', component: GroupsComponent},
+                    {path: 'roles', component: RolesComponent},
+                    {path: 'permissions', component: PermissionsComponent}
+                ]
+            }
+        ])
+    ]
 })
 export class ControlPanelModule {
 }

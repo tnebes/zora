@@ -1,51 +1,53 @@
 <header>
-  <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-    <div class="container">
-      <a class="navbar-brand" [routerLink]="['/']">zora</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse"
-              aria-label="Toggle navigation" [attr.aria-expanded]="isExpanded" (click)="toggle()">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end" [ngClass]="{ show: isExpanded }">
-        <ul class="navbar-nav flex-grow">
-          <li class="nav-item" [routerLinkActive]="['link-active']" [routerLinkActiveOptions]="{ exact: true }">
-            <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
-          </li>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <div class="container">
+            <a class="navbar-brand" [routerLink]="['/']">zora</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse"
+                    aria-label="Toggle navigation" [attr.aria-expanded]="isExpanded" (click)="toggle()">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end" [ngClass]="{ show: isExpanded }">
+                <ul class="navbar-nav flex-grow">
+                    <li class="nav-item" [routerLinkActive]="['link-active']"
+                        [routerLinkActiveOptions]="{ exact: true }">
+                        <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
+                    </li>
 
-          <li *ngIf="!(isAuthenticated$ | async)" class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark primary" [routerLink]="['/login']">Login</a>
-          </li>
+                    <li *ngIf="!(isAuthenticated$ | async)" class="nav-item" [routerLinkActive]="['link-active']">
+                        <a class="nav-link text-dark primary" [routerLink]="['/login']">Login</a>
+                    </li>
 
-          <ng-container *ngIf="isAuthenticated$ | async">
-            <li class="nav-item" [routerLinkActive]="['link-active']">
-              <a class="nav-link text-dark" [routerLink]="['/programs']">Programs</a>
-            </li>
+                    <ng-container *ngIf="isAuthenticated$ | async">
+                        <li class="nav-item" [routerLinkActive]="['link-active']">
+                            <a class="nav-link text-dark" [routerLink]="['/programs']">Programs</a>
+                        </li>
 
-            <li class="nav-item" [routerLinkActive]="['link-active']">
-              <a class="nav-link text-dark" [routerLink]="['/projects']">Projects</a>
-            </li>
+                        <li class="nav-item" [routerLinkActive]="['link-active']">
+                            <a class="nav-link text-dark" [routerLink]="['/projects']">Projects</a>
+                        </li>
 
-            <li class="nav-item" [routerLinkActive]="['link-active']">
-              <a class="nav-link text-dark" [routerLink]="['/tasks']">Tasks</a>
-            </li>
+                        <li class="nav-item" [routerLinkActive]="['link-active']">
+                            <a class="nav-link text-dark" [routerLink]="['/tasks']">Tasks</a>
+                        </li>
 
-            <li *ngIf="isAdmin$ | async" class="nav-item" [routerLinkActive]="['link-active']">
-              <a class="nav-link text-dark" [routerLink]="['/control-panel']">Control Panel</a>
-            </li>
+                        <li *ngIf="isAdmin$ | async" class="nav-item" [routerLinkActive]="['link-active']">
+                            <a class="nav-link text-dark" [routerLink]="['/control-panel']">Control Panel</a>
+                        </li>
 
-            <li class="nav-item">
-              <a class="nav-link text-dark" href="#" (click)="$event.preventDefault(); logout()">Logout</a>
-            </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="#"
+                               (click)="$event.preventDefault(); logout()">Logout</a>
+                        </li>
 
-            <li class="nav-item">
-              <a class="nav-link text-dark"
-                 [routerLink]="['/user', currentUserId$ | async]">
-                Profile
-              </a>
-            </li>
-          </ng-container>
-        </ul>
-      </div>
-    </div>
-  </nav>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"
+                               [routerLink]="['/user', currentUserId$ | async]">
+                                Profile
+                            </a>
+                        </li>
+                    </ng-container>
+                </ul>
+            </div>
+        </div>
+    </nav>
 </header>
