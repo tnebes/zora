@@ -4,7 +4,7 @@ import {MatSort} from '@angular/material/sort';
 import {MatTableDataSource} from '@angular/material/table';
 import {merge, of, Subject} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, filter, startWith, switchMap} from 'rxjs/operators';
-import {UserQueryParams} from '../../core/models/user-query-params.interface';
+import {QueryParams} from '../../core/models/query-params.interface';
 import {CreateUser, UpdateUser, UserResponse} from '../../core/models/user.interface';
 import {UserService} from '../../core/services/user.service';
 import {MatDialog} from '@angular/material/dialog';
@@ -13,6 +13,8 @@ import {BaseDialogComponent, DialogField} from 'src/app/shared/components/base-d
 import {Validators} from '@angular/forms';
 import {RoleService} from 'src/app/core/services/role.service';
 import {RoleResponse} from "../../core/models/role.interface";
+import {DefaultValues} from "../../core/constants";
+import {QueryService} from "../../core/services/query.service";
 
 @Component({
     selector: 'app-users',
@@ -25,7 +27,11 @@ export class UsersComponent implements OnInit, AfterViewInit {
     public totalItems: number = 0;
     public isLoading: boolean = false;
     public searchTerm: Subject<string> = new Subject<string>();
-    private userFields: DialogField[] = [
+    private currentSearchValue: string = '';
+    @ViewChild(MatPaginator) private readonly paginator!: MatPaginator;
+    @ViewChild(MatSort) private readonly sort!: MatSort;
+
+    private readonly userFields: DialogField[] = [
         {
             name: 'username',
             type: 'text',
@@ -48,7 +54,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
             options: []
         }
     ];
-    private createUserFields: DialogField[] = [
+    private readonly createUserFields: DialogField[] = [
         ...this.userFields,
         {
             name: 'password',
@@ -58,14 +64,11 @@ export class UsersComponent implements OnInit, AfterViewInit {
             validators: [Validators.minLength(6)]
         }
     ];
-    private currentSearchValue: string = '';
-
-    @ViewChild(MatPaginator) private readonly paginator!: MatPaginator;
-    @ViewChild(MatSort) private readonly sort!: MatSort;
 
     constructor(
         private readonly userService: UserService,
         private readonly roleService: RoleService,
+        private readonly queryService: QueryService,
         private readonly dialog: MatDialog
     ) {
     }
@@ -75,8 +78,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
         this.setupSearchAndSort();
     }
 
-    public ngOnInit(): void {
-    }
+    public ngOnInit(): void {}
 
     public onSearch(event: Event): void {
         const target = event.target as HTMLInputElement;
@@ -190,14 +192,14 @@ export class UsersComponent implements OnInit, AfterViewInit {
                 startWith({}),
                 switchMap(() => {
                     this.isLoading = true;
-                    const params: UserQueryParams = {
+                    const params: QueryParams = {
                         page: this.paginator.pageIndex + 1,
                         pageSize: this.paginator.pageSize,
                         searchTerm: this.currentSearchValue,
                         sortColumn: this.sort.active,
                         sortDirection: this.sort.direction as 'asc' | 'desc'
                     };
-                    return this.userService.getUsers(params);
+                    return this.userService.getUsers(this.queryService.normaliseQueryParams(params));
                 })
             )
             .subscribe(response => {
@@ -217,7 +219,8 @@ export class UsersComponent implements OnInit, AfterViewInit {
             console.error('Roles field not found');
             return;
         }
-        this.roleService.getAllRoles()
+        // TODO FIXME what happens if a user wishes to choose a role that is not in the list?
+        this.roleService.getRoles(DefaultValues.QUERY_PARAMS)
             .subscribe(response => {
                 rolesField.options = this.toOptions(response.items);
             });

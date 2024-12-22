@@ -7,11 +7,8 @@ const PROXY_CONFIG = [
     {
         // TODO update this
         context: [
-            "/user",
-            "/role",
-            "/permission",
             "/api",
-            "/control-panel",
+            "/swagger",
         ],
         target: target,
         secure: false,

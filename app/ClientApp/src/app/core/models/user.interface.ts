@@ -1,4 +1,4 @@
-import {ResponseDto} from './responseDto.interface';
+import {ResponseDto} from './response-dto.interface';
 import {AbstractRole, RoleResponse} from "./role.interface";
 
 export interface AbstractUser {

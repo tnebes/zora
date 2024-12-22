@@ -1,4 +1,4 @@
-export interface UserQueryParams {
+export interface QueryParams {
     page: number;
     pageSize: number;
     searchTerm?: string;

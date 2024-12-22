@@ -1,4 +1,4 @@
-import {ResponseDto} from './responseDto.interface';
+import {ResponseDto} from './response-dto.interface';
 
 export interface RoleResponseDto extends ResponseDto {
     items: RoleResponse[];

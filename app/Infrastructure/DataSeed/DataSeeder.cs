@@ -11,15 +11,15 @@ namespace zora.Infrastructure.DataSeed;
 
 public class DataSeeder : IZoraService, IDataSeeder
 {
+    private readonly Faker<Asset> _assetFaker;
     private readonly ApplicationDbContext _context;
     private readonly ILogger<DataSeeder> _logger;
+    private readonly Faker<Permission> _permissionFaker;
     private readonly Faker<ZoraProgram> _programFaker;
     private readonly Faker<Project> _projectFaker;
+    private readonly Faker<Role> _roleFaker;
     private readonly Faker<ZoraTask> _taskFaker;
     private readonly Faker<User> _userFaker;
-    private readonly Faker<Role> _roleFaker;
-    private readonly Faker<Permission> _permissionFaker;
-    private readonly Faker<Asset> _assetFaker;
 
 
     public DataSeeder(ApplicationDbContext context, ILogger<DataSeeder> logger)

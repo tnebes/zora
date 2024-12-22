@@ -1,3 +1,5 @@
+import {QueryParams} from "./models/query-params.interface";
+
 export class Constants {
     static readonly BASE_URL: string = "https://localhost:5001/api/v1"; // TODO this should be an environment variable & should be accessible via proxy
     static readonly AUTHENTICATION = `${Constants.BASE_URL}/authentication`;
@@ -11,4 +13,15 @@ export class Constants {
 
     static readonly USERS = `${Constants.BASE_URL}/users`;
     static readonly ROLES = `${Constants.BASE_URL}/roles`;
+
+}
+
+export class DefaultValues {
+    static readonly QUERY_PARAMS: QueryParams = {
+        page: 1,
+        pageSize: 50,
+        searchTerm: '',
+        sortColumn: 'createdAt',
+        sortDirection: 'asc'
+    };
 }

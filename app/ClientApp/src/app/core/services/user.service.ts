@@ -2,8 +2,9 @@ import {Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {CreateUser, UpdateUser, User, UserResponse, UserResponseDto} from '../models/user.interface';
-import {UserQueryParams} from '../models/user-query-params.interface';
+import {QueryParams} from '../models/query-params.interface';
 import {Constants} from '../constants';
+import {QueryService} from "./query.service";
 
 @Injectable({
     providedIn: 'root'
@@ -11,22 +12,11 @@ import {Constants} from '../constants';
 export class UserService {
     private readonly apiUrl: string = Constants.USERS;
 
-    constructor(private readonly http: HttpClient) {
+    constructor(private readonly http: HttpClient, private readonly queryService: QueryService) {
     }
 
-    public getUsers(params: UserQueryParams): Observable<UserResponseDto<UserResponse>> {
-        let httpParams: HttpParams = new HttpParams()
-            .set('page', params.page.toString())
-            .set('pageSize', params.pageSize.toString());
-
-        if (params.searchTerm) {
-            httpParams = httpParams.set('searchTerm', params.searchTerm);
-        }
-        if (params.sortColumn) {
-            httpParams = httpParams.set('sortColumn', params.sortColumn);
-            httpParams = httpParams.set('sortDirection', params.sortDirection ?? 'asc');
-        }
-
+    public getUsers(params: QueryParams): Observable<UserResponseDto<UserResponse>> {
+        let httpParams: HttpParams = this.queryService.getHttpParams(params);
         return this.http.get<UserResponseDto<UserResponse>>(this.apiUrl, {params: httpParams});
     }
 
