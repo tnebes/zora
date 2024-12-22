@@ -1,0 +1,14 @@
+.mat-elevation-z8 {
+  margin-top: 1rem;
+  overflow: auto;
+}
+
+mat-header-cell, mat-cell {
+  padding: 0.5rem;
+}
+
+mat-dialog-actions {
+  margin-top: 1rem;
+}
+
+/*# sourceMappingURL=entity-display-dialog.component.css.map */

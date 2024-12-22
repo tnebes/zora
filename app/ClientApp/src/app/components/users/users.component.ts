@@ -5,14 +5,14 @@ import {MatTableDataSource} from '@angular/material/table';
 import {merge, of, Subject} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, filter, startWith, switchMap} from 'rxjs/operators';
 import {UserQueryParams} from '../../core/models/user-query-params.interface';
-import {CreateUser, UpdateUser, User, UserResponse} from '../../core/models/user.interface';
+import {CreateUser, UpdateUser, UserResponse} from '../../core/models/user.interface';
 import {UserService} from '../../core/services/user.service';
 import {MatDialog} from '@angular/material/dialog';
 import {ConfirmDialogComponent} from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
 import {BaseDialogComponent, DialogField} from 'src/app/shared/components/base-dialog/base-dialog.component';
 import {Validators} from '@angular/forms';
 import {RoleService} from 'src/app/core/services/role.service';
-import {Role} from "../../core/models/role.interface";
+import {RoleResponse} from "../../core/models/role.interface";
 
 @Component({
     selector: 'app-users',
@@ -223,7 +223,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
             });
     }
 
-    private toOptions(items: Role[]): { value: number, display: string }[] {
+    private toOptions(items: RoleResponse[]): { value: number, display: string }[] {
         return items.map(item => ({value: item.id, display: item.name}));
     }
 }

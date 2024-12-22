@@ -1,7 +1,7 @@
 import {ResponseDto} from './responseDto.interface';
 
-export interface RoleResponse extends ResponseDto {
-    items: Role[];
+export interface RoleResponseDto extends ResponseDto {
+    items: RoleResponse[];
 }
 
 export interface AbstractRole {
@@ -9,7 +9,7 @@ export interface AbstractRole {
     name: string;
 }
 
-export interface Role extends AbstractRole {
+export interface RoleResponse extends AbstractRole {
     createdAt: Date;
     userIds: number[];
     permissionIds: number[];

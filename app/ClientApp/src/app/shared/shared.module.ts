@@ -8,11 +8,14 @@ import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {ConfirmDialogComponent} from './components/confirm-dialog/confirm-dialog.component';
 import {BaseDialogComponent} from './components/base-dialog/base-dialog.component';
+import {EntitySelectorDialogComponent} from './components/entity-display-dialog/entity-display-dialog.component';
+import {MatTableModule} from "@angular/material/table";
 
 @NgModule({
     declarations: [
         BaseDialogComponent,
-        ConfirmDialogComponent
+        ConfirmDialogComponent,
+        EntitySelectorDialogComponent
     ],
     imports: [
         CommonModule,
@@ -21,7 +24,8 @@ import {BaseDialogComponent} from './components/base-dialog/base-dialog.componen
         MatButtonModule,
         MatFormFieldModule,
         MatInputModule,
-        MatSelectModule
+        MatSelectModule,
+        MatTableModule
     ],
     exports: [
         BaseDialogComponent,

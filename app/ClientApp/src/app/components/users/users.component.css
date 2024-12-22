@@ -1,0 +1,16 @@
+.table-header {
+  padding: 16px;
+}
+.table-header mat-form-field {
+  width: 100%;
+}
+
+.mat-table {
+  width: 100%;
+}
+
+.mat-cell {
+  padding: 8px;
+}
+
+/*# sourceMappingURL=users.component.css.map */
