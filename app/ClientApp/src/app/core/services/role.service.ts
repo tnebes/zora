@@ -13,10 +13,12 @@ export class RoleService {
     constructor(private readonly http: HttpClient) {
     }
 
+    // TODO FIXME this will be a problem if we have more than 1000 roles
+    // or if we use searchTerms
     public getAllRoles(): Observable<RoleResponse> {
         const params = new HttpParams()
             .set('page', '1')
-            .set('pageSize', '100')
+            .set('pageSize', '1000')
             .set('searchTerm', '')
             .set('sortColumn', '')
             .set('sortDirection', '');

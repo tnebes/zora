@@ -17,6 +17,10 @@ public class DataSeeder : IZoraService, IDataSeeder
     private readonly Faker<Project> _projectFaker;
     private readonly Faker<ZoraTask> _taskFaker;
     private readonly Faker<User> _userFaker;
+    private readonly Faker<Role> _roleFaker;
+    private readonly Faker<Permission> _permissionFaker;
+    private readonly Faker<Asset> _assetFaker;
+
 
     public DataSeeder(ApplicationDbContext context, ILogger<DataSeeder> logger)
     {
@@ -24,12 +28,12 @@ public class DataSeeder : IZoraService, IDataSeeder
         this._logger = logger;
 
         this._userFaker = new Faker<User>()
-            .RuleFor(u => u.Username, f => f.Internet.UserName())
-            .RuleFor(u => u.Email, f => f.Internet.Email())
+            .RuleFor(u => u.Username, f => f.Commerce.Color() + f.Internet.UserName())
+            .RuleFor(u => u.Email, f => f.Internet.Email(uniqueSuffix: f.Random.Guid().ToString()))
             .RuleFor(u => u.Password, f => BCrypt.Net.BCrypt.HashPassword("Password123!"));
 
         this._programFaker = new Faker<ZoraProgram>()
-            .RuleFor(w => w.Name, f => f.Commerce.ProductName())
+            .RuleFor(w => w.Name, f => f.Commerce.Department())
             .RuleFor(w => w.Description, f => f.Lorem.Paragraph())
             .RuleFor(w => w.Status, f => f.PickRandom("New", "InProgress", "Completed"))
             .RuleFor(w => w.StartDate, f => f.Date.Future())
@@ -51,7 +55,7 @@ public class DataSeeder : IZoraService, IDataSeeder
             .RuleFor(w => w.Type, f => "Project");
 
         this._taskFaker = new Faker<ZoraTask>()
-            .RuleFor(w => w.Name, f => f.Commerce.ProductName())
+            .RuleFor(w => w.Name, f => f.Commerce.Product())
             .RuleFor(w => w.Description, f => f.Lorem.Paragraph())
             .RuleFor(w => w.Status, f => f.PickRandom("New", "InProgress", "Completed"))
             .RuleFor(w => w.StartDate, f => f.Date.Future())
@@ -108,6 +112,47 @@ public class DataSeeder : IZoraService, IDataSeeder
             }
         }
 
+        this._logger.LogInformation("Seeding roles");
+
+        List<Role> roles = new Faker<Role>()
+            .RuleFor(r => r.Name, f => f.Lorem.Word())
+            .Generate(150);
+
+        await this._context.Roles.AddRangeAsync(roles);
+        await this._context.SaveChangesAsync();
+
+        this._logger.LogInformation("Seeding permissions");
+
+        List<Permission> permissions = new Faker<Permission>()
+            .RuleFor(p => p.Name, f => f.Lorem.Word())
+            .RuleFor(p => p.PermissionString, f => DataSeeder.GeneratePermissionString())
+            .Generate(150);
+
+        await this._context.Permissions.AddRangeAsync(permissions);
+        await this._context.SaveChangesAsync();
+
+        this._logger.LogInformation("Seeding assets");
+
+        List<Asset> assets = new Faker<Asset>()
+            .RuleFor(a => a.Name, f => f.Commerce.ProductName())
+            .RuleFor(a => a.Description, f => f.Lorem.Sentence())
+            .RuleFor(a => a.AssetPath, f => f.System.DirectoryPath())
+            .RuleFor(a => a.CreatedAt, f => f.Date.Past(2))
+            .RuleFor(a => a.CreatedById, f => f.PickRandom(users).Id)
+            .RuleFor(a => a.UpdatedAt, f => f.Date.Recent(90))
+            .RuleFor(a => a.UpdatedById, f => f.PickRandom(users).Id)
+            .Generate(500);
+
+        await this._context.Assets.AddRangeAsync(assets);
+        await this._context.SaveChangesAsync();
+
         this._logger.LogInformation("Database seeding completed");
+    }
+
+    private static string GeneratePermissionString()
+    {
+        return new string(Enumerable.Range(0, 6)
+            .Select(_ => new Faker().Random.Bool() ? '1' : '0')
+            .ToArray());
     }
 }

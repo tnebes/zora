@@ -12,7 +12,7 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [ProducesResponseType<int>(StatusCodes.Status200OK)]
-public class SeedingController : ControllerBase
+public sealed class SeedingController : ControllerBase
 {
     private readonly IDataSeeder _dataSeeder;
     private readonly ILogger<SeedingController> _logger;

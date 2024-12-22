@@ -16,7 +16,7 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("Authorisation API")]
-public class AuthorisationController : ControllerBase, IZoraService
+public sealed class AuthorisationController : ControllerBase, IZoraService
 {
     private readonly IAuthorisationService _authorisationService;
     private readonly ILogger<AuthorisationController> _logger;

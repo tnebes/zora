@@ -4,7 +4,6 @@ import {Observable} from 'rxjs';
 import {CreateUser, UpdateUser, User, UserResponse, UserResponseDto} from '../models/user.interface';
 import {UserQueryParams} from '../models/user-query-params.interface';
 import {Constants} from '../constants';
-import {AbstractRole} from "../models/role.interface";
 
 @Injectable({
     providedIn: 'root'

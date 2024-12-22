@@ -17,7 +17,7 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("Role API")]
-public class RoleController : ControllerBase, IZoraService
+public sealed class RoleController : ControllerBase, IZoraService
 {
     private readonly ILogger<RoleController> _logger;
     private readonly IMapper _mapper;

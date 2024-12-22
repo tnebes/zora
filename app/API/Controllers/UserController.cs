@@ -21,7 +21,7 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("User API")]
-public class UserController : ControllerBase, IZoraService
+public sealed class UserController : ControllerBase, IZoraService
 {
     private readonly ILogger<UserController> _logger;
     private readonly IQueryService _queryService;

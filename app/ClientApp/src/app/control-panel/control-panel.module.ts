@@ -12,7 +12,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {ControlPanelComponent} from './control-panel.component';
 import {SidebarComponent} from '../components/sidebar/sidebar.component';
 import {UsersComponent} from '../components/users/users.component';
-import {GroupsComponent} from '../components/groups/groups.component';
+import {AssetsComponent} from '../components/assets/assets.component';
 import {RolesComponent} from '../components/roles/roles.component';
 import {PermissionsComponent} from '../components/permissions/permissions.component';
 import {MatDialogModule} from '@angular/material/dialog';
@@ -23,7 +23,7 @@ import {SharedModule} from '../shared/shared.module';
         ControlPanelComponent,
         SidebarComponent,
         UsersComponent,
-        GroupsComponent,
+        AssetsComponent,
         RolesComponent,
         PermissionsComponent
     ],
@@ -45,7 +45,7 @@ import {SharedModule} from '../shared/shared.module';
                 children: [
                     {path: '', redirectTo: 'users', pathMatch: 'full'},
                     {path: 'users', component: UsersComponent},
-                    {path: 'groups', component: GroupsComponent},
+                    {path: 'assets', component: AssetsComponent},
                     {path: 'roles', component: RolesComponent},
                     {path: 'permissions', component: PermissionsComponent}
                 ]
