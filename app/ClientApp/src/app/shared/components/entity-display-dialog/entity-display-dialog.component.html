@@ -3,7 +3,7 @@
     <mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort>
         <ng-container *ngFor="let column of displayedColumns" [matColumnDef]="column.id">
             <mat-header-cell *matHeaderCellDef mat-sort-header>{{ column.label }}</mat-header-cell>
-            <mat-cell *matCellDef="let element"> {{ element[column.id] }} </mat-cell>
+            <mat-cell *matCellDef="let element"> {{ element[column.id] }}</mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="actions">

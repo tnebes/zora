@@ -61,6 +61,7 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
     public async Task SaveChangesAsync() => await this.DbContext.SaveChangesAsync();
 
     public void SoftDelete(User user) => this.DbSet.Update(user);
+
     public async Task<User> Add(User user) => await this.AddAsync(user);
 
     public async Task<Result<User>> Update(User originalUser)
@@ -68,6 +69,21 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         EntityEntry<User> entityEntry = this.DbSet.Update(originalUser);
         await this.SaveChangesAsync();
         return Result.Ok(entityEntry.Entity);
+    }
+
+    public async Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsers(IQueryable<User> query)
+    {
+        try
+        {
+            IEnumerable<User> users = await query.ToListAsync();
+            int totalCount = await query.CountAsync();
+            return Result.Ok((users, totalCount));
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Failed to search users");
+            return Result.Fail<(IEnumerable<User>, int)>(new Error("Failed to search users"));
+        }
     }
 
     public async Task<Result<User>> GetByUsernameAsync(string username)
@@ -87,11 +103,6 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         User? user = await this.FindByCondition(user => user.Email == email)
             .FirstOrDefaultAsync();
 
-        if (user == null)
-        {
-            return Result.Fail(new Error("User not found"));
-        }
-
-        return Result.Ok(user);
+        return user == null ? Result.Fail<User>(new Error("User not found")) : Result.Ok(user);
     }
 }

@@ -12,6 +12,8 @@ import {QueryParams} from "../../core/models/query-params.interface";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {QueryService} from "../../core/services/query.service";
+import {UserResponse, UserResponseDto} from "../../core/models/user.interface";
+import {UserService} from "../../core/services/user.service";
 
 @Component({
     selector: 'app-roles',
@@ -29,7 +31,10 @@ export class RolesComponent implements OnInit, AfterViewInit {
     @ViewChild(MatPaginator) private readonly paginator!: MatPaginator;
     @ViewChild(MatSort) private readonly sort!: MatSort;
 
-    constructor(private dialog: MatDialog, private readonly roleService: RoleService, private readonly queryService: QueryService) {
+    constructor(private dialog: MatDialog,
+                private readonly roleService: RoleService,
+                private readonly queryService: QueryService,
+                private readonly userService: UserService) {
     }
 
     ngOnInit(): void {
@@ -62,6 +67,8 @@ export class RolesComponent implements OnInit, AfterViewInit {
     }
 
     public openEntityDialog(type: 'roles' | 'permissions'): void {
+        const userIds: number[] = this.dataSource.data.map(role => role.id);
+        const usersDto: UserResponseDto<UserResponse> = this.userService.getUsersByIds(userIds);
         const data = this.dataSource.data.map(role => ({
             id: role.id,
             name: role.name,
@@ -69,6 +76,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
         }));
 
         this.dialog.open(EntitySelectorDialogComponent, {
+            width: '600px',
             data: {
                 entities: data,
                 columns: [

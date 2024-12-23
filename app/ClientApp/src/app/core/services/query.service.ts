@@ -10,7 +10,7 @@ export class QueryService {
     constructor() {
     }
 
-    public normaliseQueryParams(params: QueryParams) : QueryParams {
+    public normaliseQueryParams(params: QueryParams): QueryParams {
         if (!params.page || params.page < 1) {
             params.page = Math.max(params.page, 1);
         }
@@ -40,5 +40,15 @@ export class QueryService {
             httpParams = httpParams.set('sortDirection', params.sortDirection || 'asc');
         }
         return httpParams;
+    }
+
+    public getQueryParams(): QueryParams {
+        return {
+            page: 1,
+            pageSize: 50,
+            searchTerm: '',
+            sortColumn: 'id',
+            sortDirection: 'asc'
+        };
     }
 }

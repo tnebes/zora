@@ -1,7 +1,7 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatTableDataSource } from '@angular/material/table';
-import { Router } from '@angular/router';
+import {Component, Inject, OnInit} from '@angular/core';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {MatTableDataSource} from '@angular/material/table';
+import {Router} from '@angular/router';
 
 interface EntityColumn {
     id: string;
@@ -22,7 +22,8 @@ export class EntitySelectorDialogComponent implements OnInit {
         @Inject(MAT_DIALOG_DATA) public data: { entities: any[]; columns: EntityColumn[] },
         private dialogRef: MatDialogRef<EntitySelectorDialogComponent>,
         private router: Router
-    ) {}
+    ) {
+    }
 
     ngOnInit(): void {
         this.dataSource.data = this.data.entities;

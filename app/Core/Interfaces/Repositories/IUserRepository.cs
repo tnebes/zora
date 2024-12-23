@@ -21,4 +21,5 @@ public interface IUserRepository
     void SoftDelete(User user);
     Task<User> Add(User user);
     Task<Result<User>> Update(User originalUser);
+    Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsers(IQueryable<User> query);
 }

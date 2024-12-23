@@ -78,7 +78,8 @@ export class UsersComponent implements OnInit, AfterViewInit {
         this.setupSearchAndSort();
     }
 
-    public ngOnInit(): void {}
+    public ngOnInit(): void {
+    }
 
     public onSearch(event: Event): void {
         const target = event.target as HTMLInputElement;

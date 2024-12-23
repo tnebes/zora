@@ -15,8 +15,8 @@ export class RoleService {
     constructor(private readonly http: HttpClient, private readonly queryService: QueryService) {
     }
 
-    public getRoles(queryParams : QueryParams): Observable<RoleResponseDto> {
-        const params : HttpParams = this.queryService.getHttpParams(queryParams);
+    public getRoles(queryParams: QueryParams): Observable<RoleResponseDto> {
+        const params: HttpParams = this.queryService.getHttpParams(queryParams);
         return this.http.get<RoleResponseDto>(this.apiUrl, {params});
     }
 }
