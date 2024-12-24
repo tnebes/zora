@@ -14,6 +14,7 @@ import {MatSort} from "@angular/material/sort";
 import {QueryService} from "../../core/services/query.service";
 import {UserResponse, UserResponseDto} from "../../core/models/user.interface";
 import {UserService} from "../../core/services/user.service";
+import {NotificationDialogComponent} from "../../shared/components/notification-dialog/notification-dialog.component";
 
 @Component({
     selector: 'app-roles',
@@ -66,11 +67,21 @@ export class RolesComponent implements OnInit, AfterViewInit {
         console.log('Delete Role:', role);
     }
 
-    public openEntityDialog(type: 'roles' | 'permissions'): void {
+    public openEntityDialog(type: 'roles' | 'permissions', userIds: number[]): void {
         if (type === 'roles') {
             let roleIds: number[] = Array.from(
-                new Set(this.dataSource.data.flatMap((role: RoleResponse) => role.userIds))
+                new Set(userIds)
             );
+
+            if (roleIds.length === 0) {
+                this.dialog.open(NotificationDialogComponent, {
+                    width: '600px',
+                    data: {
+                        message: 'No users assigned to this role'
+                    }
+                });
+            }
+
             this.userService.searchUsers({roles: roleIds}).subscribe((usersDto: UserResponseDto<UserResponse>) => {
                 const data = usersDto.items.map(user => {
                     return {

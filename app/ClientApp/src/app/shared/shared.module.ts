@@ -10,12 +10,15 @@ import {ConfirmDialogComponent} from './components/confirm-dialog/confirm-dialog
 import {BaseDialogComponent} from './components/base-dialog/base-dialog.component';
 import {EntitySelectorDialogComponent} from './components/entity-display-dialog/entity-display-dialog.component';
 import {MatTableModule} from "@angular/material/table";
+import { NotificationDialogComponent } from './components/notification-dialog/notification-dialog.component';
+import { MatIconModule } from '@angular/material/icon';
 
 @NgModule({
     declarations: [
         BaseDialogComponent,
         ConfirmDialogComponent,
-        EntitySelectorDialogComponent
+        EntitySelectorDialogComponent,
+        NotificationDialogComponent
     ],
     imports: [
         CommonModule,
@@ -25,7 +28,8 @@ import {MatTableModule} from "@angular/material/table";
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
-        MatTableModule
+        MatTableModule,
+        MatIconModule
     ],
     exports: [
         BaseDialogComponent,
@@ -35,7 +39,8 @@ import {MatTableModule} from "@angular/material/table";
         MatButtonModule,
         MatFormFieldModule,
         MatInputModule,
-        MatSelectModule
+        MatSelectModule,
+        MatIconModule
     ]
 })
 export class SharedModule {

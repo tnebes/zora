@@ -1,0 +1,18 @@
+<div class="dialog-header">
+    <h2 mat-dialog-title>
+        <mat-icon [class]="type">{{ type === 'information' ? 'info' : 'warning' }}</mat-icon>
+        {{ title }}
+    </h2>
+</div>
+<div mat-dialog-content>
+    <p>{{ message }}</p>
+</div>
+<div mat-dialog-actions align="end">
+    <button 
+        mat-button 
+        mat-dialog-close
+        [class.info-button]="type === 'information'"
+        [class.warning-button]="type === 'warning'">
+        {{ buttonText }}
+    </button>
+</div>

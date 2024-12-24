@@ -3,7 +3,7 @@ import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {CreateUser, UpdateUser, User, UserResponse, UserResponseDto} from '../models/user.interface';
 import {QueryParams} from '../models/query-params.interface';
-import {Constants, DefaultValues} from '../constants';
+import {Constants} from '../constants';
 import {QueryService} from "./query.service";
 
 @Injectable({

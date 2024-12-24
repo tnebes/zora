@@ -18,12 +18,12 @@ export interface CreateUser extends AbstractUser {
 }
 
 export interface UpdateUser extends AbstractUser {
-    roles: number[];
+    roleIds: number[];
 }
 
 export interface UserResponse extends AbstractUser {
     createdAt: Date;
-    roles: Map<number, string>;
+    roles: { [key: number]: string };
 }
 
 export interface UserResponseDto<T> extends ResponseDto {

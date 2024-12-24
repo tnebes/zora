@@ -142,26 +142,38 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     public onEdit(user: UserResponse): void {
         console.debug('Editing user:', user);
+        const roleIds = this.userService.formatRolesForSelection(user.roles);
         let updateUser: UpdateUser = {
             id: user.id,
             username: user.username,
             email: user.email,
-            roles: this.userService.formatRolesForSelection(user.roles)
+            roleIds: roleIds
         }
+
         const dialogRef = this.dialog.open(BaseDialogComponent<UpdateUser>, {
             width: '500px',
             data: {
                 title: 'Edit User',
                 fields: this.userFields,
                 mode: 'edit',
-                entity: updateUser
+                entity: {
+                    ...updateUser,
+                    roles: roleIds
+                }
             }
         });
 
         dialogRef.afterClosed()
             .pipe(
                 filter(result => !!result),
-                switchMap(result => this.userService.updateUser(updateUser))
+                switchMap(result => {
+                    return this.userService.updateUser({
+                        id: user.id,
+                        username: result.username,
+                        email: result.email,
+                        roleIds: result.roles
+                    });
+                })
             )
             .subscribe({
                 next: () => {
