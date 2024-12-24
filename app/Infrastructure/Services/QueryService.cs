@@ -42,20 +42,21 @@ public class QueryService : IQueryService, IZoraService
 
     public IQueryable<T> GetEntityQueryable<T>(DynamicQueryParamsDto queryParams)
     {
-        switch (typeof(T))
+        if (typeof(T) == typeof(User))
         {
-            case { } user when user == typeof(User):
-                return this.GetQueryableUser((DynamicQueryUserParamsDto)queryParams) as IQueryable<T>;
-            case { } role when role == typeof(Role):
-                // return this.GetQueryableRole(queryParams) as IQueryable<T>;
-                throw new NotImplementedException();
-            case { } permission when permission == typeof(Permission):
-                // return this.GetQueryablePermission(queryParams) as IQueryable<T>;
-                throw new NotImplementedException();
-            default:
-                this._logger.LogError("Invalid type {T}", typeof(T));
-                throw new ArgumentOutOfRangeException(nameof(T), "Invalid type");
+            return (IQueryable<T>)this.GetQueryableUser((DynamicQueryUserParamsDto)queryParams);
         }
+        else if (typeof(T) == typeof(Role))
+        {
+            throw new NotImplementedException();
+        }
+        else if (typeof(T) == typeof(Permission))
+        {
+            throw new NotImplementedException();
+        }
+
+        this._logger.LogError("Invalid type {Type}", typeof(T));
+        throw new ArgumentOutOfRangeException(nameof(T), "Invalid type");
     }
 
     private IQueryable<User> GetQueryableUser(DynamicQueryUserParamsDto queryParams)

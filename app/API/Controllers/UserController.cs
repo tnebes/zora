@@ -74,7 +74,7 @@ public sealed class UserController : ControllerBase, IZoraService
                 return this.BadRequest();
             }
 
-            return this.Ok(users);
+            return this.Ok(users.Value);
         }
         catch (Exception ex)
         {

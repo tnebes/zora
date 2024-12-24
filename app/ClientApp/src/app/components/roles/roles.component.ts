@@ -67,24 +67,29 @@ export class RolesComponent implements OnInit, AfterViewInit {
     }
 
     public openEntityDialog(type: 'roles' | 'permissions'): void {
-        const userIds: number[] = this.dataSource.data.map(role => role.id);
-        const usersDto: UserResponseDto<UserResponse> = this.userService.getUsersByIds(userIds);
-        const data = this.dataSource.data.map(role => ({
-            id: role.id,
-            name: role.name,
-            type
-        }));
-
-        this.dialog.open(EntitySelectorDialogComponent, {
-            width: '600px',
-            data: {
-                entities: data,
-                columns: [
-                    {id: 'name', label: 'Name'},
-                    {id: 'id', label: 'ID'}
-                ]
-            }
-        });
+        if (type === 'roles') {
+            let roleIds: number[] = Array.from(
+                new Set(this.dataSource.data.flatMap((role: RoleResponse) => role.userIds))
+            );
+            this.userService.searchUsers({roles: roleIds}).subscribe((usersDto: UserResponseDto<UserResponse>) => {
+                const data = usersDto.items.map(user => {
+                    return {
+                        id: user.id,
+                        name: user.username
+                    };
+                });
+                this.dialog.open(EntitySelectorDialogComponent, {
+                    width: '600px',
+                    data: {
+                        entities: data,
+                        columns: [
+                            {id: 'name', label: 'Name'},
+                            {id: 'id', label: 'ID'}
+                        ]
+                    }
+                });
+            });
+        }
     }
 
     private setupSearchAndSort(): void {

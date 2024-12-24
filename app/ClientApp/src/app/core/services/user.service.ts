@@ -11,6 +11,7 @@ import {QueryService} from "./query.service";
 })
 export class UserService {
     private readonly apiUrl: string = Constants.USERS;
+    private readonly apiSearchUrl = Constants.USERS_SEARCH;
 
     constructor(private readonly http: HttpClient, private readonly queryService: QueryService) {
     }
@@ -41,11 +42,31 @@ export class UserService {
         return Object.keys(roles).map(key => parseInt(key));
     }
 
-    public getUsersByIds(userIds: number[]) {
-        const params: QueryParams = this.queryService.getQueryParams();
-        params.pageSize = Constants.MAX_PAGE_SIZE;
-        const httpParams: HttpParams = this.queryService.getHttpParams(params);
-        httpParams.set(Constants.ID, userIds.join(','));
-        return this.http.get<UserResponseDto<UserResponse>>(this.apiUrl, {params: httpParams});
+    public searchUsers(
+        params: {
+            userIds?: number[];
+            usernames?: string[];
+            emails?: string[];
+            roles?: number[];
+            permissions?: number[];
+            createdAt?: Date;
+        }
+    ): Observable<UserResponseDto<UserResponse>> {
+        if (!Object.values(params).some(value => Array.isArray(value) ? value.length > 0 : value)) {
+            throw new Error('At least one parameter must be provided.');
+        }
+
+        const queryParams: { [key: string]: string } = {
+            ...(params.userIds?.length && { [Constants.ID]: params.userIds.join(',') }),
+            ...(params.usernames?.length && { [Constants.USERNAME]: params.usernames.join(',') }),
+            ...(params.emails?.length && { [Constants.EMAIL]: params.emails.join(',') }),
+            ...(params.roles?.length && { [Constants.ROLE]: params.roles.join(',') }),
+            ...(params.permissions?.length && { [Constants.PERMISSION]: params.permissions.join(',') }),
+            ...(params.createdAt && { [Constants.CREATED_AT]: params.createdAt.toISOString() }),
+        };
+
+        const httpParams = new HttpParams({ fromObject: queryParams });
+
+        return this.http.get<UserResponseDto<UserResponse>>(this.apiSearchUrl, { params: httpParams });
     }
 }

@@ -12,10 +12,16 @@ export class Constants {
     static readonly JWT_TOKEN_KEY: string = "zora_jwt_token";
 
     static readonly USERS: string = `${Constants.BASE_URL}/users`;
+    static readonly USERS_SEARCH: string = `${Constants.USERS}/search`;
     static readonly ROLES: string = `${Constants.BASE_URL}/roles`;
     static readonly MAX_PAGE_SIZE: number = 1000;
 
     static readonly ID: string = 'id';
+    static readonly USERNAME: string = 'username';
+    static readonly EMAIL: string = 'email';
+    static readonly ROLE: string = 'role';
+    static readonly PERMISSION: string = 'permission';
+    static readonly CREATED_AT: string = 'createdAt';
 
 }
 
