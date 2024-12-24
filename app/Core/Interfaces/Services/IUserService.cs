@@ -27,4 +27,5 @@ public interface IUserService
     T ToDto<T>(User user) where T : UserDto;
     Task<Result<UserResponseDto<FullUserDto>>> SearchUsersAsync(DynamicQueryParamsDto queryParams);
     IQueryable<User> GetQueryable(DynamicQueryParamsDto queryParams);
+    Task<Result<UserResponseDto<FullUserDto>>> FindUsersAsync(QueryParamsDto findParams);
 }

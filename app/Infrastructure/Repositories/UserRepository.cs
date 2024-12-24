@@ -105,4 +105,37 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
 
         return user == null ? Result.Fail<User>(new Error("User not found")) : Result.Ok(user);
     }
+
+    public async Task<Result<(IEnumerable<User>, int totalCount)>> FindUsersAsync(QueryParamsDto findParams)
+    {
+        await UserRepository.Semaphore.WaitAsync();
+        try
+        {
+            IQueryable<User> query = this.DbContext.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .Where(u =>
+                    EF.Functions.Like(u.Username, $"%{findParams.SearchTerm}%") ||
+                    EF.Functions.Like(u.Email, $"%{findParams.SearchTerm}%") ||
+                    u.UserRoles.Any(ur => EF.Functions.Like(ur.Role.Name, $"%{findParams.SearchTerm}%")));
+
+            int totalCount = await query.CountAsync();
+
+            List<User> users = await query
+                .Skip((findParams.Page - 1) * findParams.PageSize)
+                .Take(findParams.PageSize)
+                .ToListAsync();
+
+            return Result.Ok<(IEnumerable<User>, int)>((users, totalCount));
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Failed to find users");
+            return Result.Fail<(IEnumerable<User>, int)>(new Error("Failed to find users"));
+        }
+        finally
+        {
+            UserRepository.Semaphore.Release();
+        }
+    }
 }

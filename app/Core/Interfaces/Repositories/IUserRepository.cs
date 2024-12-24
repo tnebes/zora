@@ -22,4 +22,5 @@ public interface IUserRepository
     Task<User> Add(User user);
     Task<Result<User>> Update(User originalUser);
     Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsers(IQueryable<User> query);
+    Task<Result<(IEnumerable<User>, int totalCount)>> FindUsersAsync(QueryParamsDto findParams);
 }

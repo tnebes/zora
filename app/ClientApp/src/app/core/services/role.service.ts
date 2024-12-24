@@ -31,4 +31,16 @@ export class RoleService {
     public deleteRole(id: number): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${id}`);
     }
+
+    public findRolesByTerm(searchTerm: string): Observable<RoleResponseDto> {
+        if (!searchTerm || searchTerm.length < 3) {
+            console.error('Search term must be at least 3 characters long');
+            throw new Error('Search term must be at least 3 characters long');
+        }
+
+        const params = new HttpParams()
+            .set('searchTerm', searchTerm);
+
+        return this.http.get<RoleResponseDto>(`${Constants.ROLES_FIND}`, {params});
+    }
 }

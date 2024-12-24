@@ -27,10 +27,7 @@ public static class AppExtensions
         app.UseAuthorization();
         app.MapControllers();
 
-        if (environmentManager.IsDevelopment())
-        {
-            app.ConfigureSwagger();
-        }
+        app.ConfigureSwagger();
 
         return app;
     }
@@ -66,7 +63,7 @@ public static class AppExtensions
         {
             Log.Information("Request {Method} {Path} started", context.Request.Method, context.Request.Path);
 
-            var timer = Stopwatch.StartNew();
+            Stopwatch timer = Stopwatch.StartNew();
             try
             {
                 await next();

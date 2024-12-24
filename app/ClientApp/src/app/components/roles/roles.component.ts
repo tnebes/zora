@@ -20,7 +20,7 @@ import {BaseDialogComponent} from "../../shared/components/base-dialog/base-dial
 import {CreateRole, UpdateRole} from "../../core/models/role.interface";
 import {filter, catchError, of} from "rxjs";
 import {Validators} from "@angular/forms";
-import { DialogField } from 'src/app/shared/components/base-dialog/base-dialog.component';
+import {DialogField} from 'src/app/shared/components/base-dialog/base-dialog.component';
 
 @Component({
     selector: 'app-roles',
@@ -203,7 +203,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
         }
     }
 
-    private openEntitySelectorDialog(entities: any[], columns: {id: string, label: string}[]): void {
+    private openEntitySelectorDialog(entities: any[], columns: { id: string, label: string }[]): void {
         this.dialog.open(EntitySelectorDialogComponent, {
             width: '600px',
             data: {
@@ -217,7 +217,8 @@ export class RolesComponent implements OnInit, AfterViewInit {
         merge(
             this.searchTerm.pipe(
                 debounceTime(300),
-                distinctUntilChanged()
+                distinctUntilChanged(),
+                filter(term => !term || term.length >= 3) // Only search with 3+ chars or empty
             ),
             this.sort.sortChange,
             this.paginator.page
@@ -226,14 +227,23 @@ export class RolesComponent implements OnInit, AfterViewInit {
                 startWith({}),
                 switchMap(() => {
                     this.isLoading = true;
-                    const params: QueryParams = {
-                        page: this.paginator.pageIndex + 1,
-                        pageSize: this.paginator.pageSize,
-                        searchTerm: this.currentSearchValue,
-                        sortColumn: this.sort.active,
-                        sortDirection: this.sort.direction as 'asc' | 'desc'
-                    };
-                    return this.roleService.getRoles(this.queryService.normaliseQueryParams(params));
+
+                    if (!this.currentSearchValue || this.currentSearchValue.length < 3) {
+                        const params: QueryParams = {
+                            page: this.paginator.pageIndex + 1,
+                            pageSize: this.paginator.pageSize,
+                            searchTerm: '',
+                            sortColumn: this.sort.active,
+                            sortDirection: this.sort.direction as 'asc' | 'desc'
+                        };
+                        return this.roleService.getRoles(this.queryService.normaliseQueryParams(params));
+                    }
+                    return this.roleService.findRolesByTerm(this.currentSearchValue);
+                }),
+                catchError(error => {
+                    console.error('Error fetching roles:', error);
+                    this.showNotification('Error', 'Failed to fetch roles', 'warning');
+                    return of({items: [], total: 0});
                 })
             )
             .subscribe(response => {

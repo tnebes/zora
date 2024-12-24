@@ -120,7 +120,7 @@ public sealed class UserService : IUserService, IZoraService
                 await this._roleService.AssignRoles(user, createMinimumUserDto.RoleIds);
             }
 
-            return Result.Ok(user); // TODO return the new user
+            return Result.Ok(user);
         }
         catch (Exception ex)
         {
@@ -280,6 +280,36 @@ public sealed class UserService : IUserService, IZoraService
 
     public IQueryable<User> GetQueryable(DynamicQueryParamsDto queryParams) =>
         this._queryService.GetEntityQueryable<User>(queryParams);
+
+    public async Task<Result<UserResponseDto<FullUserDto>>> FindUsersAsync(QueryParamsDto findParams)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(findParams.SearchTerm) || findParams.SearchTerm.Length < 3)
+            {
+                return Result.Fail<UserResponseDto<FullUserDto>>("Search term must be at least 3 characters long");
+            }
+
+            Result<(IEnumerable<User>, int totalCount)> result = await this._userRepository.FindUsersAsync(findParams);
+
+            if (result.IsFailed)
+            {
+                return Result.Fail<UserResponseDto<FullUserDto>>("Error finding users");
+            }
+
+            (IEnumerable<User> users, int totalCount) = result.Value;
+
+            UserResponseDto<FullUserDto> response =
+                users.ToFullUserResponseDto(totalCount, findParams.Page, findParams.PageSize, this._mapper);
+
+            return Result.Ok(response);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error finding users with term {SearchTerm}", findParams.SearchTerm);
+            return Result.Fail<UserResponseDto<FullUserDto>>("Error finding users");
+        }
+    }
 
     private static bool IsValid(User user)
     {

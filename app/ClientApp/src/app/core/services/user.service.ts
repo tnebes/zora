@@ -48,6 +48,7 @@ export class UserService {
             usernames?: string[];
             emails?: string[];
             roles?: number[];
+            roleNames?: string[];
             permissions?: number[];
             createdAt?: Date;
         }
@@ -57,16 +58,29 @@ export class UserService {
         }
 
         const queryParams: { [key: string]: string } = {
-            ...(params.userIds?.length && { [Constants.ID]: params.userIds.join(',') }),
-            ...(params.usernames?.length && { [Constants.USERNAME]: params.usernames.join(',') }),
-            ...(params.emails?.length && { [Constants.EMAIL]: params.emails.join(',') }),
-            ...(params.roles?.length && { [Constants.ROLE]: params.roles.join(',') }),
-            ...(params.permissions?.length && { [Constants.PERMISSION]: params.permissions.join(',') }),
-            ...(params.createdAt && { [Constants.CREATED_AT]: params.createdAt.toISOString() }),
+            ...(params.userIds?.length && {[Constants.ID]: params.userIds.join(',')}),
+            ...(params.usernames?.length && {[Constants.USERNAME]: params.usernames.join(',')}),
+            ...(params.emails?.length && {[Constants.EMAIL]: params.emails.join(',')}),
+            ...(params.roles?.length && {[Constants.ROLE]: params.roles.join(',')}),
+            ...(params.roleNames?.length && {[Constants.ROLE_NAME]: params.roleNames.join(',')}),
+            ...(params.permissions?.length && {[Constants.PERMISSION]: params.permissions.join(',')}),
+            ...(params.createdAt && {[Constants.CREATED_AT]: params.createdAt.toISOString()}),
         };
 
-        const httpParams = new HttpParams({ fromObject: queryParams });
+        const httpParams = new HttpParams({fromObject: queryParams});
 
-        return this.http.get<UserResponseDto<UserResponse>>(this.apiSearchUrl, { params: httpParams });
+        return this.http.get<UserResponseDto<UserResponse>>(this.apiSearchUrl, {params: httpParams});
+    }
+
+    public searchUsersByTerm(searchTerm: string): Observable<UserResponseDto<UserResponse>> {
+        if (!searchTerm || searchTerm.length < 3) {
+            console.error('Search term must be at least 3 characters long');
+            throw new Error('Search term must be at least 3 characters long');
+        }
+
+        const params = new HttpParams()
+            .set('searchTerm', searchTerm);
+
+        return this.http.get<UserResponseDto<UserResponse>>(Constants.USERS_FIND, {params});
     }
 }

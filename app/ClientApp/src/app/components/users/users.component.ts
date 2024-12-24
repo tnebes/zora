@@ -13,7 +13,7 @@ import {BaseDialogComponent, DialogField} from 'src/app/shared/components/base-d
 import {Validators} from '@angular/forms';
 import {RoleService} from 'src/app/core/services/role.service';
 import {RoleResponse} from "../../core/models/role.interface";
-import {DefaultValues} from "../../core/constants";
+import {Constants, DefaultValues} from "../../core/constants";
 import {QueryService} from "../../core/services/query.service";
 import {NotificationDialogComponent} from 'src/app/shared/components/notification-dialog/notification-dialog.component';
 
@@ -90,7 +90,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     public onDelete(user: UserResponse): void {
         const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-            width: '400px',
+            width: Constants.DIALOG_WIDTH,
             data: {
                 title: 'Confirm Delete',
                 message: `Are you sure you want to delete ${user.username}?`,
@@ -118,7 +118,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     public onCreate(): void {
         const dialogRef = this.dialog.open(BaseDialogComponent<CreateUser>, {
-            width: '500px',
+            width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
                 title: 'Create User',
                 fields: this.createUserFields,
@@ -154,7 +154,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
         }
 
         const dialogRef = this.dialog.open(BaseDialogComponent<UpdateUser>, {
-            width: '500px',
+            width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
                 title: 'Edit User',
                 fields: this.userFields,
@@ -180,8 +180,8 @@ export class UsersComponent implements OnInit, AfterViewInit {
             )
             .subscribe({
                 next: () => {
-                    this.loadUsers();
                     this.showNotification('Success', `User ${user.username} has been updated successfully`);
+                    this.loadUsers();
                 },
                 error: (error) => {
                     console.error('Error updating user:', error);
@@ -201,7 +201,8 @@ export class UsersComponent implements OnInit, AfterViewInit {
         merge(
             this.searchTerm.pipe(
                 debounceTime(300),
-                distinctUntilChanged()
+                distinctUntilChanged(),
+                filter(term => !term || term.length >= 3)
             ),
             this.sort.sortChange,
             this.paginator.page
@@ -210,14 +211,24 @@ export class UsersComponent implements OnInit, AfterViewInit {
                 startWith({}),
                 switchMap(() => {
                     this.isLoading = true;
-                    const params: QueryParams = {
-                        page: this.paginator.pageIndex + 1,
-                        pageSize: this.paginator.pageSize,
-                        searchTerm: this.currentSearchValue,
-                        sortColumn: this.sort.active,
-                        sortDirection: this.sort.direction as 'asc' | 'desc'
-                    };
-                    return this.userService.getUsers(this.queryService.normaliseQueryParams(params));
+
+                    if (!this.currentSearchValue || this.currentSearchValue.length < 3) {
+                        const params: QueryParams = {
+                            page: this.paginator.pageIndex + 1,
+                            pageSize: this.paginator.pageSize,
+                            searchTerm: '',
+                            sortColumn: this.sort.active,
+                            sortDirection: this.sort.direction as 'asc' | 'desc'
+                        };
+                        return this.userService.getUsers(this.queryService.normaliseQueryParams(params));
+                    }
+
+                    return this.userService.searchUsersByTerm(this.currentSearchValue);
+                }),
+                catchError(error => {
+                    console.error('Error fetching users:', error);
+                    this.showNotification('Error', 'Failed to fetch users', 'warning');
+                    return of({items: [], total: 0});
                 })
             )
             .subscribe(response => {
@@ -251,7 +262,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     private showNotification(title: string, message: string, type: 'information' | 'warning' = 'information'): void {
         this.dialog.open(NotificationDialogComponent, {
-            width: '400px',
+            width: Constants.DIALOG_WIDTH,
             data: {
                 title,
                 message,

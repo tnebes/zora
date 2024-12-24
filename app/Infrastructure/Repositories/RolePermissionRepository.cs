@@ -24,4 +24,6 @@ public sealed class RolePermissionRepository : BaseCompositeRepository<RolePermi
             .FindByCondition(rolePermission => rolePermission.RoleId == userRoleRoleId);
         return await rolePermissions.ToListAsync();
     }
+
+    public Task CreateAsync(RolePermission rolePermission) => throw new NotImplementedException();
 }

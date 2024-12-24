@@ -46,11 +46,13 @@ public class QueryService : IQueryService, IZoraService
         {
             return (IQueryable<T>)this.GetQueryableUser((DynamicQueryUserParamsDto)queryParams);
         }
-        else if (typeof(T) == typeof(Role))
+
+        if (typeof(T) == typeof(Role))
         {
             throw new NotImplementedException();
         }
-        else if (typeof(T) == typeof(Permission))
+
+        if (typeof(T) == typeof(Permission))
         {
             throw new NotImplementedException();
         }

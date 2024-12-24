@@ -22,6 +22,11 @@ export class Constants {
     static readonly ROLE: string = 'role';
     static readonly PERMISSION: string = 'permission';
     static readonly CREATED_AT: string = 'createdAt';
+    static readonly ROLE_NAME: string = 'roleName';
+    static readonly USERS_FIND: string = `${Constants.USERS}/find`;
+    static readonly ROLES_FIND: string = `${Constants.ROLES}/find`;
+    static readonly DIALOG_WIDTH: string = '400px';
+    static readonly ENTITY_DIALOG_WIDTH: string = '600px';
 
 }
 

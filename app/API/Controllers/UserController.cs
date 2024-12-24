@@ -253,4 +253,42 @@ public sealed class UserController : ControllerBase, IZoraService
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
+
+    [HttpGet("find")]
+    [ProducesResponseType(typeof(UserResponseDto<FullUserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [Tags("Users")]
+    [Description("Find users by partial matches of username, email, or role name")]
+    [Authorize]
+    public async Task<IActionResult> FindUsers([FromQuery] QueryParamsDto findParams)
+    {
+        try
+        {
+            if (this._roleService.IsAdmin(this.User))
+            {
+                findParams.Page = Math.Max(1, findParams.Page);
+                findParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, findParams.PageSize);
+            }
+            else
+            {
+                this._queryService.NormaliseQueryParams(findParams);
+            }
+
+            Result<UserResponseDto<FullUserDto>> users = await this._userService.FindUsersAsync(findParams);
+
+            if (users.IsFailed)
+            {
+                this._logger.LogWarning("Failed to find users with search term {SearchTerm}", findParams.SearchTerm);
+                return this.BadRequest();
+            }
+
+            return this.Ok(users.Value);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Failed to find users");
+            return this.StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
 }

@@ -6,7 +6,7 @@ using zora.Core.DTOs.Requests.Interfaces;
 
 namespace zora.Core.DTOs.Requests;
 
-public sealed class QueryParamsDto : IQueryParamsDto
+public class QueryParamsDto : IQueryParamsDto
 {
     public string? SearchTerm { get; set; }
     public string? SortColumn { get; set; }
