@@ -15,6 +15,7 @@ import {RoleService} from 'src/app/core/services/role.service';
 import {RoleResponse} from "../../core/models/role.interface";
 import {DefaultValues} from "../../core/constants";
 import {QueryService} from "../../core/services/query.service";
+import {NotificationDialogComponent} from 'src/app/shared/components/notification-dialog/notification-dialog.component';
 
 @Component({
     selector: 'app-users',
@@ -103,14 +104,13 @@ export class UsersComponent implements OnInit, AfterViewInit {
                 this.userService.deleteUser(user.id)
                     .pipe(
                         catchError(error => {
-                            console.error('Error deleting user:', error);
+                            this.showNotification('Error', `Failed to delete user ${user.username}: ${error.message}`, 'warning');
                             return of(null);
                         })
                     )
-                    .subscribe(response => {
-                        if (response !== null) {
-                            this.loadUsers();
-                        }
+                    .subscribe(() => {
+                        this.loadUsers();
+                        this.showNotification('Success', `User ${user.username} has been deleted successfully`);
                     });
             }
         });
@@ -128,14 +128,17 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
         dialogRef.afterClosed()
             .pipe(
+                filter(result => !!result),
                 switchMap(result => this.userService.createUser(result))
             )
             .subscribe({
                 next: () => {
                     this.loadUsers();
+                    this.showNotification('Success', 'User has been created successfully');
                 },
                 error: (error) => {
                     console.error('Error creating user:', error);
+                    this.showNotification('Error', `Failed to create user: ${error.message}`, 'warning');
                 }
             });
     }
@@ -178,9 +181,11 @@ export class UsersComponent implements OnInit, AfterViewInit {
             .subscribe({
                 next: () => {
                     this.loadUsers();
+                    this.showNotification('Success', `User ${user.username} has been updated successfully`);
                 },
                 error: (error) => {
                     console.error('Error updating user:', error);
+                    this.showNotification('Error', `Failed to update user: ${error.message}`, 'warning');
                 }
             });
     }
@@ -233,6 +238,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
             return;
         }
         // TODO FIXME what happens if a user wishes to choose a role that is not in the list?
+        // TODO add a search for roles
         this.roleService.getRoles(DefaultValues.QUERY_PARAMS)
             .subscribe(response => {
                 rolesField.options = this.toOptions(response.items);
@@ -241,5 +247,16 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     private toOptions(items: RoleResponse[]): { value: number, display: string }[] {
         return items.map(item => ({value: item.id, display: item.name}));
+    }
+
+    private showNotification(title: string, message: string, type: 'information' | 'warning' = 'information'): void {
+        this.dialog.open(NotificationDialogComponent, {
+            width: '400px',
+            data: {
+                title,
+                message,
+                type
+            }
+        });
     }
 }

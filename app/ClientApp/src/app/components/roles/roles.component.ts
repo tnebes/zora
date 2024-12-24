@@ -69,11 +69,8 @@ export class RolesComponent implements OnInit, AfterViewInit {
 
     public openEntityDialog(type: 'roles' | 'permissions', userIds: number[]): void {
         if (type === 'roles') {
-            let roleIds: number[] = Array.from(
-                new Set(userIds)
-            );
 
-            if (roleIds.length === 0) {
+            if (userIds.length === 0) {
                 this.dialog.open(NotificationDialogComponent, {
                     width: '600px',
                     data: {
@@ -82,7 +79,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
                 });
             }
 
-            this.userService.searchUsers({roles: roleIds}).subscribe((usersDto: UserResponseDto<UserResponse>) => {
+            this.userService.searchUsers({userIds: userIds}).subscribe((usersDto: UserResponseDto<UserResponse>) => {
                 const data = usersDto.items.map(user => {
                     return {
                         id: user.id,

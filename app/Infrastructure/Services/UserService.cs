@@ -145,8 +145,9 @@ public sealed class UserService : IUserService, IZoraService
         originalUser.Email = updateUserDto.Email;
         originalUser.Username = updateUserDto.Username;
 
-        Result<User> updatedUser = await this._userRepository.Update(originalUser);
+        await this._roleService.AssignRoles(originalUser, updateUserDto.RoleIds);
 
+        Result<User> updatedUser = await this._userRepository.Update(originalUser);
         return updatedUser;
     }
 
