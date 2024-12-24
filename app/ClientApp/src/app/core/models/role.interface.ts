@@ -14,3 +14,14 @@ export interface RoleResponse extends AbstractRole {
     userIds: number[];
     permissionIds: number[];
 }
+
+export interface CreateRole {
+    name: string;
+    permissionIds: number[];
+}
+
+export interface UpdateRole {
+    id: number;
+    name: string;
+    permissionIds: number[];
+}

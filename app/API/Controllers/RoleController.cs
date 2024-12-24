@@ -63,4 +63,92 @@ public sealed class RoleController : ControllerBase, IZoraService
             return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(RoleDto), StatusCodes.Status201Created)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [Tags("Roles")]
+    [Description("Create a new role")]
+    [Authorize]
+    public async Task<IActionResult> CreateRole([FromBody] CreateRoleDto roleDto)
+    {
+        try
+        {
+            if (!this._roleService.IsAdmin(this.HttpContext.User))
+            {
+                return this.Unauthorized();
+            }
+
+            var role = await this._roleService.CreateRoleAsync(roleDto);
+            return this.CreatedAtAction(nameof(GetRoles), new { id = role.Id }, role);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error creating role");
+            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
+    [HttpPut("{id}")]
+    [ProducesResponseType(typeof(RoleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [Tags("Roles")]
+    [Description("Update an existing role")]
+    [Authorize]
+    public async Task<IActionResult> UpdateRole(long id, [FromBody] UpdateRoleDto roleDto)
+    {
+        try
+        {
+            if (!this._roleService.IsAdmin(this.HttpContext.User))
+            {
+                return this.Unauthorized();
+            }
+
+            var role = await this._roleService.UpdateRoleAsync(id, roleDto);
+            if (role == null)
+            {
+                return this.NotFound();
+            }
+            return this.Ok(role);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error updating role");
+            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [Tags("Roles")]
+    [Description("Delete a role")]
+    [Authorize]
+    public async Task<IActionResult> DeleteRole(long id)
+    {
+        try
+        {
+            if (!this._roleService.IsAdmin(this.HttpContext.User))
+            {
+                return this.Unauthorized();
+            }
+
+            var success = await this._roleService.DeleteRoleAsync(id);
+            if (!success)
+            {
+                return this.NotFound();
+            }
+            return this.NoContent();
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error deleting role");
+            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
 }
