@@ -26,12 +26,12 @@ public sealed class SeedingController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Seed()
+    public async Task<ActionResult<bool>> Seed()
     {
         try
         {
             await this._dataSeeder.SeedAsync();
-            return this.Ok();
+            return this.Ok(true);
         }
         catch (Exception ex)
         {

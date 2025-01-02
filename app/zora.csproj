@@ -8,7 +8,7 @@
         <SpaProxyServerUrl>https://localhost:4200</SpaProxyServerUrl>
         <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
         <ImplicitUsings>enable</ImplicitUsings>
-        <OutputType>WinExe</OutputType>
+        <OutputType>Exe</OutputType>
         <RepositoryUrl>https://github.com/tnebes/zora</RepositoryUrl>
         <UserSecretsId>bb50b52f-6bdb-4a88-bc83-66f794733799</UserSecretsId>
     </PropertyGroup>

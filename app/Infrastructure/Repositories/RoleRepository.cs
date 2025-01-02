@@ -54,7 +54,7 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
     {
         try
         {
-            Role role = await base.GetByIdAsync(id);
+            Role? role = await base.GetByIdAsync(id);
             return role != null
                 ? Result.Ok(role)
                 : Result.Fail<Role>($"Role with id {id} not found");

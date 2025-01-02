@@ -17,6 +17,7 @@ using zora.Core.Interfaces.Services;
 namespace zora.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/roles")]
 [Produces("application/json")]
 [Consumes("application/json")]
@@ -46,8 +47,7 @@ public sealed class RoleController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
     [Description("Get all roles with pagination, searching and sorting support")]
-    [Authorize]
-    public async Task<IActionResult> GetRoles([FromQuery] QueryParamsDto queryParams)
+    public async Task<ActionResult<RoleResponseDto>> GetRoles([FromQuery] QueryParamsDto queryParams)
     {
         try
         {
@@ -81,8 +81,7 @@ public sealed class RoleController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
     [Description("Create a new role")]
-    [Authorize]
-    public async Task<IActionResult> CreateRole([FromBody] CreateRoleDto roleDto)
+    public async Task<ActionResult<RoleDto>> CreateRole([FromBody] CreateRoleDto roleDto)
     {
         try
         {
@@ -117,8 +116,7 @@ public sealed class RoleController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
     [Description("Update an existing role")]
-    [Authorize]
-    public async Task<IActionResult> UpdateRole(long id, [FromBody] UpdateRoleDto roleDto)
+    public async Task<ActionResult<RoleDto>> UpdateRole(long id, [FromBody] UpdateRoleDto roleDto)
     {
         try
         {
@@ -150,8 +148,7 @@ public sealed class RoleController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
     [Description("Delete a role")]
-    [Authorize]
-    public async Task<IActionResult> DeleteRole(long id)
+    public async Task<ActionResult<bool>> DeleteRole(long id)
     {
         try
         {
@@ -178,11 +175,11 @@ public sealed class RoleController : ControllerBase, IZoraService
     [HttpGet("find")]
     [ProducesResponseType(typeof(RoleResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
     [Description("Find roles by partial matches of name or description")]
-    [Authorize]
-    public async Task<IActionResult> FindRoles([FromQuery] QueryParamsDto findParams)
+    public async Task<ActionResult<RoleResponseDto>> FindRoles([FromQuery] QueryParamsDto findParams)
     {
         try
         {

@@ -52,7 +52,7 @@ public sealed class AuthenticationController : ControllerBase
     [Tags("Authentication")]
     [Description("Authenticate the user")]
     [AllowAnonymous]
-    public async Task<IActionResult> Authenticate([FromBody] LoginRequestDto login)
+    public async Task<ActionResult<TokenResponseDto>> Authenticate([FromBody] LoginRequestDto login)
     {
         try
         {
@@ -96,7 +96,7 @@ public sealed class AuthenticationController : ControllerBase
     [Tags("Authentication")]
     [Description("Check if the user is authenticated")]
     [Authorize]
-    public async Task<IActionResult> CheckAuthStatus()
+    public async Task<ActionResult<AuthenticationStatusDto>> CheckAuthStatus()
     {
         try
         {
@@ -135,7 +135,7 @@ public sealed class AuthenticationController : ControllerBase
     [Tags("Authentication")]
     [Description("Returns minimal information about the current user")]
     [Authorize]
-    public async Task<IActionResult> GetCurrentUser()
+    public async Task<ActionResult<MinimumUserDto>> GetCurrentUser()
     {
         try
         {

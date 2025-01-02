@@ -41,7 +41,7 @@ public sealed class AuthorisationController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status403Forbidden)]
     [Tags("Authorisation")]
     [Description("Check if the user is authorised to perform the requested action on a given resource")]
-    public async Task<IActionResult> IsAuthorised([FromBody] PermissionRequestDto permissionRequest)
+    public async Task<ActionResult<bool>> IsAuthorised([FromBody] PermissionRequestDto permissionRequest)
     {
         try
         {
@@ -54,7 +54,7 @@ public sealed class AuthorisationController : ControllerBase, IZoraService
             }
 
             bool isAuthorised = await this._authorisationService.IsAuthorisedAsync(permissionRequest);
-            return isAuthorised ? this.Ok() : this.Forbid();
+            return isAuthorised ? this.Ok(true) : this.Forbid();
         }
         catch (Exception ex)
         {
@@ -71,12 +71,12 @@ public sealed class AuthorisationController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status403Forbidden)]
     [Tags("Authorisation")]
     [Description("Check if the user is admin")]
-    public IActionResult IsAdmin()
+    public ActionResult<bool> IsAdmin()
     {
         try
         {
             bool isAdmin = this._roleService.IsAdmin(this.HttpContext.User);
-            return isAdmin ? this.Ok() : this.Forbid();
+            return isAdmin ? this.Ok(true) : this.Forbid();
         }
         catch (Exception ex)
         {

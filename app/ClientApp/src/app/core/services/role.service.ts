@@ -10,6 +10,7 @@ import {QueryService} from "./query.service";
     providedIn: 'root'
 })
 export class RoleService {
+
     private readonly apiUrl: string = Constants.ROLES;
 
     constructor(private readonly http: HttpClient, private readonly queryService: QueryService) {
@@ -42,5 +43,10 @@ export class RoleService {
             .set('searchTerm', searchTerm);
 
         return this.http.get<RoleResponseDto>(`${Constants.ROLES_FIND}`, {params});
+    }
+
+    public searchRoles(params: { roleIds: number[] }): Observable<RoleResponseDto> {
+        const httpParams = new HttpParams().set('roleIds', params.roleIds.join(','));
+        return this.http.get<RoleResponseDto>(`${Constants.ROLES_SEARCH}`, {params: httpParams});
     }
 }

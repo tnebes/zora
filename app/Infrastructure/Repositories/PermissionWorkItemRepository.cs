@@ -1,5 +1,6 @@
 #region
 
+using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using zora.Core.Domain;
 using zora.Core.Interfaces.Repositories;
@@ -19,11 +20,23 @@ public sealed class PermissionWorkItemRepository : BaseCompositeRepository<Permi
     {
     }
 
-    public Task<PermissionWorkItem?> GetByCompositeKeyAsync(long permissionId, long requestResourceId)
+    public async Task<Result<PermissionWorkItem>> GetByCompositeKeyAsync(long permissionId, long requestResourceId)
     {
-        return this.FindByCondition(permissionWorkItem =>
-                permissionWorkItem.PermissionId == permissionId &&
-                permissionWorkItem.WorkItemId == requestResourceId)
-            .FirstOrDefaultAsync();
+        try
+        {
+            PermissionWorkItem? permissionWorkItem = await this.FindByCondition(pwi =>
+                    pwi.PermissionId == permissionId
+                    && pwi.WorkItemId == requestResourceId)
+                .FirstOrDefaultAsync();
+
+            return permissionWorkItem == null
+                ? Result.Fail<PermissionWorkItem>("Permission work item not found")
+                : Result.Ok(permissionWorkItem);
+        }
+        catch (Exception e)
+        {
+            this.Logger.LogError(e, "Error while getting permission work item by composite key");
+            return Result.Fail<PermissionWorkItem>("Error while getting permission work item by composite key");
+        }
     }
 }

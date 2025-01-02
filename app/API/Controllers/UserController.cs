@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
-using zora.Core.DTOs.Responses.Interface;
 using zora.Core.Interfaces.Services;
 using Constants = zora.Core.Constants;
 
@@ -48,7 +47,7 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Get all users with pagination, searching and sorting support")]
     [Authorize]
-    public async Task<IActionResult> GetUsers([FromQuery] QueryParamsDto queryParams)
+    public async Task<ActionResult<UserResponseDto<FullUserDto>>> GetUsers([FromQuery] QueryParamsDto queryParams)
     {
         try
         {
@@ -90,7 +89,8 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Search for users with pagination, searching and sorting support")]
     [Authorize]
-    public async Task<IActionResult> SearchUsers([FromQuery] DynamicQueryUserParamsDto queryParams)
+    public async Task<ActionResult<UserResponseDto<FullUserDto>>> SearchUsers(
+        [FromQuery] DynamicQueryUserParamsDto queryParams)
     {
         try
         {
@@ -129,7 +129,7 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Delete a user by ID")]
     [Authorize]
-    public async Task<IActionResult> DeleteUser([FromRoute] long id)
+    public async Task<ActionResult<bool>> DeleteUser([FromRoute] long id)
     {
         try
         {
@@ -150,8 +150,7 @@ public sealed class UserController : ControllerBase, IZoraService
                 return this.NoContent();
             }
 
-            this._logger.LogWarning("User with ID {Id} is not authorised to delete user with ID {UserId}", id,
-                user.Id);
+            this._logger.LogWarning("User with ID {Id} is not authorised to delete user with ID {UserId}", id, user.Id);
             return this.Unauthorized();
         }
         catch (Exception ex)
@@ -169,7 +168,7 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Create a new user")]
     [Authorize]
-    public async Task<IActionResult> CreateUser([FromBody] CreateMinimumUserDto createMinimumUserDto)
+    public async Task<ActionResult<FullUserDto>> CreateUser([FromBody] CreateMinimumUserDto createMinimumUserDto)
     {
         try
         {
@@ -215,7 +214,7 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Update a user by ID")]
     [Authorize]
-    public async Task<IActionResult> UpdateUser([FromRoute] long id, [FromBody] UpdateUserDto updateUserDto)
+    public async Task<ActionResult<FullUserDto>> UpdateUser([FromRoute] long id, [FromBody] UpdateUserDto updateUserDto)
     {
         try
         {
@@ -243,8 +242,7 @@ public sealed class UserController : ControllerBase, IZoraService
                 return this.Ok(fullUser);
             }
 
-            this._logger.LogWarning("User with ID {Id} is not authorised to update user with ID {UserId}", id,
-                user.Id);
+            this._logger.LogWarning("User with ID {Id} is not authorised to update user with ID {UserId}", id, user.Id);
             return this.Unauthorized();
         }
         catch (Exception ex)
@@ -261,7 +259,7 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Find users by partial matches of username, email, or role name")]
     [Authorize]
-    public async Task<IActionResult> FindUsers([FromQuery] QueryParamsDto findParams)
+    public async Task<ActionResult<UserResponseDto<FullUserDto>>> FindUsers([FromQuery] QueryParamsDto findParams)
     {
         try
         {

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 #endregion
 
-namespace zora.Core.DTOs.Responses.Interface;
+namespace zora.Core.DTOs.Requests;
 
 public sealed class UpdateUserDto : MinimumUserDto
 {

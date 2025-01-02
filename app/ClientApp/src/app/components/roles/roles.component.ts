@@ -1,13 +1,13 @@
 import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
 import {MatTableDataSource} from '@angular/material/table';
 import {MatDialog} from '@angular/material/dialog';
-import {RoleResponse} from "../../core/models/role.interface";
+import {RoleResponse, CreateRole, UpdateRole} from "../../core/models/role.interface";
 import {
     EntitySelectorDialogComponent
 } from "../../shared/components/entity-display-dialog/entity-display-dialog.component";
 import {RoleService} from "../../core/services/role.service";
-import {merge, Subject} from "rxjs";
-import {debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
+import {merge, Subject, of} from "rxjs";
+import {debounceTime, distinctUntilChanged, startWith, switchMap, filter, catchError} from "rxjs/operators";
 import {QueryParams} from "../../core/models/query-params.interface";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
@@ -17,10 +17,10 @@ import {UserService} from "../../core/services/user.service";
 import {NotificationDialogComponent} from "../../shared/components/notification-dialog/notification-dialog.component";
 import {ConfirmDialogComponent} from "../../shared/components/confirm-dialog/confirm-dialog.component";
 import {BaseDialogComponent} from "../../shared/components/base-dialog/base-dialog.component";
-import {CreateRole, UpdateRole} from "../../core/models/role.interface";
-import {filter, catchError, of} from "rxjs";
-import {Validators} from "@angular/forms";
 import {DialogField} from 'src/app/shared/components/base-dialog/base-dialog.component';
+import {Validators} from "@angular/forms";
+import {PermissionService} from '../../core/services/permission.service';
+import {Constants} from 'src/app/core/constants';
 
 @Component({
     selector: 'app-roles',
@@ -33,7 +33,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
     public searchTerm: Subject<string> = new Subject<string>();
     public isLoading: boolean = false;
     public totalItems: number = 0;
-    private currentSearchValue: string = '';
+    public currentSearchValue: string = '';
 
     @ViewChild(MatPaginator) private readonly paginator!: MatPaginator;
     @ViewChild(MatSort) private readonly sort!: MatSort;
@@ -55,9 +55,10 @@ export class RolesComponent implements OnInit, AfterViewInit {
         }
     ];
 
-    constructor(private dialog: MatDialog,
+    constructor(private readonly dialog: MatDialog,
                 private readonly roleService: RoleService,
                 private readonly queryService: QueryService,
+                private readonly permissionService: PermissionService,
                 private readonly userService: UserService) {
     }
 
@@ -80,7 +81,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
 
     public onCreate(): void {
         const dialogRef = this.dialog.open(BaseDialogComponent<CreateRole>, {
-            width: '500px',
+            width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
                 title: 'Create Role',
                 fields: this.roleFields,
@@ -107,7 +108,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
 
     public onEdit(role: RoleResponse): void {
         const dialogRef = this.dialog.open(BaseDialogComponent<UpdateRole>, {
-            width: '500px',
+            width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
                 title: 'Edit Role',
                 fields: this.roleFields,
@@ -143,7 +144,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
 
     public onDelete(role: RoleResponse): void {
         const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-            width: '400px',
+            width: Constants.DIALOG_WIDTH,
             data: {
                 title: 'Confirm Delete',
                 message: `Are you sure you want to delete role "${role.name}"?`,
@@ -172,7 +173,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
     public openEntityDialog(type: 'roles' | 'permissions', ids: number[]): void {
         if (ids.length === 0) {
             this.dialog.open(NotificationDialogComponent, {
-                width: '600px',
+                width: Constants.DIALOG_WIDTH,
                 data: {
                     message: `No ${type} assigned to this role`
                 }
@@ -192,20 +193,24 @@ export class RolesComponent implements OnInit, AfterViewInit {
                 ]);
             });
         } else if (type === 'permissions') {
-            // TODO: Implement permission viewing logic here
-            // Similar to users, but using a permission service
-            this.dialog.open(NotificationDialogComponent, {
-                width: '600px',
-                data: {
-                    message: 'Permission viewing not yet implemented'
-                }
+            this.permissionService.searchPermissions({permissionIds: ids}).subscribe((permissions) => {
+                const data = permissions.items.map(permission => ({
+                    id: permission.id,
+                    name: permission.name,
+                    description: permission.description
+                }));
+                this.openEntitySelectorDialog(data, [
+                    {id: 'name', label: 'Name'},
+                    {id: 'description', label: 'Description'},
+                    {id: 'id', label: 'ID'}
+                ]);
             });
         }
     }
 
     private openEntitySelectorDialog(entities: any[], columns: { id: string, label: string }[]): void {
         this.dialog.open(EntitySelectorDialogComponent, {
-            width: '600px',
+            width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
                 entities,
                 columns
@@ -218,7 +223,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
             this.searchTerm.pipe(
                 debounceTime(300),
                 distinctUntilChanged(),
-                filter(term => !term || term.length >= 3) // Only search with 3+ chars or empty
+                filter(term => !term || term.length >= 3)
             ),
             this.sort.sortChange,
             this.paginator.page
@@ -255,7 +260,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
 
     private showNotification(title: string, message: string, type: 'information' | 'warning' = 'information'): void {
         this.dialog.open(NotificationDialogComponent, {
-            width: '400px',
+            width: Constants.DIALOG_WIDTH,
             data: {
                 title,
                 message,

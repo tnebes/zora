@@ -146,4 +146,6 @@ public abstract class BaseRepository<T> where T : BaseEntity
         this.FilteredDbSet.Where(expression);
 
     protected virtual IQueryable<T> GetQueryable() => this.FilteredDbSet.AsQueryable();
+
+    protected IQueryable<T> FindAll() => this.FilteredDbSet;
 }
