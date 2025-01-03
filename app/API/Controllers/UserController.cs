@@ -20,10 +20,11 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("User API")]
-public sealed class UserController : BaseCrudController<FullUserDto, CreateMinimumUserDto, UpdateUserDto, UserResponseDto<FullUserDto>>
+public sealed class UserController : BaseCrudController<FullUserDto, CreateMinimumUserDto, UpdateUserDto,
+    UserResponseDto<FullUserDto>>
 {
-    private readonly IUserService _userService;
     private readonly IMapper _mapper;
+    private readonly IUserService _userService;
 
     public UserController(
         IRoleService roleService,
@@ -199,7 +200,8 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
     [Tags("Users")]
     [Description("Update a user by ID")]
     [Authorize]
-    public override async Task<ActionResult<FullUserDto>> Update([FromRoute] long id, [FromBody] UpdateUserDto updateUserDto)
+    public override async Task<ActionResult<FullUserDto>> Update([FromRoute] long id,
+        [FromBody] UpdateUserDto updateUserDto)
     {
         try
         {

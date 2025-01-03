@@ -182,7 +182,8 @@ public class DataSeeder : IZoraService, IDataSeeder
         Faker faker = new Faker();
         foreach (Role role in roles)
         {
-            int numPermissions = faker.Random.Int(MIN_PERMISSIONS_PER_ROLE, MAX_PERMISSIONS_PER_ROLE);
+            int numPermissions =
+                faker.Random.Int(DataSeeder.MIN_PERMISSIONS_PER_ROLE, DataSeeder.MAX_PERMISSIONS_PER_ROLE);
             IEnumerable<RolePermission> rolePermissions = faker.PickRandom(permissions, numPermissions)
                 .Select(p => new RolePermission { RoleId = role.Id, PermissionId = p.Id });
 
@@ -198,7 +199,7 @@ public class DataSeeder : IZoraService, IDataSeeder
         Faker faker = new Faker();
         foreach (User user in users)
         {
-            int numRoles = faker.Random.Int(MIN_ROLES_PER_USER, MAX_ROLES_PER_USER);
+            int numRoles = faker.Random.Int(DataSeeder.MIN_ROLES_PER_USER, DataSeeder.MAX_ROLES_PER_USER);
             IEnumerable<UserRole> userRoles = faker.PickRandom(roles, numRoles)
                 .Select(r => new UserRole { UserId = user.Id, RoleId = r.Id });
 

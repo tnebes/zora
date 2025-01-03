@@ -5,7 +5,6 @@ using AutoMapper;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using zora.Core;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
@@ -21,10 +20,11 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("Permission API")]
-public sealed class PermissionController : BaseCrudController<PermissionDto, CreatePermissionDto, UpdatePermissionDto, PermissionResponseDto>
+public sealed class PermissionController : BaseCrudController<PermissionDto, CreatePermissionDto, UpdatePermissionDto,
+    PermissionResponseDto>
 {
-    private readonly IPermissionService _permissionService;
     private readonly IMapper _mapper;
+    private readonly IPermissionService _permissionService;
 
     public PermissionController(
         IPermissionService permissionService,
