@@ -39,6 +39,8 @@ public class ApplicationDbContext : DbContext, IDbContext, IZoraService
     public DbSet<ZoraTask> Tasks { get; set; } = null!;
     public DbSet<Asset> Assets { get; set; } = null!;
     public DbSet<WorkItemRelationship> WorkItemRelationships { get; set; } = null!;
+    public DbSet<RolePermission> RolePermissions { get; set; }
+    public DbSet<UserRole> UserRoles { get; set; }
 
     public async Task<SqlConnection> CreateConnectionAsync()
     {
