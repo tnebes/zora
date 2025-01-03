@@ -11,8 +11,7 @@ try
 {
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .WriteTo.Console());
+        .ReadFrom.Services(services));
 
     builder.Services.AddCustomServices(builder.Configuration);
     WebApplication app = builder.Build();

@@ -20,12 +20,10 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("User API")]
-public sealed class UserController : ControllerBase, IZoraService
+public sealed class UserController : BaseCrudController<FullUserDto, CreateMinimumUserDto, UpdateUserDto, UserResponseDto<FullUserDto>>
 {
-    private readonly ILogger<UserController> _logger;
-    private readonly IQueryService _queryService;
-    private readonly IRoleService _roleService;
     private readonly IUserService _userService;
+    private readonly IMapper _mapper;
 
     public UserController(
         IRoleService roleService,
@@ -33,11 +31,10 @@ public sealed class UserController : ControllerBase, IZoraService
         IQueryService queryService,
         ILogger<UserController> logger,
         IMapper mapper)
+        : base(logger, roleService, queryService)
     {
-        this._roleService = roleService;
         this._userService = userService;
-        this._queryService = queryService;
-        this._logger = logger;
+        this._mapper = mapper;
     }
 
     [HttpGet]
@@ -47,29 +44,17 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Get all users with pagination, searching and sorting support")]
     [Authorize]
-    public async Task<ActionResult<UserResponseDto<FullUserDto>>> GetUsers([FromQuery] QueryParamsDto queryParams)
+    public override async Task<ActionResult<UserResponseDto<FullUserDto>>> Get([FromQuery] QueryParamsDto queryParams)
     {
         try
         {
-            // TODO FIXME this could have been handled by the validation in the DTO
-            // but since we are relying on this stupid hack so that the admin
-            // can see all users, we need to do this here
-            // very bad design
-            if (this._roleService.IsAdmin(this.User))
-            {
-                queryParams.Page = Math.Max(1, queryParams.Page);
-                queryParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, queryParams.PageSize);
-            }
-            else
-            {
-                this._queryService.NormaliseQueryParams(queryParams);
-            }
+            this.NormalizeQueryParamsForAdmin(queryParams);
 
             Result<UserResponseDto<FullUserDto>> users = await this._userService.GetUsersDtoAsync(queryParams);
 
             if (users.IsFailed)
             {
-                this._logger.LogWarning("Failed to get users");
+                this.Logger.LogWarning("Failed to get users");
                 return this.BadRequest();
             }
 
@@ -77,7 +62,7 @@ public sealed class UserController : ControllerBase, IZoraService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Failed to get users");
+            this.Logger.LogError(ex, "Failed to get users");
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
@@ -89,26 +74,26 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Search for users with pagination, searching and sorting support")]
     [Authorize]
-    public async Task<ActionResult<UserResponseDto<FullUserDto>>> SearchUsers(
+    public async Task<ActionResult<UserResponseDto<FullUserDto>>> Search(
         [FromQuery] DynamicQueryUserParamsDto queryParams)
     {
         try
         {
-            if (this._roleService.IsAdmin(this.User))
+            if (this.RoleService.IsAdmin(this.User))
             {
                 queryParams.Page = Math.Max(1, queryParams.Page);
                 queryParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, queryParams.PageSize);
             }
             else
             {
-                this._queryService.NormaliseQueryParams(queryParams);
+                this.QueryService.NormaliseQueryParams(queryParams);
             }
 
             Result<UserResponseDto<FullUserDto>> users = await this._userService.SearchUsersAsync(queryParams);
 
             if (users.IsFailed)
             {
-                this._logger.LogWarning("Failed to search users with query params {@QueryParams}", queryParams);
+                this.Logger.LogWarning("Failed to search users with query params {@QueryParams}", queryParams);
                 return this.BadRequest();
             }
 
@@ -116,7 +101,7 @@ public sealed class UserController : ControllerBase, IZoraService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Failed to search users");
+            this.Logger.LogError(ex, "Failed to search users");
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
@@ -129,7 +114,7 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Delete a user by ID")]
     [Authorize]
-    public async Task<ActionResult<bool>> DeleteUser([FromRoute] long id)
+    public override async Task<ActionResult<bool>> Delete([FromRoute] long id)
     {
         try
         {
@@ -137,25 +122,25 @@ public sealed class UserController : ControllerBase, IZoraService
 
             if (result.IsFailed)
             {
-                this._logger.LogWarning("User with ID {UserId} not found", id);
+                this.Logger.LogWarning("User with ID {UserId} not found", id);
                 return this.NotFound();
             }
 
             User user = result.Value;
 
-            if (this._roleService.IsAdmin(this.User) || this._userService.ClaimIsUser(this.User, user.Username))
+            if (this.RoleService.IsAdmin(this.User) || this._userService.ClaimIsUser(this.User, user.Username))
             {
                 await this._userService.DeleteUserAsync(user);
-                this._logger.LogInformation("User with ID {UserId} deleted", id);
+                this.Logger.LogInformation("User with ID {UserId} deleted", id);
                 return this.NoContent();
             }
 
-            this._logger.LogWarning("User with ID {Id} is not authorised to delete user with ID {UserId}", id, user.Id);
+            this.Logger.LogWarning("User with ID {Id} is not authorised to delete user with ID {UserId}", id, user.Id);
             return this.Unauthorized();
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Failed to delete user with ID {UserId}", id);
+            this.Logger.LogError(ex, "Failed to delete user with ID {UserId}", id);
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
@@ -168,16 +153,16 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Create a new user")]
     [Authorize]
-    public async Task<ActionResult<FullUserDto>> CreateUser([FromBody] CreateMinimumUserDto createMinimumUserDto)
+    public override async Task<ActionResult<FullUserDto>> Create([FromBody] CreateMinimumUserDto createMinimumUserDto)
     {
         try
         {
-            if (this._roleService.IsAdmin(this.User))
+            if (this.RoleService.IsAdmin(this.User))
             {
                 Result<User> result = await this._userService.CreateAsync(createMinimumUserDto);
                 if (result.IsFailed)
                 {
-                    this._logger.LogWarning("Failed to create user");
+                    this.Logger.LogWarning("Failed to create user");
                     return this.BadRequest();
                 }
 
@@ -185,22 +170,22 @@ public sealed class UserController : ControllerBase, IZoraService
 
                 if (fullUser.IsFailed)
                 {
-                    this._logger.LogWarning("Failed to get user with ID {UserId}", result.Value.Id);
+                    this.Logger.LogWarning("Failed to get user with ID {UserId}", result.Value.Id);
                     return this.BadRequest();
                 }
 
                 FullUserDto fullUserValue = fullUser.Value;
 
-                this._logger.LogInformation("User with ID {UserId} created", fullUserValue.Id);
-                return this.CreatedAtAction(nameof(this.CreateUser), new { id = fullUserValue.Id }, fullUserValue);
+                this.Logger.LogInformation("User with ID {UserId} created", fullUserValue.Id);
+                return this.CreatedAtAction(nameof(this.Create), new { id = fullUserValue.Id }, fullUserValue);
             }
 
-            this._logger.LogWarning("User {Username} is not authorised to create a new user", this.User.Identity?.Name);
+            this.Logger.LogWarning("User {Username} is not authorised to create a new user", this.User.Identity?.Name);
             return this.Unauthorized();
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Failed to create user");
+            this.Logger.LogError(ex, "Failed to create user");
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
@@ -214,7 +199,7 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Update a user by ID")]
     [Authorize]
-    public async Task<ActionResult<FullUserDto>> UpdateUser([FromRoute] long id, [FromBody] UpdateUserDto updateUserDto)
+    public override async Task<ActionResult<FullUserDto>> Update([FromRoute] long id, [FromBody] UpdateUserDto updateUserDto)
     {
         try
         {
@@ -222,32 +207,32 @@ public sealed class UserController : ControllerBase, IZoraService
 
             if (result.IsFailed)
             {
-                this._logger.LogWarning("User with ID {UserId} not found", id);
+                this.Logger.LogWarning("User with ID {UserId} not found", id);
                 return this.NotFound();
             }
 
             User user = result.Value;
 
-            if (this._roleService.IsAdmin(this.User) || this._userService.ClaimIsUser(this.User, user.Username))
+            if (this.RoleService.IsAdmin(this.User) || this._userService.ClaimIsUser(this.User, user.Username))
             {
                 Result<User> updatedUser = await this._userService.UpdateUserAsync(user, updateUserDto);
                 if (updatedUser.IsFailed)
                 {
-                    this._logger.LogWarning("Failed to update user with ID {UserId}", id);
+                    this.Logger.LogWarning("Failed to update user with ID {UserId}", id);
                     return this.BadRequest();
                 }
 
                 FullUserDto fullUser = this._userService.ToDto<FullUserDto>(updatedUser.Value);
-                this._logger.LogInformation("User with ID {UserId} updated", id);
+                this.Logger.LogInformation("User with ID {UserId} updated", id);
                 return this.Ok(fullUser);
             }
 
-            this._logger.LogWarning("User with ID {Id} is not authorised to update user with ID {UserId}", id, user.Id);
+            this.Logger.LogWarning("User with ID {Id} is not authorised to update user with ID {UserId}", id, user.Id);
             return this.Unauthorized();
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Failed to update user with ID {UserId}", id);
+            this.Logger.LogError(ex, "Failed to update user with ID {UserId}", id);
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
@@ -259,25 +244,25 @@ public sealed class UserController : ControllerBase, IZoraService
     [Tags("Users")]
     [Description("Find users by partial matches of username, email, or role name")]
     [Authorize]
-    public async Task<ActionResult<UserResponseDto<FullUserDto>>> FindUsers([FromQuery] QueryParamsDto findParams)
+    public override async Task<ActionResult<UserResponseDto<FullUserDto>>> Find([FromQuery] QueryParamsDto findParams)
     {
         try
         {
-            if (this._roleService.IsAdmin(this.User))
+            if (this.RoleService.IsAdmin(this.User))
             {
                 findParams.Page = Math.Max(1, findParams.Page);
                 findParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, findParams.PageSize);
             }
             else
             {
-                this._queryService.NormaliseQueryParams(findParams);
+                this.QueryService.NormaliseQueryParams(findParams);
             }
 
             Result<UserResponseDto<FullUserDto>> users = await this._userService.FindUsersAsync(findParams);
 
             if (users.IsFailed)
             {
-                this._logger.LogWarning("Failed to find users with search term {SearchTerm}", findParams.SearchTerm);
+                this.Logger.LogWarning("Failed to find users with search term {SearchTerm}", findParams.SearchTerm);
                 return this.BadRequest();
             }
 
@@ -285,7 +270,7 @@ public sealed class UserController : ControllerBase, IZoraService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Failed to find users");
+            this.Logger.LogError(ex, "Failed to find users");
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }

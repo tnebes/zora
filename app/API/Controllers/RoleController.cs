@@ -1,7 +1,6 @@
 #region
 
 using System.ComponentModel;
-using AutoMapper;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,47 +21,40 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("Role API")]
-public sealed class RoleController : ControllerBase, IZoraService
+public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleDto, UpdateRoleDto, RoleResponseDto>
 {
-    private readonly ILogger<RoleController> _logger;
-    private readonly IMapper _mapper;
-    private readonly IQueryService _queryService;
     private readonly IRoleService _roleService;
 
     public RoleController(
         IRoleService roleService,
         IQueryService queryService,
-        IMapper mapper,
         ILogger<RoleController> logger)
-    {
+        : base(logger, roleService, queryService) =>
         this._roleService = roleService;
-        this._queryService = queryService;
-        this._mapper = mapper;
-        this._logger = logger;
-    }
 
     [HttpGet]
     [ProducesResponseType(typeof(RoleResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
-    [Description("Get all roles with pagination, searching and sorting support")]
-    public async Task<ActionResult<RoleResponseDto>> GetRoles([FromQuery] QueryParamsDto queryParams)
+    [Description("Get all roles using query parameters")]
+    public override async Task<ActionResult<RoleResponseDto>> Get([FromQuery] QueryParamsDto queryParams)
     {
         try
         {
-            if (!this._roleService.IsAdmin(this.HttpContext.User))
+            ActionResult authResult = this.HandleAdminAuthorizationAsync();
+            if (authResult is UnauthorizedResult)
             {
                 return this.Unauthorized();
             }
 
-            this._queryService.NormaliseQueryParams(queryParams);
+            this.NormalizeQueryParamsForAdmin(queryParams);
 
             Result<RoleResponseDto> roleResponseResult = await this._roleService.GetRolesDtoAsync(queryParams);
 
             if (roleResponseResult.IsFailed)
             {
-                this._logger.LogError("Error getting roles: {Error}", roleResponseResult.Errors);
+                this.Logger.LogError("Error getting roles: {Error}", roleResponseResult.Errors);
                 return this.StatusCode(StatusCodes.Status500InternalServerError, roleResponseResult.Errors);
             }
 
@@ -70,7 +62,7 @@ public sealed class RoleController : ControllerBase, IZoraService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Error getting roles");
+            this.Logger.LogError(ex, "Error getting roles");
             return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
@@ -81,7 +73,7 @@ public sealed class RoleController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
     [Description("Create a new role")]
-    public async Task<ActionResult<RoleDto>> CreateRole([FromBody] CreateRoleDto roleDto)
+    public override async Task<ActionResult<FullRoleDto>> Create([FromBody] CreateRoleDto roleDto)
     {
         try
         {
@@ -94,17 +86,17 @@ public sealed class RoleController : ControllerBase, IZoraService
 
             if (roleResult.IsFailed)
             {
-                this._logger.LogError("Error creating role: {Error}", roleResult.Errors);
+                this.Logger.LogError("Error creating role: {Error}", roleResult.Errors);
                 return this.StatusCode(StatusCodes.Status500InternalServerError, roleResult.Errors);
             }
 
             Role role = roleResult.Value;
 
-            return this.CreatedAtAction(nameof(RoleController.GetRoles), new { id = role.Id }, role);
+            return this.CreatedAtAction(nameof(RoleController.Get), new { id = role.Id }, role);
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Error creating role");
+            this.Logger.LogError(ex, "Error creating role");
             return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
@@ -116,7 +108,7 @@ public sealed class RoleController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
     [Description("Update an existing role")]
-    public async Task<ActionResult<RoleDto>> UpdateRole(long id, [FromBody] UpdateRoleDto roleDto)
+    public override async Task<ActionResult<FullRoleDto>> Update(long id, [FromBody] UpdateRoleDto roleDto)
     {
         try
         {
@@ -128,7 +120,7 @@ public sealed class RoleController : ControllerBase, IZoraService
             Result<Role> role = await this._roleService.UpdateRoleAsync(id, roleDto);
             if (role.IsFailed)
             {
-                this._logger.LogError("Error updating role: {Error}", role.Errors);
+                this.Logger.LogError("Error updating role: {Error}", role.Errors);
                 return this.NotFound();
             }
 
@@ -136,7 +128,7 @@ public sealed class RoleController : ControllerBase, IZoraService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Error updating role");
+            this.Logger.LogError(ex, "Error updating role");
             return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
@@ -148,7 +140,7 @@ public sealed class RoleController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
     [Description("Delete a role")]
-    public async Task<ActionResult<bool>> DeleteRole(long id)
+    public override async Task<ActionResult<bool>> Delete(long id)
     {
         try
         {
@@ -167,7 +159,7 @@ public sealed class RoleController : ControllerBase, IZoraService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Error deleting role");
+            this.Logger.LogError(ex, "Error deleting role");
             return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
@@ -179,7 +171,7 @@ public sealed class RoleController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
     [Description("Find roles by partial matches of name or description")]
-    public async Task<ActionResult<RoleResponseDto>> FindRoles([FromQuery] QueryParamsDto findParams)
+    public override async Task<ActionResult<RoleResponseDto>> Find([FromQuery] QueryParamsDto findParams)
     {
         try
         {
@@ -190,14 +182,14 @@ public sealed class RoleController : ControllerBase, IZoraService
             }
             else
             {
-                this._queryService.NormaliseQueryParams(findParams);
+                this.QueryService.NormaliseQueryParams(findParams);
             }
 
             Result<RoleResponseDto> roles = await this._roleService.FindRolesAsync(findParams);
 
             if (roles.IsFailed)
             {
-                this._logger.LogWarning("Failed to find roles with search term {SearchTerm}", findParams.SearchTerm);
+                this.Logger.LogWarning("Failed to find roles with search term {SearchTerm}", findParams.SearchTerm);
                 return this.BadRequest();
             }
 
@@ -205,7 +197,7 @@ public sealed class RoleController : ControllerBase, IZoraService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Failed to find roles");
+            this.Logger.LogError(ex, "Failed to find roles");
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
