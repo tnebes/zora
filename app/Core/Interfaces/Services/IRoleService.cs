@@ -21,4 +21,5 @@ public interface IRoleService
     Task<Result<Role>> UpdateRoleAsync(long id, UpdateRoleDto roleDto);
     Task<bool> DeleteRoleAsync(long id);
     Task<Result<RoleResponseDto>> FindRolesAsync(QueryParamsDto findParams);
+    Task<Result<Role>> GetById(long roleId);
 }

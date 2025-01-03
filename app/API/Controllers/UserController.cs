@@ -158,31 +158,32 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
     {
         try
         {
-            if (this.RoleService.IsAdmin(this.User))
+            if (!this.RoleService.IsAdmin(this.User))
             {
-                Result<User> result = await this._userService.CreateAsync(createMinimumUserDto);
-                if (result.IsFailed)
-                {
-                    this.Logger.LogWarning("Failed to create user");
-                    return this.BadRequest();
-                }
-
-                Result<FullUserDto> fullUser = await this._userService.GetUserDtoByIdAsync(result.Value.Id);
-
-                if (fullUser.IsFailed)
-                {
-                    this.Logger.LogWarning("Failed to get user with ID {UserId}", result.Value.Id);
-                    return this.BadRequest();
-                }
-
-                FullUserDto fullUserValue = fullUser.Value;
-
-                this.Logger.LogInformation("User with ID {UserId} created", fullUserValue.Id);
-                return this.CreatedAtAction(nameof(this.Create), new { id = fullUserValue.Id }, fullUserValue);
+                this.Logger.LogWarning("User {Username} is not authorised to create a new user",
+                    this.User.Identity?.Name);
+                return this.Unauthorized();
             }
 
-            this.Logger.LogWarning("User {Username} is not authorised to create a new user", this.User.Identity?.Name);
-            return this.Unauthorized();
+            Result<User> result = await this._userService.CreateAsync(createMinimumUserDto);
+            if (result.IsFailed)
+            {
+                this.Logger.LogWarning("Failed to create user");
+                return this.BadRequest();
+            }
+
+            Result<FullUserDto> fullUser = await this._userService.GetUserDtoByIdAsync(result.Value.Id);
+
+            if (fullUser.IsFailed)
+            {
+                this.Logger.LogWarning("Failed to get user with ID {UserId}", result.Value.Id);
+                return this.BadRequest();
+            }
+
+            FullUserDto fullUserValue = fullUser.Value;
+
+            this.Logger.LogInformation("User with ID {UserId} created", fullUserValue.Id);
+            return this.CreatedAtAction(nameof(this.Create), new { id = fullUserValue.Id }, fullUserValue);
         }
         catch (Exception ex)
         {
@@ -205,36 +206,39 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
     {
         try
         {
-            Result<User> result = await this._userService.GetUserByIdAsync(id);
+            bool isAdmin = this.RoleService.IsAdmin(this.User);
+            bool isSameUser = this._userService.ClaimIsUser(this.User, updateUserDto.Username);
 
-            if (result.IsFailed)
+            if (!isAdmin && !isSameUser)
+            {
+                this.Logger.LogWarning("User {Username} is not authorized to update user with ID {UserId}",
+                    this.User.Identity?.Name);
+                return this.Unauthorized();
+            }
+
+            Result<User> userResult = await this._userService.GetUserByIdAsync(id);
+            if (userResult.IsFailed)
             {
                 this.Logger.LogWarning("User with ID {UserId} not found", id);
                 return this.NotFound();
             }
 
-            User user = result.Value;
+            User existingUser = userResult.Value;
 
-            if (this.RoleService.IsAdmin(this.User) || this._userService.ClaimIsUser(this.User, user.Username))
+            Result<User> updateResult = await this._userService.UpdateUserAsync(existingUser, updateUserDto);
+            if (updateResult.IsFailed)
             {
-                Result<User> updatedUser = await this._userService.UpdateUserAsync(user, updateUserDto);
-                if (updatedUser.IsFailed)
-                {
-                    this.Logger.LogWarning("Failed to update user with ID {UserId}", id);
-                    return this.BadRequest();
-                }
-
-                FullUserDto fullUser = this._userService.ToDto<FullUserDto>(updatedUser.Value);
-                this.Logger.LogInformation("User with ID {UserId} updated", id);
-                return this.Ok(fullUser);
+                this.Logger.LogWarning("Failed to update user {UserId}", id);
+                return this.BadRequest();
             }
 
-            this.Logger.LogWarning("User with ID {Id} is not authorised to update user with ID {UserId}", id, user.Id);
-            return this.Unauthorized();
+            FullUserDto updatedUserDto = this._userService.ToDto<FullUserDto>(updateResult.Value);
+            this.Logger.LogInformation("User {UserId} updated successfully", id);
+            return this.Ok(updatedUserDto);
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Failed to update user with ID {UserId}", id);
+            this.Logger.LogError(ex, "Failed to update user {UserId}", id);
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }

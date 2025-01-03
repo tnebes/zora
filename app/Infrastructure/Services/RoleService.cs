@@ -215,4 +215,17 @@ public class RoleService : IRoleService, IZoraService
             return Result.Fail<RoleResponseDto>("Error finding roles");
         }
     }
+
+    public async Task<Result<Role>> GetById(long roleId)
+    {
+        try
+        {
+            return await this._roleRepository.GetByIdAsync(roleId);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting role by ID {RoleId}", roleId);
+            return Result.Fail<Role>(new Error("Failed to get role by ID").CausedBy(ex));
+        }
+    }
 }

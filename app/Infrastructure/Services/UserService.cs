@@ -144,7 +144,26 @@ public sealed class UserService : IUserService, IZoraService
         originalUser.Email = updateUserDto.Email;
         originalUser.Username = updateUserDto.Username;
 
-        await this._roleService.AssignRoles(originalUser, updateUserDto.RoleIds);
+        HashSet<long> existingRoleIds = originalUser.UserRoles.Select(ur => ur.RoleId).ToHashSet();
+        HashSet<long> newRoleIds = updateUserDto.RoleIds.ToHashSet();
+
+        List<UserRole> rolesToRemove = originalUser.UserRoles.Where(ur => !newRoleIds.Contains(ur.RoleId)).ToList();
+        foreach (UserRole roleToRemove in rolesToRemove)
+        {
+            originalUser.UserRoles.Remove(roleToRemove);
+        }
+
+        IEnumerable<long> rolesToAdd = newRoleIds.Where(roleId => !existingRoleIds.Contains(roleId));
+        foreach (long roleId in rolesToAdd)
+        {
+            UserRole userRole = new UserRole
+            {
+                UserId = originalUser.Id,
+                RoleId = roleId,
+                Role = (await this._roleService.GetById(roleId)).Value
+            };
+            originalUser.UserRoles.Add(userRole);
+        }
 
         Result<User> updatedUser = await this._userRepository.Update(originalUser);
         return updatedUser;
