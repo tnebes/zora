@@ -1,5 +1,6 @@
 #region
 
+using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using zora.Core.Domain;
 using zora.Core.Interfaces.Repositories;
@@ -38,6 +39,20 @@ public sealed class UserRoleRepository : BaseCompositeRepository<UserRole>, IUse
         return await this.FindByCondition(ur =>
                 ur.UserId == userId && ur.RoleId == roleId)
             .AnyAsync();
+    }
+
+    public async Task<Result<UserRole>> CreateAsync(UserRole entity)
+    {
+        UserRole createdUserRole = await base.CreateAsync(entity);
+        if (createdUserRole == null)
+        {
+            this.Logger.LogError("Error creating user role {CreatedUserRole}", createdUserRole);
+            return Result.Fail("Error creating user role");
+        }
+        else
+        {
+            return Result.Ok(createdUserRole);
+        }
     }
 
     public async Task<bool> AssignRoles(User user, List<long> roles)

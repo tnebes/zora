@@ -57,7 +57,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
             this.QueryService.NormaliseQueryParams(queryParams);
 
             Result<PermissionResponseDto> permissionResponseResult =
-                await this._permissionService.GetPermissionsDtoAsync(queryParams);
+                await this._permissionService.GetDtoAsync(queryParams);
 
             if (permissionResponseResult.IsFailed)
             {
@@ -90,10 +90,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
                 return this.Unauthorized();
             }
 
-            Result<Permission> result = await this._permissionService.CreateAsync(
-                dto.Name,
-                dto.Description,
-                dto.PermissionString);
+            Result<Permission> result = await this._permissionService.CreateAsync(dto);
 
             if (result.IsFailed)
             {
@@ -131,11 +128,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
                 return this.Unauthorized();
             }
 
-            Result<Permission> result = await this._permissionService.UpdateAsync(
-                id,
-                dto.Name,
-                dto.Description,
-                dto.PermissionString);
+            Result<Permission> result = await this._permissionService.UpdateAsync(id, dto);
 
             if (result.IsFailed)
             {
@@ -209,7 +202,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         {
             this.NormalizeQueryParamsForAdmin(findParams);
 
-            Result<PermissionResponseDto> permissions = await this._permissionService.FindPermissionsAsync(findParams);
+            Result<PermissionResponseDto> permissions = await this._permissionService.FindAsync(findParams);
 
             if (permissions.IsFailed)
             {

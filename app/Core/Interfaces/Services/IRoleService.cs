@@ -10,16 +10,9 @@ using zora.Core.DTOs.Responses;
 
 namespace zora.Core.Interfaces.Services;
 
-public interface IRoleService
+public interface IRoleService : IBaseService<Role, CreateRoleDto, UpdateRoleDto, RoleResponseDto>
 {
     bool IsRole(ClaimsPrincipal httpContextUser, string role);
     bool IsAdmin(ClaimsPrincipal httpContextUser);
     Task<bool> AssignRoles(User user, IEnumerable<long> roleIds);
-    Task<Result<(IEnumerable<Role>, int total)>> GetRolesAsync(QueryParamsDto queryParams);
-    Task<Result<RoleResponseDto>> GetRolesDtoAsync(QueryParamsDto queryParams);
-    Task<Result<Role>> CreateRoleAsync(CreateRoleDto roleDto);
-    Task<Result<Role>> UpdateRoleAsync(long id, UpdateRoleDto roleDto);
-    Task<bool> DeleteRoleAsync(long id);
-    Task<Result<RoleResponseDto>> FindRolesAsync(QueryParamsDto findParams);
-    Task<Result<Role>> GetById(long roleId);
 }

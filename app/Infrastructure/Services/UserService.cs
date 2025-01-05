@@ -80,30 +80,69 @@ public sealed class UserService : IUserService, IZoraService
         }
     }
 
-    public async Task<Result<IEnumerable<User>>> GetUsersAsync(QueryParamsDto queryParams)
+    public async Task<Result<(IEnumerable<User>, int total)>> GetAsync(QueryParamsDto queryParams)
     {
         try
         {
-            (IEnumerable<User> users, int _) = await this._userRepository.GetUsersAsync(queryParams);
-            return Result.Ok(users);
+            (IEnumerable<User> users, int total) = await this._userRepository.GetUsersAsync(queryParams);
+            return Result.Ok((users, total));
         }
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error getting users");
-            return Result.Fail<IEnumerable<User>>(new Error("Error getting users")
+            return Result.Fail<(IEnumerable<User>, int total)>(new Error("Error getting users")
                 .WithMetadata(Constants.ERROR_TYPE, ErrorType.SystemError)
                 .WithMetadata("exception", ex));
         }
     }
 
-    public bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username) =>
-        httpContextUser.Identity?.Name == username;
-
-    public async Task<Result<User>> CreateAsync(CreateMinimumUserDto createMinimumUserDto)
+    public async Task<Result<UserResponseDto<FullUserDto>>> GetDtoAsync(QueryParamsDto queryParams)
     {
         try
         {
-            User user = this._mapper.Map<User>(createMinimumUserDto);
+            (IEnumerable<User> users, int totalCount) = await this._userRepository.GetUsersAsync(queryParams);
+            UserResponseDto<FullUserDto> response =
+                users.ToFullUserResponseDto(totalCount, queryParams.Page, queryParams.PageSize, this._mapper);
+            return Result.Ok(response);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting users");
+            return Result.Fail<UserResponseDto<FullUserDto>>(new Error("Error getting users")
+                .WithMetadata(Constants.ERROR_TYPE, ErrorType.SystemError)
+                .WithMetadata("exception", ex));
+        }
+    }
+
+    public async Task<Result<User>> GetByIdAsync(long id)
+    {
+        try
+        {
+            Result<User> userResult = await this._userRepository.GetByIdAsync(id);
+
+            if (userResult.IsFailed)
+            {
+                this._logger.LogWarning("User with ID {UserId} not found", id);
+                return Result.Fail<User>(new Error($"User with ID {id} not found")
+                    .WithMetadata("errorType", ErrorType.NotFound));
+            }
+
+            return userResult;
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error retrieving user with ID {UserId}", id);
+            return Result.Fail<User>(new Error("Error retrieving user")
+                .WithMetadata("errorType", ErrorType.SystemError)
+                .WithMetadata("exception", ex));
+        }
+    }
+
+    public async Task<Result<User>> CreateAsync(CreateMinimumUserDto createDto)
+    {
+        try
+        {
+            User user = this._mapper.Map<User>(createDto);
 
             if (!UserService.IsValid(user))
             {
@@ -111,28 +150,28 @@ public sealed class UserService : IUserService, IZoraService
                     .WithMetadata("errorType", ErrorType.ValidationError));
             }
 
-            user.Password = UserService.HashPassword(createMinimumUserDto.Password);
+            user.Password = UserService.HashPassword(createDto.Password);
             await this._userRepository.Add(user);
 
-            if (createMinimumUserDto.RoleIds.Any())
+            if (createDto.RoleIds.Any())
             {
-                await this._roleService.AssignRoles(user, createMinimumUserDto.RoleIds);
+                await this._roleService.AssignRoles(user, createDto.RoleIds);
             }
 
             return Result.Ok(user);
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Error creating user {Username}", createMinimumUserDto.Username);
+            this._logger.LogError(ex, "Error creating user {Username}", createDto.Username);
             return Result.Fail<User>(new Error("Error creating user")
                 .WithMetadata("errorType", ErrorType.SystemError)
                 .WithMetadata("exception", ex));
         }
     }
 
-    public async Task<Result<User>> UpdateUserAsync(User user, UpdateUserDto updateUserDto)
+    public async Task<Result<User>> UpdateAsync(long id, UpdateUserDto updateDto)
     {
-        Result<User> originalUserResult = await this._userRepository.GetByIdAsync(user.Id);
+        Result<User> originalUserResult = await this._userRepository.GetByIdAsync(id);
 
         if (originalUserResult.IsFailed)
         {
@@ -141,11 +180,11 @@ public sealed class UserService : IUserService, IZoraService
         }
 
         User originalUser = originalUserResult.Value;
-        originalUser.Email = updateUserDto.Email;
-        originalUser.Username = updateUserDto.Username;
+        originalUser.Email = updateDto.Email;
+        originalUser.Username = updateDto.Username;
 
         HashSet<long> existingRoleIds = originalUser.UserRoles.Select(ur => ur.RoleId).ToHashSet();
-        HashSet<long> newRoleIds = updateUserDto.RoleIds.ToHashSet();
+        HashSet<long> newRoleIds = updateDto.RoleIds.ToHashSet();
 
         List<UserRole> rolesToRemove = originalUser.UserRoles.Where(ur => !newRoleIds.Contains(ur.RoleId)).ToList();
         foreach (UserRole roleToRemove in rolesToRemove)
@@ -160,7 +199,7 @@ public sealed class UserService : IUserService, IZoraService
             {
                 UserId = originalUser.Id,
                 RoleId = roleId,
-                Role = (await this._roleService.GetById(roleId)).Value
+                Role = (await this._roleService.GetByIdAsync(roleId)).Value
             };
             originalUser.UserRoles.Add(userRole);
         }
@@ -168,6 +207,61 @@ public sealed class UserService : IUserService, IZoraService
         Result<User> updatedUser = await this._userRepository.Update(originalUser);
         return updatedUser;
     }
+
+    public async Task<bool> DeleteAsync(long id)
+    {
+        try
+        {
+            Result<User> userResult = await this.GetByIdAsync(id);
+            if (userResult.IsFailed)
+            {
+                return false;
+            }
+
+            User user = userResult.Value;
+            user.Deleted = true;
+            this._userRepository.SoftDelete(user);
+            await this._userRepository.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error deleting user with ID {UserId}", id);
+            return false;
+        }
+    }
+
+    public async Task<Result<UserResponseDto<FullUserDto>>> FindAsync(QueryParamsDto findParams)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(findParams.SearchTerm) || findParams.SearchTerm.Length < 3)
+            {
+                return Result.Fail<UserResponseDto<FullUserDto>>("Search term must be at least 3 characters long");
+            }
+
+            Result<(IEnumerable<User>, int totalCount)> result = await this._userRepository.FindUsersAsync(findParams);
+
+            if (result.IsFailed)
+            {
+                return Result.Fail<UserResponseDto<FullUserDto>>("Error finding users");
+            }
+
+            (IEnumerable<User> users, int totalCount) = result.Value;
+            UserResponseDto<FullUserDto> response =
+                users.ToFullUserResponseDto(totalCount, findParams.Page, findParams.PageSize, this._mapper);
+
+            return Result.Ok(response);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error finding users with term {SearchTerm}", findParams.SearchTerm);
+            return Result.Fail<UserResponseDto<FullUserDto>>("Error finding users");
+        }
+    }
+
+    public bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username) =>
+        httpContextUser.Identity?.Name == username;
 
     public async Task<Result<User>> GetUserByIdAsync(long userId)
     {
@@ -215,31 +309,6 @@ public sealed class UserService : IUserService, IZoraService
                 .WithMetadata("errorType", ErrorType.SystemError)
                 .WithMetadata("exception", ex));
         }
-    }
-
-    public async Task<Result<UserResponseDto<FullUserDto>>> GetUsersDtoAsync(QueryParamsDto queryParams)
-    {
-        try
-        {
-            (IEnumerable<User> users, int totalCount) = await this._userRepository.GetUsersAsync(queryParams);
-            UserResponseDto<FullUserDto> response =
-                users.ToFullUserResponseDto(totalCount, queryParams.Page, queryParams.PageSize, this._mapper);
-            return Result.Ok(response);
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error getting users");
-            return Result.Fail<UserResponseDto<FullUserDto>>(new Error("Error getting users")
-                .WithMetadata(Constants.ERROR_TYPE, ErrorType.SystemError)
-                .WithMetadata("exception", ex));
-        }
-    }
-
-    public Task DeleteUserAsync(User user)
-    {
-        user.Deleted = true;
-        this._userRepository.SoftDelete(user);
-        return this._userRepository.SaveChangesAsync();
     }
 
     public async Task<Result<FullUserDto>> GetUserDtoByIdAsync(long id)
@@ -298,36 +367,6 @@ public sealed class UserService : IUserService, IZoraService
 
     public IQueryable<User> GetQueryable(DynamicQueryParamsDto queryParams) =>
         this._queryService.GetEntityQueryable<User>(queryParams);
-
-    public async Task<Result<UserResponseDto<FullUserDto>>> FindUsersAsync(QueryParamsDto findParams)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(findParams.SearchTerm) || findParams.SearchTerm.Length < 3)
-            {
-                return Result.Fail<UserResponseDto<FullUserDto>>("Search term must be at least 3 characters long");
-            }
-
-            Result<(IEnumerable<User>, int totalCount)> result = await this._userRepository.FindUsersAsync(findParams);
-
-            if (result.IsFailed)
-            {
-                return Result.Fail<UserResponseDto<FullUserDto>>("Error finding users");
-            }
-
-            (IEnumerable<User> users, int totalCount) = result.Value;
-
-            UserResponseDto<FullUserDto> response =
-                users.ToFullUserResponseDto(totalCount, findParams.Page, findParams.PageSize, this._mapper);
-
-            return Result.Ok(response);
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error finding users with term {SearchTerm}", findParams.SearchTerm);
-            return Result.Fail<UserResponseDto<FullUserDto>>("Error finding users");
-        }
-    }
 
     private static bool IsValid(User user)
     {

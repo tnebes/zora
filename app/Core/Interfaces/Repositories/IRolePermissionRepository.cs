@@ -1,5 +1,6 @@
 #region
 
+using FluentResults;
 using zora.Core.Domain;
 
 #endregion
@@ -8,6 +9,7 @@ namespace zora.Core.Interfaces.Repositories;
 
 public interface IRolePermissionRepository
 {
-    Task<IEnumerable<RolePermission>> GetByRoleIdAsync(long userRoleRoleId);
-    Task CreateAsync(RolePermission rolePermission);
+    Task<Result<IEnumerable<RolePermission>>> GetByRoleIdAsync(long userRoleRoleId);
+    Task<Result<RolePermission>> CreateAsync(RolePermission rolePermission);
+    Task<bool> DeleteByRoleId(long roleId);
 }

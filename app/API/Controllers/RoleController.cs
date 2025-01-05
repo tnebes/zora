@@ -50,7 +50,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
 
             this.NormalizeQueryParamsForAdmin(queryParams);
 
-            Result<RoleResponseDto> roleResponseResult = await this._roleService.GetRolesDtoAsync(queryParams);
+            Result<RoleResponseDto> roleResponseResult = await this._roleService.GetDtoAsync(queryParams);
 
             if (roleResponseResult.IsFailed)
             {
@@ -82,7 +82,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 return this.Unauthorized();
             }
 
-            Result<Role> roleResult = await this._roleService.CreateRoleAsync(roleDto);
+            Result<Role> roleResult = await this._roleService.CreateAsync(roleDto);
 
             if (roleResult.IsFailed)
             {
@@ -117,7 +117,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 return this.Unauthorized();
             }
 
-            Result<Role> role = await this._roleService.UpdateRoleAsync(id, roleDto);
+            Result<Role> role = await this._roleService.UpdateAsync(id, roleDto);
             if (role.IsFailed)
             {
                 this.Logger.LogError("Error updating role: {Error}", role.Errors);
@@ -149,7 +149,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 return this.Unauthorized();
             }
 
-            bool success = await this._roleService.DeleteRoleAsync(id);
+            bool success = await this._roleService.DeleteAsync(id);
             if (!success)
             {
                 return this.NotFound();
@@ -185,7 +185,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 this.QueryService.NormaliseQueryParams(findParams);
             }
 
-            Result<RoleResponseDto> roles = await this._roleService.FindRolesAsync(findParams);
+            Result<RoleResponseDto> roles = await this._roleService.FindAsync(findParams);
 
             if (roles.IsFailed)
             {

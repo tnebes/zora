@@ -24,10 +24,11 @@ public abstract class BaseCompositeRepository<T> where T : BaseCompositeEntity
 
     protected IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression) => this.DbSet.Where(expression);
 
-    public async Task<bool> CreateAsync(T entity)
+    public async Task<T> CreateAsync(T entity)
     {
         await this.DbSet.AddAsync(entity);
-        return await this.DbContext.SaveChangesAsync() > 0;
+        await this.DbContext.SaveChangesAsync();
+        return entity;
     }
 
     public async Task<bool> DeleteAsync(T entity)

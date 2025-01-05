@@ -73,12 +73,11 @@ public class RoleService : IRoleService, IZoraService
         }
     }
 
-    public async Task<Result<(IEnumerable<Role>, int total)>> GetRolesAsync(QueryParamsDto queryParams)
+    public async Task<Result<(IEnumerable<Role>, int total)>> GetAsync(QueryParamsDto queryParams)
     {
         try
         {
             (IEnumerable<Role> roles, int total) = await this._roleRepository.GetPagedAsync(queryParams);
-
             return Result.Ok((roles, total));
         }
         catch (Exception ex)
@@ -88,9 +87,9 @@ public class RoleService : IRoleService, IZoraService
         }
     }
 
-    public async Task<Result<RoleResponseDto>> GetRolesDtoAsync(QueryParamsDto queryParams)
+    public async Task<Result<RoleResponseDto>> GetDtoAsync(QueryParamsDto queryParams)
     {
-        Result<(IEnumerable<Role>, int total)> result = await this.GetRolesAsync(queryParams);
+        Result<(IEnumerable<Role>, int total)> result = await this.GetAsync(queryParams);
         if (result.IsFailed)
         {
             this._logger.LogError("Error getting roles: {Error}", result.Errors);
@@ -101,19 +100,32 @@ public class RoleService : IRoleService, IZoraService
         return Result.Ok(roles.ToRoleResponseDto(total, queryParams.Page, queryParams.PageSize, this._mapper));
     }
 
-    public async Task<Result<Role>> CreateRoleAsync(CreateRoleDto roleDto)
+    public async Task<Result<Role>> GetByIdAsync(long id)
+    {
+        try
+        {
+            return await this._roleRepository.GetByIdAsync(id);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting role by ID {RoleId}", id);
+            return Result.Fail<Role>(new Error("Failed to get role by ID").CausedBy(ex));
+        }
+    }
+
+    public async Task<Result<Role>> CreateAsync(CreateRoleDto createDto)
     {
         try
         {
             Role role = new Role
             {
-                Name = roleDto.Name,
+                Name = createDto.Name,
                 CreatedAt = DateTime.UtcNow
             };
 
             await this._roleRepository.CreateAsync(role);
 
-            foreach (long permissionId in roleDto.PermissionIds)
+            foreach (long permissionId in createDto.PermissionIds)
             {
                 RolePermission rolePermission = new RolePermission
                 {
@@ -133,7 +145,7 @@ public class RoleService : IRoleService, IZoraService
         }
     }
 
-    public async Task<Result<Role>> UpdateRoleAsync(long id, UpdateRoleDto roleDto)
+    public async Task<Result<Role>> UpdateAsync(long id, UpdateRoleDto updateDto)
     {
         try
         {
@@ -144,16 +156,20 @@ public class RoleService : IRoleService, IZoraService
             }
 
             Role role = roleResult.Value;
-
-            role.Name = roleDto.Name;
+            role.Name = updateDto.Name;
 
             await this._roleRepository.UpdateAsync(role);
 
-            // Update role-permission associations
-            // TODO: Implement update of role permissions using IRolePermissionRepository
-            // This would typically involve:
-            // 1. Removing existing permissions
-            // 2. Adding new permissions from roleDto.PermissionIds
+            await this._rolePermissionRepository.DeleteByRoleId(role.Id);
+            foreach (long permissionId in updateDto.PermissionIds)
+            {
+                RolePermission rolePermission = new RolePermission
+                {
+                    RoleId = role.Id,
+                    PermissionId = permissionId
+                };
+                await this._rolePermissionRepository.CreateAsync(rolePermission);
+            }
 
             return Result.Ok(role);
         }
@@ -164,7 +180,7 @@ public class RoleService : IRoleService, IZoraService
         }
     }
 
-    public async Task<bool> DeleteRoleAsync(long id)
+    public async Task<bool> DeleteAsync(long id)
     {
         try
         {
@@ -186,7 +202,7 @@ public class RoleService : IRoleService, IZoraService
         }
     }
 
-    public async Task<Result<RoleResponseDto>> FindRolesAsync(QueryParamsDto findParams)
+    public async Task<Result<RoleResponseDto>> FindAsync(QueryParamsDto findParams)
     {
         try
         {
@@ -203,29 +219,12 @@ public class RoleService : IRoleService, IZoraService
             }
 
             (IEnumerable<Role> roles, int totalCount) = result.Value;
-
-            RoleResponseDto response =
-                roles.ToRoleResponseDto(totalCount, findParams.Page, findParams.PageSize, this._mapper);
-
-            return Result.Ok(response);
+            return Result.Ok(roles.ToRoleResponseDto(totalCount, findParams.Page, findParams.PageSize, this._mapper));
         }
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error finding roles with term {SearchTerm}", findParams.SearchTerm);
             return Result.Fail<RoleResponseDto>("Error finding roles");
-        }
-    }
-
-    public async Task<Result<Role>> GetById(long roleId)
-    {
-        try
-        {
-            return await this._roleRepository.GetByIdAsync(roleId);
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error getting role by ID {RoleId}", roleId);
-            return Result.Fail<Role>(new Error("Failed to get role by ID").CausedBy(ex));
         }
     }
 }

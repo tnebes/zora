@@ -40,30 +40,194 @@ public sealed class PermissionService : IPermissionService, IZoraService
         this._mapper = mapper;
     }
 
+    public async Task<Result<(IEnumerable<Permission>, int total)>> GetAsync(QueryParamsDto queryParams)
+    {
+        try
+        {
+            return await this._permissionRepository.GetPagedAsync(queryParams);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting permissions");
+            return Result.Fail<(IEnumerable<Permission>, int total)>("Failed to retrieve permissions");
+        }
+    }
+
+    public async Task<Result<PermissionResponseDto>> GetDtoAsync(QueryParamsDto queryParams)
+    {
+        try
+        {
+            Result<(IEnumerable<Permission> permissions, int total)> result = await this._permissionRepository.GetPagedAsync(queryParams);
+
+            if (result.IsFailed)
+            {
+                return Result.Fail<PermissionResponseDto>("Failed to retrieve permissions");
+            }
+
+            (IEnumerable<Permission> permissions, int total) = result.Value;
+
+            PermissionResponseDto response = new PermissionResponseDto
+            {
+                Items = this._mapper.Map<IEnumerable<PermissionDto>>(permissions),
+                Total = total,
+                Page = queryParams.Page,
+                PageSize = queryParams.PageSize
+            };
+
+            return Result.Ok(response);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting permissions");
+            return Result.Fail<PermissionResponseDto>("Failed to retrieve permissions");
+        }
+    }
+
+    public async Task<Result<Permission>> GetByIdAsync(long id)
+    {
+        try
+        {
+            return await this._permissionRepository.GetByIdAsync(id);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting permission by id {Id}", id);
+            return Result.Fail<Permission>("Failed to retrieve permission");
+        }
+    }
+
+    public async Task<Result<Permission>> CreateAsync(CreatePermissionDto createDto)
+    {
+        try
+        {
+            Permission permission = new Permission
+            {
+                Name = createDto.Name,
+                Description = createDto.Description,
+                PermissionString = createDto.PermissionString,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await this._permissionRepository.CreateAsync(permission);
+            return Result.Ok(permission);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error creating permission");
+            return Result.Fail<Permission>("Failed to create permission");
+        }
+    }
+
+    public async Task<Result<Permission>> UpdateAsync(long id, UpdatePermissionDto updateDto)
+    {
+        try
+        {
+            Result<Permission> permissionResult = await this._permissionRepository.GetByIdAsync(id);
+            if (permissionResult.IsFailed)
+            {
+                return Result.Fail<Permission>($"Permission with ID {id} not found");
+            }
+
+            Permission permission = permissionResult.Value;
+            permission.Name = updateDto.Name;
+            permission.Description = updateDto.Description;
+            permission.PermissionString = updateDto.PermissionString;
+
+            Result<Permission> result = await this._permissionRepository.UpdateAsync(permission);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error updating permission");
+            return Result.Fail<Permission>("Failed to update permission");
+        }
+    }
+
+    public async Task<bool> DeleteAsync(long id)
+    {
+        try
+        {
+            Result<Permission> permissionResult = await this._permissionRepository.GetByIdAsync(id);
+            if (permissionResult.IsFailed)
+            {
+                return false;
+            }
+
+            Permission permission = permissionResult.Value;
+            permission.Deleted = true;
+            return await this._permissionRepository.DeleteAsync(permission);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error deleting permission with id {Id}", id);
+            return false;
+        }
+    }
+
+    public async Task<Result<PermissionResponseDto>> FindAsync(QueryParamsDto findParams)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(findParams.SearchTerm) || findParams.SearchTerm.Length < 3)
+            {
+                return Result.Fail<PermissionResponseDto>("Search term must be at least 3 characters long");
+            }
+
+            Result<(IEnumerable<Permission>, int totalCount)> result =
+                await this._permissionRepository.FindPermissionsAsync(findParams);
+
+            if (result.IsFailed)
+            {
+                return Result.Fail<PermissionResponseDto>("Error finding permissions");
+            }
+
+            (IEnumerable<Permission> permissions, int total) = result.Value;
+
+            PermissionResponseDto response = new PermissionResponseDto
+            {
+                Items = this._mapper.Map<IEnumerable<PermissionDto>>(permissions),
+                Total = total,
+                Page = findParams.Page,
+                PageSize = findParams.PageSize
+            };
+
+            return Result.Ok(response);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error finding permissions with term {SearchTerm}", findParams.SearchTerm);
+            return Result.Fail<PermissionResponseDto>("Error finding permissions");
+        }
+    }
+
     public async Task<bool> HasDirectPermissionAsync(PermissionRequestDto request)
     {
         try
         {
-            List<UserRole> userRoles =
-                (await this._userRoleService.GetUserRolesByUserIdAsync(request.UserId)).ToList();
+            List<UserRole> userRoles = (await this._userRoleService.GetUserRolesByUserIdAsync(request.UserId)).ToList();
 
-            if (this._userRoleService.IsAdminAsync(userRoles).Result)
+            if (await this._userRoleService.IsAdminAsync(userRoles))
             {
-                this._logger.LogInformation(
-                    "User {UserId} is an administrator and has all permissions",
-                    request.UserId);
+                this._logger.LogInformation("User {UserId} is an administrator and has all permissions", request.UserId);
                 return true;
             }
 
             foreach (UserRole userRole in userRoles)
             {
-                IEnumerable<RolePermission> rolePermissions = await this._rolePermissionRepository
-                    .GetByRoleIdAsync(userRole.RoleId);
+                Result<IEnumerable<RolePermission>> result = await this._rolePermissionRepository.GetByRoleIdAsync(userRole.RoleId);
+
+                if (result.IsFailed)
+                {
+                    this._logger.LogWarning("Warning: Could not get role permissions for role {RoleId}", userRole.RoleId);
+                    continue;
+                }
+
+                IEnumerable<RolePermission> rolePermissions = result.Value;
 
                 foreach (RolePermission rolePermission in rolePermissions)
                 {
-                    Result<Permission> permissionResult = await this._permissionRepository
-                        .GetByIdAsync(rolePermission.PermissionId);
+                    Result<Permission> permissionResult =
+                        await this._permissionRepository.GetByIdAsync(rolePermission.PermissionId);
 
                     if (permissionResult.IsFailed)
                     {
@@ -72,8 +236,8 @@ public sealed class PermissionService : IPermissionService, IZoraService
 
                     Permission permission = permissionResult.Value;
 
-                    Result<PermissionWorkItem> permissionWorkItemResult = await this._permissionWorkItemRepository
-                        .GetByCompositeKeyAsync(permission.Id, request.ResourceId);
+                    Result<PermissionWorkItem> permissionWorkItemResult =
+                        await this._permissionWorkItemRepository.GetByCompositeKeyAsync(permission.Id, request.ResourceId);
 
                     if (permissionWorkItemResult.IsFailed)
                     {
@@ -83,8 +247,7 @@ public sealed class PermissionService : IPermissionService, IZoraService
                     PermissionWorkItem resourcePermission = permissionWorkItemResult.Value;
 
                     if (resourcePermission != null &&
-                        PermissionService.DoesPermissionGrantAccess(permission.PermissionString,
-                            request.RequestedPermission))
+                        PermissionService.DoesPermissionGrantAccess(permission.PermissionString, request.RequestedPermission))
                     {
                         this._logger.LogInformation(
                             "Direct permission found for user {UserId} on resource {ResourceId}",
@@ -124,173 +287,20 @@ public sealed class PermissionService : IPermissionService, IZoraService
         }
     }
 
-    public async Task<Result<Permission>> GetByIdAsync(long id)
-    {
-        try
-        {
-            Result<Permission> result = await this._permissionRepository.GetByIdAsync(id);
-            return result.IsSuccess
-                ? Result.Ok(result.Value)
-                : Result.Fail<Permission>("Failed to retrieve permission");
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error getting permission by id {Id}", id);
-            return Result.Fail<Permission>("Failed to retrieve permission");
-        }
-    }
-
-    public async Task<Result<Permission>> CreateAsync(string name, string description, string permissionString)
-    {
-        try
-        {
-            Permission permission = new Permission
-            {
-                Name = name,
-                Description = description,
-                PermissionString = permissionString,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await this._permissionRepository.CreateAsync(permission);
-            return Result.Fail<Permission>("Failed to create permission");
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error creating permission");
-            return Result.Fail<Permission>("Failed to create permission");
-        }
-    }
-
-    public async Task<bool> DeleteAsync(long id)
-    {
-        try
-        {
-            Result<Permission> permissionResult = await this._permissionRepository.GetByIdAsync(id);
-
-            if (permissionResult.IsFailed)
-            {
-                return false;
-            }
-
-            Permission permission = permissionResult.Value;
-
-            bool result = await this._permissionRepository.DeleteAsync(permission);
-            return result;
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error deleting permission with id {Id}", id);
-            return false;
-        }
-    }
-
-    public async Task<Result<PermissionResponseDto>> GetPermissionsDtoAsync(QueryParamsDto queryParams)
-    {
-        try
-        {
-            Result<(IEnumerable<Permission> permissions, int totalCount)> result =
-                await this._permissionRepository.GetPagedAsync(queryParams);
-
-            if (result.IsFailed)
-            {
-                return Result.Fail<PermissionResponseDto>("Error getting paged permissions");
-            }
-
-            (IEnumerable<Permission> permissions, int total) = result.Value;
-
-            PermissionResponseDto response = new PermissionResponseDto
-            {
-                Items = this._mapper.Map<IEnumerable<PermissionDto>>(permissions),
-                Total = total,
-                Page = queryParams.Page,
-                PageSize = queryParams.PageSize
-            };
-
-            return Result.Ok(response);
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error getting paged permissions");
-            return Result.Fail<PermissionResponseDto>("Failed to retrieve paged permissions");
-        }
-    }
-
-    public async Task<Result<PermissionResponseDto>> FindPermissionsAsync(QueryParamsDto findParams)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(findParams.SearchTerm) || findParams.SearchTerm.Length < 3)
-            {
-                return Result.Fail<PermissionResponseDto>("Search term must be at least 3 characters long");
-            }
-
-            Result<(IEnumerable<Permission> permissions, int totalCount)> result =
-                await this._permissionRepository.FindPermissionsAsync(findParams);
-
-            if (result.IsFailed)
-            {
-                return Result.Fail<PermissionResponseDto>("Error finding permissions");
-            }
-
-            (IEnumerable<Permission> permissions, int total) = result.Value;
-
-            PermissionResponseDto response = new PermissionResponseDto
-            {
-                Items = this._mapper.Map<IEnumerable<PermissionDto>>(permissions),
-                Total = total,
-                Page = findParams.Page,
-                PageSize = findParams.PageSize
-            };
-
-            return Result.Ok(response);
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error finding permissions with term {SearchTerm}", findParams.SearchTerm);
-            return Result.Fail<PermissionResponseDto>("Error finding permissions");
-        }
-    }
-
-    public async Task<Result<Permission>> UpdateAsync(long id, string name, string description, string permissionString)
-    {
-        try
-        {
-            Result<Permission> existingPermission = await this._permissionRepository.GetByIdAsync(id);
-            if (existingPermission.IsFailed)
-            {
-                return Result.Fail<Permission>("Permission not found");
-            }
-
-            Permission? permission = existingPermission.Value;
-            permission.Name = name;
-            permission.Description = description;
-            permission.PermissionString = permissionString;
-
-            Result<Permission> result = await this._permissionRepository.UpdateAsync(permission);
-            return result.IsSuccess
-                ? Result.Ok(result.Value)
-                : Result.Fail<Permission>("Failed to update permission");
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error updating permission with id {Id}", id);
-            return Result.Fail<Permission>("Failed to update permission");
-        }
-    }
-
     public async Task<Result<PermissionResponseDto>> GetPermissionsByIdsAsync(List<long> ids)
     {
         try
         {
-            Result<(IEnumerable<Permission> permissions, int totalCount)> result =
+            Result<(IEnumerable<Permission>, int totalCount)> result =
                 await this._permissionRepository.GetByIdsAsync(ids);
+
             if (result.IsFailed)
             {
                 return Result.Fail<PermissionResponseDto>("Failed to retrieve permissions by ids");
             }
 
             (IEnumerable<Permission> permissions, int total) = result.Value;
+
             PermissionResponseDto response = new PermissionResponseDto
             {
                 Items = this._mapper.Map<IEnumerable<PermissionDto>>(permissions),
@@ -308,7 +318,6 @@ public sealed class PermissionService : IPermissionService, IZoraService
         }
     }
 
-    // TODO does this account for C also giving R access?
     private static bool DoesPermissionGrantAccess(string permissionString, PermissionFlag requestedPermission)
     {
         int permissions = Convert.ToInt32(permissionString, 2);

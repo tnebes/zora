@@ -101,7 +101,7 @@ public sealed class AuthenticationController : ControllerBase
         try
         {
             long userId = this.HttpContext.User.GetUserId();
-            Result<User> user = await this._userService.GetUserByIdAsync(userId);
+            Result<User> user = await this._userService.GetByIdAsync(userId);
 
             // TODO ugly as sin
             if (user.IsFailed)
@@ -140,7 +140,7 @@ public sealed class AuthenticationController : ControllerBase
         try
         {
             long userId = this.HttpContext.User.GetUserId();
-            Result<User> user = await this._userService.GetUserByIdAsync(userId);
+            Result<User> user = await this._userService.GetByIdAsync(userId);
 
             // TODO ugly as sin
             if (user.IsFailed)

@@ -51,7 +51,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
         {
             this.NormalizeQueryParamsForAdmin(queryParams);
 
-            Result<UserResponseDto<FullUserDto>> users = await this._userService.GetUsersDtoAsync(queryParams);
+            Result<UserResponseDto<FullUserDto>> users = await this._userService.GetDtoAsync(queryParams);
 
             if (users.IsFailed)
             {
@@ -119,7 +119,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
     {
         try
         {
-            Result<User> result = await this._userService.GetUserByIdAsync(id);
+            Result<User> result = await this._userService.GetByIdAsync(id);
 
             if (result.IsFailed)
             {
@@ -131,7 +131,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
 
             if (this.RoleService.IsAdmin(this.User) || this._userService.ClaimIsUser(this.User, user.Username))
             {
-                await this._userService.DeleteUserAsync(user);
+                await this._userService.DeleteAsync(user.Id);
                 this.Logger.LogInformation("User with ID {UserId} deleted", id);
                 return this.NoContent();
             }
@@ -172,15 +172,15 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
                 return this.BadRequest();
             }
 
-            Result<FullUserDto> fullUser = await this._userService.GetUserDtoByIdAsync(result.Value.Id);
+            Result<User> user = await this._userService.GetByIdAsync(result.Value.Id);
 
-            if (fullUser.IsFailed)
+            if (user.IsFailed)
             {
                 this.Logger.LogWarning("Failed to get user with ID {UserId}", result.Value.Id);
                 return this.BadRequest();
             }
 
-            FullUserDto fullUserValue = fullUser.Value;
+            FullUserDto fullUserValue = this._userService.ToDto<FullUserDto>(user.Value);
 
             this.Logger.LogInformation("User with ID {UserId} created", fullUserValue.Id);
             return this.CreatedAtAction(nameof(this.Create), new { id = fullUserValue.Id }, fullUserValue);
@@ -216,7 +216,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
                 return this.Unauthorized();
             }
 
-            Result<User> userResult = await this._userService.GetUserByIdAsync(id);
+            Result<User> userResult = await this._userService.GetByIdAsync(id);
             if (userResult.IsFailed)
             {
                 this.Logger.LogWarning("User with ID {UserId} not found", id);
@@ -225,7 +225,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
 
             User existingUser = userResult.Value;
 
-            Result<User> updateResult = await this._userService.UpdateUserAsync(existingUser, updateUserDto);
+            Result<User> updateResult = await this._userService.UpdateAsync(existingUser.Id, updateUserDto);
             if (updateResult.IsFailed)
             {
                 this.Logger.LogWarning("Failed to update user {UserId}", id);
@@ -264,7 +264,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
                 this.QueryService.NormaliseQueryParams(findParams);
             }
 
-            Result<UserResponseDto<FullUserDto>> users = await this._userService.FindUsersAsync(findParams);
+            Result<UserResponseDto<FullUserDto>> users = await this._userService.FindAsync(findParams);
 
             if (users.IsFailed)
             {
