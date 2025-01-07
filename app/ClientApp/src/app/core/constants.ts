@@ -37,6 +37,8 @@ export class Constants {
     static readonly PERMISSION: string = 'permission';
     static readonly CREATED_AT: string = 'createdAt';
     static readonly ROLE_NAME: string = 'roleName';
+    static readonly NAME: string = 'name';
+    static readonly USER: string = 'user';
 
     // UI Constants
     static readonly DIALOG_WIDTH: string = '400px';

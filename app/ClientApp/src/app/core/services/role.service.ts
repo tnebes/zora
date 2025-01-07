@@ -45,9 +45,29 @@ export class RoleService {
         return this.http.get<RoleResponseDto>(`${Constants.ROLES_FIND}`, {params});
     }
 
-    public searchRoles(params: { roleIds: number[] }): Observable<RoleResponseDto> {
-        const httpParams = new HttpParams()
-            .set('roleIds', params.roleIds.join(','));
+    public searchRoles(
+        params: {
+            ids?: number[];
+            names?: string[];
+            permissions?: number[];
+            users?: number[];
+            createdAt?: Date;
+        }
+    ): Observable<RoleResponseDto> {
+        if (!Object.values(params).some(value => Array.isArray(value) ? value.length > 0 : value)) {
+            throw new Error('At least one parameter must be provided.');
+        }
+
+        const queryParams: { [key: string]: string } = {
+            ...(params.ids?.length && {[Constants.ID]: params.ids.join(',')}),
+            ...(params.names?.length && {[Constants.NAME]: params.names.join(',')}),
+            ...(params.permissions?.length && {[Constants.PERMISSION]: params.permissions.join(',')}),
+            ...(params.users?.length && {[Constants.USER]: params.users.join(',')}),
+            ...(params.createdAt && {[Constants.CREATED_AT]: params.createdAt.toISOString()}),
+        };
+
+        const httpParams = new HttpParams({fromObject: queryParams});
+
         return this.http.get<RoleResponseDto>(`${Constants.ROLES_SEARCH}`, {params: httpParams});
     }
 }

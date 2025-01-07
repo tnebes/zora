@@ -182,7 +182,7 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        this.roleService.searchRoles({roleIds}).subscribe((roles) => {
+        this.roleService.searchRoles({ids: roleIds}).subscribe((roles) => {
             const data = roles.items.map(role => ({
                 id: role.id,
                 name: role.name
