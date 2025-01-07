@@ -30,7 +30,7 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Role>> GetRolesAsync() => await this.GetAllAsync().ToListAsync();
+    public async Task<IEnumerable<Role>> GetRolesAsync() => await this.GetAllAsync();
 
     public async Task<(IEnumerable<Role>, int total)> GetPagedAsync(QueryParamsDto queryParams) =>
         await base.GetPagedAsync(queryParams.Page, queryParams.PageSize);

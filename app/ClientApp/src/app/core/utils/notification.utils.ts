@@ -1,6 +1,6 @@
-import { MatDialog } from '@angular/material/dialog';
-import { NotificationDialogComponent } from '../../shared/components/notification-dialog/notification-dialog.component';
-import { Constants } from '../constants';
+import {MatDialog} from '@angular/material/dialog';
+import {NotificationDialogComponent} from '../../shared/components/notification-dialog/notification-dialog.component';
+import {Constants} from '../constants';
 
 export class NotificationUtils {
     static showSuccess(dialog: MatDialog, message: string, title: string = 'Success'): void {
@@ -21,9 +21,9 @@ export class NotificationUtils {
     }
 
     private static showNotification(
-        dialog: MatDialog, 
-        title: string, 
-        message: string, 
+        dialog: MatDialog,
+        title: string,
+        message: string,
         type: 'information' | 'warning'
     ): void {
         dialog.open(NotificationDialogComponent, {
@@ -35,4 +35,4 @@ export class NotificationUtils {
             }
         });
     }
-} 
+}

@@ -220,8 +220,7 @@ public sealed class UserService : IUserService, IZoraService
 
             User user = userResult.Value;
             user.Deleted = true;
-            this._userRepository.SoftDelete(user);
-            await this._userRepository.SaveChangesAsync();
+            await this._userRepository.SoftDelete(user);
             return true;
         }
         catch (Exception ex)
@@ -263,30 +262,6 @@ public sealed class UserService : IUserService, IZoraService
     public bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username) =>
         httpContextUser.Identity?.Name == username;
 
-    public async Task<Result<User>> GetUserByIdAsync(long userId)
-    {
-        try
-        {
-            Result<User> userResult = await this._userRepository.GetByIdAsync(userId);
-
-            if (userResult.IsFailed)
-            {
-                this._logger.LogWarning("User with ID {UserId} not found", userId);
-                return Result.Fail<User>(new Error($"User with ID {userId} not found")
-                    .WithMetadata("errorType", ErrorType.NotFound));
-            }
-
-            return userResult;
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error retrieving user with ID {UserId}", userId);
-            return Result.Fail<User>(new Error("Error retrieving user")
-                .WithMetadata("errorType", ErrorType.SystemError)
-                .WithMetadata("exception", ex));
-        }
-    }
-
     public async Task<Result<User>> GetUserByUsernameAsync(string username)
     {
         try
@@ -306,29 +281,6 @@ public sealed class UserService : IUserService, IZoraService
         {
             this._logger.LogError(ex, "Error retrieving user with username {Username}", username);
             return Result.Fail<User>(new Error("Error retrieving user")
-                .WithMetadata("errorType", ErrorType.SystemError)
-                .WithMetadata("exception", ex));
-        }
-    }
-
-    public async Task<Result<FullUserDto>> GetUserDtoByIdAsync(long id)
-    {
-        try
-        {
-            User updatedUserValue = (await this.GetUserByIdAsync(id)).Value;
-
-            if (updatedUserValue == null)
-            {
-                return Result.Fail<FullUserDto>(new Error("User not found")
-                    .WithMetadata("errorType", ErrorType.NotFound));
-            }
-
-            return this.ToDto<FullUserDto>(updatedUserValue);
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error getting user with ID {UserId}", id);
-            return Result.Fail<FullUserDto>(new Error("Error getting user")
                 .WithMetadata("errorType", ErrorType.SystemError)
                 .WithMetadata("exception", ex));
         }
@@ -361,6 +313,53 @@ public sealed class UserService : IUserService, IZoraService
             this._logger.LogError(ex, "Error searching users");
             return Result.Fail<UserResponseDto<FullUserDto>>(new Error("Error searching users")
                 .WithMetadata(Constants.ERROR_TYPE, ErrorType.SystemError)
+                .WithMetadata("exception", ex));
+        }
+    }
+
+    public async Task<Result<User>> GetUserByIdAsync(long userId)
+    {
+        try
+        {
+            Result<User> userResult = await this._userRepository.GetByIdAsync(userId);
+
+            if (userResult.IsFailed)
+            {
+                this._logger.LogWarning("User with ID {UserId} not found", userId);
+                return Result.Fail<User>(new Error($"User with ID {userId} not found")
+                    .WithMetadata("errorType", ErrorType.NotFound));
+            }
+
+            return userResult;
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error retrieving user with ID {UserId}", userId);
+            return Result.Fail<User>(new Error("Error retrieving user")
+                .WithMetadata("errorType", ErrorType.SystemError)
+                .WithMetadata("exception", ex));
+        }
+    }
+
+    public async Task<Result<FullUserDto>> GetUserDtoByIdAsync(long id)
+    {
+        try
+        {
+            User updatedUserValue = (await this.GetUserByIdAsync(id)).Value;
+
+            if (updatedUserValue == null)
+            {
+                return Result.Fail<FullUserDto>(new Error("User not found")
+                    .WithMetadata("errorType", ErrorType.NotFound));
+            }
+
+            return this.ToDto<FullUserDto>(updatedUserValue);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting user with ID {UserId}", id);
+            return Result.Fail<FullUserDto>(new Error("Error getting user")
+                .WithMetadata("errorType", ErrorType.SystemError)
                 .WithMetadata("exception", ex));
         }
     }

@@ -48,6 +48,6 @@ public sealed class WorkItemRepository : BaseRepository<WorkItem>, IWorkItemRepo
             .Include(wi => wi.TargetRelationships)
             .Include(wi => wi.WorkItemAssets)
             .Include(wi => wi.PermissionWorkItems)
-            .FirstOrDefaultAsync(wi => wi.Id == workItemId);
+            .FirstOrDefaultAsync(wi => wi.Id == workItemId) ?? Task.FromResult<T?>(null);
     }
 }

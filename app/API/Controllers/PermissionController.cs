@@ -5,6 +5,7 @@ using AutoMapper;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using zora.Core;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
@@ -70,7 +71,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error getting permissions");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, Constants.ERROR_500_MESSAGE);
         }
     }
 
@@ -107,7 +108,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error creating permission");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, Constants.ERROR_500_MESSAGE);
         }
     }
 
@@ -146,7 +147,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error updating permission");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, Constants.ERROR_500_MESSAGE);
         }
     }
 
@@ -185,7 +186,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error deleting permission");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, Constants.ERROR_500_MESSAGE);
         }
     }
 
@@ -216,7 +217,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Failed to find permissions");
-            return this.StatusCode(StatusCodes.Status500InternalServerError);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, Constants.ERROR_500_MESSAGE);
         }
     }
 
@@ -243,7 +244,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error searching permissions");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, Constants.ERROR_500_MESSAGE);
         }
     }
 }

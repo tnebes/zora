@@ -17,7 +17,7 @@ import {
     EntitySelectorDialogComponent
 } from '../../shared/components/entity-display-dialog/entity-display-dialog.component';
 import {RoleService} from '../../core/services/role.service';
-import { NotificationUtils } from '../../core/utils/notification.utils';
+import {NotificationUtils} from '../../core/utils/notification.utils';
 
 @Component({
     selector: 'app-permissions',

@@ -23,7 +23,9 @@ public sealed class RoleMappingProfile : Profile
 
         this.CreateMap<Role, FullRoleDto>()
             .IncludeBase<Role, RoleDto>()
-            .ForMember(dest => dest.Users, opt => opt.MapFrom(src => src.UserRoles.Select(u => new { u.UserId, u.User.Username })))
-            .ForMember(dest => dest.Permissions, opt => opt.MapFrom(src => src.RolePermissions.Select(p => new { p.PermissionId, p.Permission.Name })));
+            .ForMember(dest => dest.Users,
+                opt => opt.MapFrom(src => src.UserRoles.ToDictionary(u => u.UserId, u => u.User.Username)))
+            .ForMember(dest => dest.Permissions,
+                opt => opt.MapFrom(src => src.RolePermissions.ToDictionary(p => p.PermissionId, p => p.Permission.Name)));
     }
 }

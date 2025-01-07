@@ -16,9 +16,7 @@ public interface IUserRepository
     Task<Result<User>> GetByEmailAsync(string email);
     Task<bool> IsUsernameUniqueAsync(string username);
     Task<bool> IsEmailUniqueAsync(string email);
-    void Delete(User user);
-    Task SaveChangesAsync();
-    void SoftDelete(User user);
+    Task SoftDelete(User user);
     Task<User> Add(User user);
     Task<Result<User>> Update(User originalUser);
     Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsers(IQueryable<User> query);

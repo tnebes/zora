@@ -72,7 +72,8 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
         try
         {
             permission.Deleted = true;
-            await this.UpdateAsync(permission);
+            this.DbSet.Update(permission);
+            await this.DbContext.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)

@@ -57,17 +57,18 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
             .AnyAsync();
     }
 
-    public void Delete(User user) => this.DbSet.Remove(user);
-    public async Task SaveChangesAsync() => await this.DbContext.SaveChangesAsync();
-
-    public void SoftDelete(User user) => this.DbSet.Update(user);
+    public async Task SoftDelete(User user)
+    {
+        this.DbSet.Update(user);
+        await this.DbContext.SaveChangesAsync();
+    }
 
     public async Task<User> Add(User user) => await this.AddAsync(user);
 
     public async Task<Result<User>> Update(User originalUser)
     {
         EntityEntry<User> entityEntry = this.DbSet.Update(originalUser);
-        await this.SaveChangesAsync();
+        await this.DbContext.SaveChangesAsync();
         return Result.Ok(entityEntry.Entity);
     }
 

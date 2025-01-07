@@ -15,8 +15,8 @@ import {RoleService} from 'src/app/core/services/role.service';
 import {Constants, DefaultValues} from "../../core/constants";
 import {QueryService} from "../../core/services/query.service";
 import {NotificationDialogComponent} from 'src/app/shared/components/notification-dialog/notification-dialog.component';
-import { FormUtils } from 'src/app/core/utils/form.utils';
-import { NotificationUtils } from '../../core/utils/notification.utils';
+import {FormUtils} from 'src/app/core/utils/form.utils';
+import {NotificationUtils} from '../../core/utils/notification.utils';
 
 @Component({
     selector: 'app-users',

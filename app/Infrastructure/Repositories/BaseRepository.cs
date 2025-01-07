@@ -2,6 +2,7 @@
 
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using zora.Core;
 using zora.Core.Domain;
 using zora.Infrastructure.Data;
 
@@ -36,22 +37,20 @@ public abstract class BaseRepository<T> where T : BaseEntity
         {
             this.Logger.LogError(ex,
                 "Error retrieving entity of type {EntityType} with ID {Id}. Exception: {ExceptionMessage}",
-                typeof(T).Name, id, ex.Message);
+                typeof(T).Name, id, Constants.ERROR_500_MESSAGE);
             throw new InvalidOperationException($"Unable to retrieve entity of type {typeof(T).Name} with ID {id}", ex);
         }
     }
 
-    protected virtual IQueryable<T> GetAllAsync()
+    protected virtual async Task<List<T>> GetAllAsync()
     {
         try
         {
-            return this.FilteredDbSet;
+            return await this.FilteredDbSet.ToListAsync();
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex,
-                "Error retrieving all entities of type {EntityType}. Exception: {ExceptionMessage}", typeof(T).Name,
-                ex.Message);
+            this.Logger.LogError(ex, "Error retrieving all entities of type {EntityType}. Exception: {ExceptionMessage}", typeof(T).Name, Constants.ERROR_500_MESSAGE);
             throw new InvalidOperationException($"Unable to retrieve all entities of type {typeof(T).Name}", ex);
         }
     }
@@ -66,7 +65,7 @@ public abstract class BaseRepository<T> where T : BaseEntity
         {
             this.Logger.LogError(ex,
                 "Error retrieving paged entities of type {EntityType}. Page: {Page}, PageSize: {PageSize}. Exception: {ExceptionMessage}",
-                typeof(T).Name, page, pageSize, ex.Message);
+                typeof(T).Name, page, pageSize, Constants.ERROR_500_MESSAGE);
             throw new InvalidOperationException(
                 $"Unable to retrieve entities of type {typeof(T).Name} for page {page} with page size {pageSize}", ex);
         }
@@ -84,7 +83,7 @@ public abstract class BaseRepository<T> where T : BaseEntity
         {
             this.Logger.LogError(ex,
                 "Error retrieving paged entities of type {EntityType}. Page: {Page}, PageSize: {PageSize}. Exception: {ExceptionMessage}",
-                typeof(T).Name, page, pageSize, ex.Message);
+                typeof(T).Name, page, pageSize, Constants.ERROR_500_MESSAGE);
             throw new InvalidOperationException(
                 $"Unable to retrieve paged entities of type {typeof(T).Name} for page {page} with page size {pageSize}",
                 ex);
@@ -102,7 +101,7 @@ public abstract class BaseRepository<T> where T : BaseEntity
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error adding entity of type {EntityType}. Exception: {ExceptionMessage}",
-                typeof(T).Name, ex.Message);
+                typeof(T).Name, Constants.ERROR_500_MESSAGE);
             throw new InvalidOperationException($"Unable to add entity of type {typeof(T).Name}", ex);
         }
     }
@@ -117,7 +116,7 @@ public abstract class BaseRepository<T> where T : BaseEntity
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error updating entity of type {EntityType}. Exception: {ExceptionMessage}",
-                typeof(T).Name, ex.Message);
+                typeof(T).Name, Constants.ERROR_500_MESSAGE);
             throw new InvalidOperationException($"Unable to update entity of type {typeof(T).Name}", ex);
         }
     }
@@ -137,7 +136,7 @@ public abstract class BaseRepository<T> where T : BaseEntity
         {
             this.Logger.LogError(ex,
                 "Error deleting entity of type {EntityType} with ID {Id}. Exception: {ExceptionMessage}",
-                typeof(T).Name, id, ex.Message);
+                typeof(T).Name, id, Constants.ERROR_500_MESSAGE);
             throw new InvalidOperationException($"Unable to delete entity of type {typeof(T).Name} with ID {id}", ex);
         }
     }

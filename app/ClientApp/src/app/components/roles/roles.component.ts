@@ -1,18 +1,18 @@
 import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
 import {MatTableDataSource} from '@angular/material/table';
 import {MatDialog} from '@angular/material/dialog';
-import {RoleResponse, CreateRole, UpdateRole} from "../../core/models/role.interface";
+import {RoleResponse, CreateRole, UpdateRole, RoleResponseDto} from "../../core/models/role.interface";
 import {
     EntitySelectorDialogComponent
 } from "../../shared/components/entity-display-dialog/entity-display-dialog.component";
 import {RoleService} from "../../core/services/role.service";
-import {merge, Subject, of} from "rxjs";
+import {merge, Subject, of, Observable} from "rxjs";
 import {debounceTime, distinctUntilChanged, startWith, switchMap, filter, catchError} from "rxjs/operators";
 import {QueryParams} from "../../core/models/query-params.interface";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {QueryService} from "../../core/services/query.service";
-import {UserResponse, UserResponseDto} from "../../core/models/user.interface";
+import {UserResponse} from "../../core/models/user.interface";
 import {UserService} from "../../core/services/user.service";
 import {ConfirmDialogComponent} from "../../shared/components/confirm-dialog/confirm-dialog.component";
 import {BaseDialogComponent} from "../../shared/components/base-dialog/base-dialog.component";
@@ -20,8 +20,14 @@ import {DialogField} from 'src/app/shared/components/base-dialog/base-dialog.com
 import {Validators} from "@angular/forms";
 import {PermissionService} from '../../core/services/permission.service';
 import {Constants, DefaultValues} from 'src/app/core/constants';
-import { NotificationUtils } from '../../core/utils/notification.utils';
-import { FormUtils } from '../../core/utils/form.utils';
+import {NotificationUtils} from '../../core/utils/notification.utils';
+import {FormUtils} from '../../core/utils/form.utils';
+
+interface DialogConfig {
+    service: () => Observable<any>;
+    mapData: (item: any) => any;
+    columns: { id: string; label: string }[];
+}
 
 @Component({
     selector: 'app-roles',
@@ -81,14 +87,6 @@ export class RolesComponent implements OnInit, AfterViewInit {
     }
 
     public onCreate(): void {
-        const permissionsField: DialogField | undefined = this.roleFields.find(field => field.name === 'permissionIds');
-        if (!permissionsField) {
-            console.error('Permissions field not found');
-            return;
-        }
-        this.permissionService.getPermissions(DefaultValues.QUERY_PARAMS).subscribe((permissions) => {
-            permissionsField.options = FormUtils.toOptions(permissions.items);
-        });
         const dialogRef = this.dialog.open(BaseDialogComponent<CreateRole>, {
             width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
@@ -100,8 +98,8 @@ export class RolesComponent implements OnInit, AfterViewInit {
 
         dialogRef.afterClosed()
             .pipe(
-                filter(result => !!result),
-                switchMap(result => this.roleService.createRole(result))
+                filter((result: CreateRole) => !!result),
+                switchMap((result: CreateRole) => this.roleService.createRole(result))
             )
             .subscribe({
                 next: () => {
@@ -125,19 +123,23 @@ export class RolesComponent implements OnInit, AfterViewInit {
                 entity: {
                     id: role.id,
                     name: role.name,
-                    permissions: role.permissionIds
+                    permissionIds: role.permissionIds
                 }
             }
         });
 
+        const updateRole = (result: UpdateRole) => {
+            return this.roleService.updateRole({
+                id: role.id,
+                name: result.name,
+                permissionIds: result.permissionIds
+            });
+        };
+
         dialogRef.afterClosed()
             .pipe(
-                filter(result => !!result),
-                switchMap(result => this.roleService.updateRole({
-                    id: role.id,
-                    name: result.name,
-                    permissionIds: result.permissions
-                }))
+                filter((result: UpdateRole) => !!result),
+                switchMap(updateRole)
             )
             .subscribe({
                 next: () => {
@@ -185,31 +187,44 @@ export class RolesComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        if (type === 'roles') {
-            this.userService.searchUsers({userIds: ids}).subscribe((usersDto: UserResponseDto<UserResponse>) => {
-                const data = usersDto.items.map(user => ({
+        const dialogConfig: { [key in 'roles' | 'permissions']: DialogConfig } = {
+            roles: {
+                service: () => this.userService.searchUsers({userIds: ids}),
+                mapData: (user: UserResponse) => ({
                     id: user.id,
                     name: user.username
-                }));
-                this.openEntitySelectorDialog(data, [
+                }),
+                columns: [
                     {id: 'name', label: 'Name'},
                     {id: 'id', label: 'ID'}
-                ]);
-            });
-        } else if (type === 'permissions') {
-            this.permissionService.searchPermissions({permissionIds: ids}).subscribe((permissions) => {
-                const data = permissions.items.map(permission => ({
+                ]
+            },
+            permissions: {
+                service: () => this.permissionService.searchPermissions({permissionIds: ids}),
+                mapData: (permission: any) => ({
                     id: permission.id,
                     name: permission.name,
                     description: permission.description
-                }));
-                this.openEntitySelectorDialog(data, [
+                }),
+                columns: [
                     {id: 'name', label: 'Name'},
                     {id: 'description', label: 'Description'},
                     {id: 'id', label: 'ID'}
-                ]);
-            });
-        }
+                ]
+            }
+        };
+
+        const config = dialogConfig[type];
+        config.service().subscribe({
+            next: (response: any) => {
+                const data = response.items.map(config.mapData);
+                this.openEntitySelectorDialog(data, config.columns);
+            },
+            error: (error: Error) => {
+                console.error(`Error fetching ${type}:`, error);
+                NotificationUtils.showError(this.dialog, `Failed to fetch ${type}`, error);
+            }
+        });
     }
 
     private openEntitySelectorDialog(entities: any[], columns: { id: string, label: string }[]): void {
@@ -223,6 +238,17 @@ export class RolesComponent implements OnInit, AfterViewInit {
     }
 
     private setupSearchAndSort(): void {
+        const permissionsField = this.roleFields.find(field => field.name === 'permissionIds');
+        if (!permissionsField) {
+            console.error('Permissions field not found');
+            return;
+        }
+
+        this.permissionService.getPermissions(DefaultValues.QUERY_PARAMS)
+            .subscribe(permissions => {
+                permissionsField.options = FormUtils.toOptions(permissions.items);
+            });
+
         merge(
             this.searchTerm.pipe(
                 debounceTime(300),
@@ -236,29 +262,30 @@ export class RolesComponent implements OnInit, AfterViewInit {
                 startWith({}),
                 switchMap(() => {
                     this.isLoading = true;
+                    const params: QueryParams = {
+                        page: this.paginator.pageIndex + 1,
+                        pageSize: this.paginator.pageSize,
+                        searchTerm: this.currentSearchValue,
+                        sortColumn: this.sort.active,
+                        sortDirection: this.sort.direction as 'asc' | 'desc'
+                    };
 
-                    if (!this.currentSearchValue || this.currentSearchValue.length < 3) {
-                        const params: QueryParams = {
-                            page: this.paginator.pageIndex + 1,
-                            pageSize: this.paginator.pageSize,
-                            searchTerm: '',
-                            sortColumn: this.sort.active,
-                            sortDirection: this.sort.direction as 'asc' | 'desc'
-                        };
-                        return this.roleService.getRoles(this.queryService.normaliseQueryParams(params));
-                    }
-                    return this.roleService.findRolesByTerm(this.currentSearchValue);
+                    return this.currentSearchValue && this.currentSearchValue.length >= 3
+                        ? this.roleService.findRolesByTerm(this.currentSearchValue)
+                        : this.roleService.getRoles(this.queryService.normaliseQueryParams(params));
                 }),
-                catchError(error => {
+                catchError((error: Error) => {
                     console.error('Error fetching roles:', error);
                     NotificationUtils.showError(this.dialog, 'Failed to fetch roles', error);
-                    return of({items: [], total: 0});
+                    return of<RoleResponseDto>({items: [], total: 0, page: 1, pageSize: 50});
                 })
             )
-            .subscribe(response => {
-                this.dataSource.data = response.items;
-                this.totalItems = response.total;
-                this.isLoading = false;
+            .subscribe({
+                next: (response: RoleResponseDto) => {
+                    this.dataSource.data = response.items;
+                    this.totalItems = response.total;
+                    this.isLoading = false;
+                }
             });
     }
 

@@ -1,6 +1,9 @@
+#region
+
 using FluentResults;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+
+#endregion
 
 namespace zora.Core.Interfaces.Services;
 

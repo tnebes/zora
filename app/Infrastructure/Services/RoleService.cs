@@ -22,10 +22,10 @@ public class RoleService : IRoleService, IZoraService
 {
     private readonly ILogger<RoleService> _logger;
     private readonly IMapper _mapper;
+    private readonly IQueryService _queryService;
     private readonly IRolePermissionRepository _rolePermissionRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IUserRoleRepository _userRoleRepository;
-    private readonly IQueryService _queryService;
 
     public RoleService(
         IRoleRepository roleRepository,
@@ -77,10 +77,7 @@ public class RoleService : IRoleService, IZoraService
         }
     }
 
-    public FullRoleDto MapToFullDtoAsync(Role role)
-    {
-        return this._mapper.Map<FullRoleDto>(role);
-    }
+    public FullRoleDto MapToFullDto(Role role) => this._mapper.Map<FullRoleDto>(role);
 
     public async Task<Result<(IEnumerable<Role>, int total)>> GetAsync(QueryParamsDto queryParams)
     {
@@ -134,21 +131,12 @@ public class RoleService : IRoleService, IZoraService
 
             await this._roleRepository.CreateAsync(role);
 
-            foreach (long permissionId in createDto.PermissionIds)
-            {
-                RolePermission rolePermission = new RolePermission
-                {
-                    RoleId = role.Id,
-                    PermissionId = permissionId
-                };
+            List<RolePermission> rolePermissions = createDto.PermissionIds
+                .Select(pid => new RolePermission { RoleId = role.Id, PermissionId = pid })
+                .ToList();
 
-                await this._rolePermissionRepository.CreateAsync(rolePermission);
-            }
-
-            Result<Role> updatedRoleResult = await this._roleRepository.GetByIdAsync(role.Id);
-            return updatedRoleResult.IsFailed
-                ? Result.Fail<Role>(new Error("Failed to fetch updated role").CausedBy(updatedRoleResult.Errors))
-                : Result.Ok(updatedRoleResult.Value);
+            await this._rolePermissionRepository.CreateRangeAsync(rolePermissions);
+            return await this._roleRepository.GetByIdAsync(role.Id);
         }
         catch (Exception ex)
         {
@@ -171,19 +159,14 @@ public class RoleService : IRoleService, IZoraService
             role.Name = updateDto.Name;
 
             await this._roleRepository.UpdateAsync(role);
-
             await this._rolePermissionRepository.DeleteByRoleId(role.Id);
-            foreach (long permissionId in updateDto.PermissionIds)
-            {
-                RolePermission rolePermission = new RolePermission
-                {
-                    RoleId = role.Id,
-                    PermissionId = permissionId
-                };
-                await this._rolePermissionRepository.CreateAsync(rolePermission);
-            }
 
-            return Result.Ok(role);
+            List<RolePermission> rolePermissions = updateDto.PermissionIds
+                .Select(pid => new RolePermission { RoleId = role.Id, PermissionId = pid })
+                .ToList();
+
+            await this._rolePermissionRepository.CreateRangeAsync(rolePermissions);
+            return await this._roleRepository.GetByIdAsync(role.Id);
         }
         catch (Exception ex)
         {
@@ -248,7 +231,8 @@ public class RoleService : IRoleService, IZoraService
             Result<(IEnumerable<Role> roles, int totalCount)> searchRoles =
                 await this._roleRepository.SearchRoles(this._queryService.GetEntityQueryable<Role>(searchParams));
 
-            return Result.Ok(searchRoles.Value.roles.ToRoleResponseDto(searchRoles.Value.totalCount, searchParams.Page, searchParams.PageSize, this._mapper));
+            return Result.Ok(searchRoles.Value.roles.ToRoleResponseDto(searchRoles.Value.totalCount, searchParams.Page,
+                searchParams.PageSize, this._mapper));
         }
         catch (Exception ex)
         {

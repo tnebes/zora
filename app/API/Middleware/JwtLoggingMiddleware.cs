@@ -17,8 +17,11 @@ public sealed class JwtLoggingMiddleware
 
         if (!string.IsNullOrEmpty(authHeader))
         {
-            this._logger.LogInformation("Request path: {Path}", context.Request.Path);
-            this._logger.LogInformation("Auth header present: {Header}", authHeader);
+            this._logger.LogInformation(
+                "Request received - Path: {Path}, Authorization: {Header}",
+                context.Request.Path,
+                authHeader
+            );
         }
 
         await this._next(context);

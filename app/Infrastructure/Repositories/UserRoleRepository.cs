@@ -2,6 +2,7 @@
 
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using zora.Core.Domain;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
@@ -24,7 +25,7 @@ public sealed class UserRoleRepository : BaseCompositeRepository<UserRole>, IUse
     {
         return await this.FindByCondition(ur => ur.UserId == userId)
             .Include(ur => ur.Role)
-            .ToListAsync();
+            .ToListAsync() ?? new List<UserRole>();
     }
 
     public async Task<UserRole?> GetByCompositeKeyAsync(long userId, long roleId)
@@ -41,7 +42,7 @@ public sealed class UserRoleRepository : BaseCompositeRepository<UserRole>, IUse
             .AnyAsync();
     }
 
-    public async Task<Result<UserRole>> CreateAsync(UserRole entity)
+    public new async Task<Result<UserRole>> CreateAsync(UserRole entity)
     {
         UserRole createdUserRole = await base.CreateAsync(entity);
         if (createdUserRole == null)
@@ -49,36 +50,46 @@ public sealed class UserRoleRepository : BaseCompositeRepository<UserRole>, IUse
             this.Logger.LogError("Error creating user role {CreatedUserRole}", createdUserRole);
             return Result.Fail("Error creating user role");
         }
-        else
-        {
-            return Result.Ok(createdUserRole);
-        }
+
+        return Result.Ok(createdUserRole);
     }
 
     public async Task<bool> AssignRoles(User user, List<long> roles)
     {
         try
         {
-            long userId = user.Id;
-            foreach (long roleId in roles)
+            IExecutionStrategy strategy = this.DbContext.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                UserRole userRole = new()
+                await using IDbContextTransaction transaction = await this.DbContext.Database.BeginTransactionAsync();
+                try
                 {
-                    UserId = userId,
-                    RoleId = roleId
-                };
+                    long userId = user.Id;
+                    foreach (long roleId in roles)
+                    {
+                        UserRole userRole = new()
+                        {
+                            UserId = userId,
+                            RoleId = roleId
+                        };
 
-                await this.CreateAsync(userRole);
-            }
+                        await this.CreateAsync(userRole);
+                    }
 
-            return await Task.FromResult(true);
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
         catch (Exception e)
         {
-            this._logger.LogError(e, "Error assigning roles to user");
-            return await Task.FromResult(false);
+            this.Logger.LogError(e, "Error assigning roles to user");
+            return false;
         }
     }
-
-    public Task SaveChangesAsync() => this.DbContext.SaveChangesAsync();
 }

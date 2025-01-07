@@ -8,11 +8,14 @@ using zora.Core.Interfaces.Services;
 
 #endregion
 
-public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto> : ControllerBase,
+public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto> :
+    ControllerBase,
     ICrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>
     where TDynamicQueryDto : DynamicQueryParamsDto
 {
-    protected readonly ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>> Logger;
+    protected readonly ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>>
+        Logger;
+
     protected readonly IQueryService QueryService;
     protected readonly IRoleService RoleService;
 

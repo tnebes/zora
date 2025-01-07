@@ -57,7 +57,8 @@ public sealed class PermissionService : IPermissionService, IZoraService
     {
         try
         {
-            Result<(IEnumerable<Permission> permissions, int total)> result = await this._permissionRepository.GetPagedAsync(queryParams);
+            Result<(IEnumerable<Permission> permissions, int total)> result =
+                await this._permissionRepository.GetPagedAsync(queryParams);
 
             if (result.IsFailed)
             {
@@ -96,15 +97,15 @@ public sealed class PermissionService : IPermissionService, IZoraService
         }
     }
 
-    public async Task<Result<Permission>> CreateAsync(CreatePermissionDto createDto)
+    public async Task<Result<Permission>> CreateAsync(CreatePermissionDto permissionDto)
     {
         try
         {
             Permission permission = new Permission
             {
-                Name = createDto.Name,
-                Description = createDto.Description,
-                PermissionString = createDto.PermissionString,
+                Name = permissionDto.Name,
+                Description = permissionDto.Description,
+                PermissionString = permissionDto.PermissionString,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -200,7 +201,8 @@ public sealed class PermissionService : IPermissionService, IZoraService
         }
     }
 
-    public Task<Result<PermissionResponseDto>> SearchAsync(DynamicQueryParamsDto searchParams) => throw new NotImplementedException();
+    public Task<Result<PermissionResponseDto>> SearchAsync(DynamicQueryParamsDto searchParams) =>
+        throw new NotImplementedException();
 
     public async Task<bool> HasDirectPermissionAsync(PermissionRequestDto request)
     {
@@ -210,17 +212,20 @@ public sealed class PermissionService : IPermissionService, IZoraService
 
             if (await this._userRoleService.IsAdminAsync(userRoles))
             {
-                this._logger.LogInformation("User {UserId} is an administrator and has all permissions", request.UserId);
+                this._logger.LogInformation("User {UserId} is an administrator and has all permissions",
+                    request.UserId);
                 return true;
             }
 
             foreach (UserRole userRole in userRoles)
             {
-                Result<IEnumerable<RolePermission>> result = await this._rolePermissionRepository.GetByRoleIdAsync(userRole.RoleId);
+                Result<IEnumerable<RolePermission>> result =
+                    await this._rolePermissionRepository.GetByRoleIdAsync(userRole.RoleId);
 
                 if (result.IsFailed)
                 {
-                    this._logger.LogWarning("Warning: Could not get role permissions for role {RoleId}", userRole.RoleId);
+                    this._logger.LogWarning("Warning: Could not get role permissions for role {RoleId}",
+                        userRole.RoleId);
                     continue;
                 }
 
@@ -239,7 +244,8 @@ public sealed class PermissionService : IPermissionService, IZoraService
                     Permission permission = permissionResult.Value;
 
                     Result<PermissionWorkItem> permissionWorkItemResult =
-                        await this._permissionWorkItemRepository.GetByCompositeKeyAsync(permission.Id, request.ResourceId);
+                        await this._permissionWorkItemRepository.GetByCompositeKeyAsync(permission.Id,
+                            request.ResourceId);
 
                     if (permissionWorkItemResult.IsFailed)
                     {
@@ -249,7 +255,8 @@ public sealed class PermissionService : IPermissionService, IZoraService
                     PermissionWorkItem resourcePermission = permissionWorkItemResult.Value;
 
                     if (resourcePermission != null &&
-                        PermissionService.DoesPermissionGrantAccess(permission.PermissionString, request.RequestedPermission))
+                        PermissionService.DoesPermissionGrantAccess(permission.PermissionString,
+                            request.RequestedPermission))
                     {
                         this._logger.LogInformation(
                             "Direct permission found for user {UserId} on resource {ResourceId}",

@@ -15,5 +15,4 @@ public interface IUserRoleRepository
     Task<Result<UserRole>> CreateAsync(UserRole entity);
     Task<bool> DeleteAsync(UserRole entity);
     Task<bool> AssignRoles(User user, List<long> roles);
-    Task SaveChangesAsync();
 }

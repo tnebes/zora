@@ -2,6 +2,7 @@
 
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using zora.Core.Domain;
 using zora.Infrastructure.Data;
 
@@ -35,5 +36,27 @@ public abstract class BaseCompositeRepository<T> where T : BaseCompositeEntity
     {
         this.DbSet.Remove(entity);
         return await this.DbContext.SaveChangesAsync() > 0;
+    }
+
+    protected async Task<bool> ExecuteInTransactionAsync(Func<Task> action)
+    {
+        IExecutionStrategy strategy = this.DbContext.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using IDbContextTransaction transaction = await this.DbContext.Database.BeginTransactionAsync();
+            try
+            {
+                await action();
+                await this.DbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                this.Logger.LogError(ex, "Error executing transaction");
+                return false;
+            }
+        });
     }
 }

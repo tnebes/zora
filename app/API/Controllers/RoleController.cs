@@ -21,7 +21,8 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("Role API")]
-public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleDto, UpdateRoleDto, RoleResponseDto, DynamicQueryRoleParamsDto>
+public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleDto, UpdateRoleDto, RoleResponseDto,
+    DynamicQueryRoleParamsDto>
 {
     private readonly IRoleService _roleService;
 
@@ -63,7 +64,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error getting roles");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
         }
     }
 
@@ -90,14 +91,14 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 return this.StatusCode(StatusCodes.Status500InternalServerError, roleResult.Errors);
             }
 
-            FullRoleDto fullRoleDto = this._roleService.MapToFullDtoAsync(roleResult.Value);
+            FullRoleDto fullRoleDto = this._roleService.MapToFullDto(roleResult.Value);
 
             return this.CreatedAtAction(nameof(RoleController.Get), new { id = fullRoleDto.Id }, fullRoleDto);
         }
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error creating role");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
         }
     }
 
@@ -117,19 +118,21 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 return this.Unauthorized();
             }
 
-            Result<Role> role = await this._roleService.UpdateAsync(id, roleDto);
-            if (role.IsFailed)
+            Result<Role> roleResult = await this._roleService.UpdateAsync(id, roleDto);
+            if (roleResult.IsFailed)
             {
-                this.Logger.LogError("Error updating role: {Error}", role.Errors);
+                this.Logger.LogError("Error updating role: {Error}", roleResult.Errors);
                 return this.NotFound();
             }
 
-            return this.Ok(role);
+            FullRoleDto fullRoleDto = this._roleService.MapToFullDto(roleResult.Value);
+
+            return this.Ok(fullRoleDto);
         }
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error updating role");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
         }
     }
 
@@ -160,7 +163,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error deleting role");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
         }
     }
 
@@ -198,7 +201,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Failed to find roles");
-            return this.StatusCode(StatusCodes.Status500InternalServerError);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
         }
     }
 
@@ -235,7 +238,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Failed to search roles");
-            return this.StatusCode(StatusCodes.Status500InternalServerError);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
         }
     }
 }

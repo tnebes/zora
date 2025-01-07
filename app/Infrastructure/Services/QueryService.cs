@@ -1,5 +1,6 @@
 #region
 
+using System.Linq.Expressions;
 using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
@@ -8,7 +9,6 @@ using zora.Core.DTOs.Requests.Interfaces;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Services;
 using zora.Infrastructure.Data;
-using System.Linq.Expressions;
 
 #endregion
 
@@ -32,6 +32,7 @@ public sealed class QueryService : IQueryService, IZoraService
             { typeof(Permission), query => this.GetQueryablePermission((DynamicQueryPermissionParamsDto)query) }
         };
     }
+
     public void NormaliseQueryParams(IQueryParamsDto queryParams)
     {
         queryParams.Page = Math.Max(1, queryParams.Page);
@@ -47,9 +48,10 @@ public sealed class QueryService : IQueryService, IZoraService
         }
     }
 
-    public IQueryable<T> GetEntityQueryable<T>(DynamicQueryParamsDto queryParams)
+    public IQueryable<T> GetEntityQueryable<T>(DynamicQueryParamsDto queryParams) where T : class
     {
-        if (!this._queryBuilders.TryGetValue(typeof(T), out Func<DynamicQueryParamsDto, IQueryable<object>>? queryBuilder))
+        if (!this._queryBuilders.TryGetValue(typeof(T),
+                out Func<DynamicQueryParamsDto, IQueryable<object>>? queryBuilder))
         {
             this._logger.LogError("Invalid type {Type}", typeof(T));
             throw new ArgumentOutOfRangeException(nameof(T), "Invalid type");
