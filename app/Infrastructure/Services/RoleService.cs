@@ -7,6 +7,7 @@ using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
+using zora.Core.Enums;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
 using zora.Infrastructure.Helpers;
@@ -24,19 +25,22 @@ public class RoleService : IRoleService, IZoraService
     private readonly IRolePermissionRepository _rolePermissionRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IUserRoleRepository _userRoleRepository;
+    private readonly IQueryService _queryService;
 
     public RoleService(
         IRoleRepository roleRepository,
         IUserRoleRepository userRoleRepository,
         IRolePermissionRepository rolePermissionRepository,
         IMapper mapper,
-        ILogger<RoleService> logger)
+        ILogger<RoleService> logger,
+        IQueryService queryService)
     {
         this._roleRepository = roleRepository;
         this._userRoleRepository = userRoleRepository;
         this._rolePermissionRepository = rolePermissionRepository;
         this._mapper = mapper;
         this._logger = logger;
+        this._queryService = queryService;
     }
 
     public bool IsRole(ClaimsPrincipal httpContextUser, string role)
@@ -71,6 +75,11 @@ public class RoleService : IRoleService, IZoraService
             this._logger.LogError(ex, "Error assigning roles to user");
             return false;
         }
+    }
+
+    public FullRoleDto MapToFullDtoAsync(Role role)
+    {
+        return this._mapper.Map<FullRoleDto>(role);
     }
 
     public async Task<Result<(IEnumerable<Role>, int total)>> GetAsync(QueryParamsDto queryParams)
@@ -136,7 +145,10 @@ public class RoleService : IRoleService, IZoraService
                 await this._rolePermissionRepository.CreateAsync(rolePermission);
             }
 
-            return Result.Ok(role);
+            Result<Role> updatedRoleResult = await this._roleRepository.GetByIdAsync(role.Id);
+            return updatedRoleResult.IsFailed
+                ? Result.Fail<Role>(new Error("Failed to fetch updated role").CausedBy(updatedRoleResult.Errors))
+                : Result.Ok(updatedRoleResult.Value);
         }
         catch (Exception ex)
         {
@@ -225,6 +237,23 @@ public class RoleService : IRoleService, IZoraService
         {
             this._logger.LogError(ex, "Error finding roles with term {SearchTerm}", findParams.SearchTerm);
             return Result.Fail<RoleResponseDto>("Error finding roles");
+        }
+    }
+
+    public async Task<Result<RoleResponseDto>> SearchAsync(DynamicQueryParamsDto searchParams)
+    {
+        try
+        {
+            this._queryService.ValidateQueryParams(searchParams, ResourceType.Role);
+            Result<(IEnumerable<Role> roles, int totalCount)> searchRoles =
+                await this._roleRepository.SearchRoles(this._queryService.GetEntityQueryable<Role>(searchParams));
+
+            return Result.Ok(searchRoles.Value.roles.ToRoleResponseDto(searchRoles.Value.totalCount, searchParams.Page, searchParams.PageSize, this._mapper));
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error searching roles");
+            return Result.Fail<RoleResponseDto>(new Error("Error searching roles").CausedBy(ex));
         }
     }
 }

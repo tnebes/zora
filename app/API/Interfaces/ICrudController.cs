@@ -7,7 +7,8 @@ using zora.Core.DTOs.Requests;
 
 namespace zora.API.Interfaces;
 
-public interface ICrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto>
+public interface ICrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>
+    where TDynamicQueryDto : DynamicQueryParamsDto
 {
     Task<ActionResult<TResponseDto>> Get([FromQuery] QueryParamsDto queryParams);
 
@@ -18,4 +19,6 @@ public interface ICrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto>
     Task<ActionResult<bool>> Delete(long id);
 
     Task<ActionResult<TResponseDto>> Find([FromQuery] QueryParamsDto findParams);
+
+    Task<ActionResult<TResponseDto>> Search([FromQuery] TDynamicQueryDto searchParams);
 }

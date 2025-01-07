@@ -46,7 +46,8 @@ export class RoleService {
     }
 
     public searchRoles(params: { roleIds: number[] }): Observable<RoleResponseDto> {
-        const httpParams = new HttpParams().set('roleIds', params.roleIds.join(','));
+        const httpParams = new HttpParams()
+            .set('roleIds', params.roleIds.join(','));
         return this.http.get<RoleResponseDto>(`${Constants.ROLES_SEARCH}`, {params: httpParams});
     }
 }

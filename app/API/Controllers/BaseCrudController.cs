@@ -8,15 +8,16 @@ using zora.Core.Interfaces.Services;
 
 #endregion
 
-public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto> : ControllerBase,
-    ICrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto>
+public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto> : ControllerBase,
+    ICrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>
+    where TDynamicQueryDto : DynamicQueryParamsDto
 {
-    protected readonly ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto>> Logger;
+    protected readonly ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>> Logger;
     protected readonly IQueryService QueryService;
     protected readonly IRoleService RoleService;
 
     protected BaseCrudController(
-        ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto>> logger,
+        ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>> logger,
         IRoleService roleService,
         IQueryService queryService)
     {
@@ -29,7 +30,9 @@ public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TRespo
     public abstract Task<ActionResult<TEntity>> Create([FromBody] TCreateDto createDto);
     public abstract Task<ActionResult<TEntity>> Update(long id, [FromBody] TUpdateDto updateDto);
     public abstract Task<ActionResult<bool>> Delete(long id);
-    public abstract Task<ActionResult<TResponseDto>> Find([FromQuery] QueryParamsDto findParams);
+    public abstract Task<ActionResult<TResponseDto>> Find(QueryParamsDto findParams);
+
+    public abstract Task<ActionResult<TResponseDto>> Search(TDynamicQueryDto searchParams);
 
     protected virtual ActionResult HandleAdminAuthorizationAsync()
     {

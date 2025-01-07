@@ -21,7 +21,7 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("Role API")]
-public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleDto, UpdateRoleDto, RoleResponseDto>
+public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleDto, UpdateRoleDto, RoleResponseDto, DynamicQueryRoleParamsDto>
 {
     private readonly IRoleService _roleService;
 
@@ -90,9 +90,9 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 return this.StatusCode(StatusCodes.Status500InternalServerError, roleResult.Errors);
             }
 
-            Role role = roleResult.Value;
+            FullRoleDto fullRoleDto = this._roleService.MapToFullDtoAsync(roleResult.Value);
 
-            return this.CreatedAtAction(nameof(RoleController.Get), new { id = role.Id }, role);
+            return this.CreatedAtAction(nameof(RoleController.Get), new { id = fullRoleDto.Id }, fullRoleDto);
         }
         catch (Exception ex)
         {
@@ -198,6 +198,43 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Failed to find roles");
+            return this.StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(RoleResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [Tags("Roles")]
+    [Description("Search roles with pagination, searching and sorting support")]
+    public override async Task<ActionResult<RoleResponseDto>> Search([FromQuery] DynamicQueryRoleParamsDto searchParams)
+    {
+        try
+        {
+            if (this._roleService.IsAdmin(this.User))
+            {
+                searchParams.Page = Math.Max(1, searchParams.Page);
+                searchParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, searchParams.PageSize);
+            }
+            else
+            {
+                this.QueryService.NormaliseQueryParams(searchParams);
+            }
+
+            Result<RoleResponseDto> roles = await this._roleService.SearchAsync(searchParams);
+
+            if (roles.IsFailed)
+            {
+                this.Logger.LogWarning("Failed to search roles with query params {@QueryParams}", searchParams);
+                return this.BadRequest();
+            }
+
+            return this.Ok(roles.Value);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Failed to search roles");
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }

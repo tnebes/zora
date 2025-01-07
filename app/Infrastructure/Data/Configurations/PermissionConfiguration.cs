@@ -12,7 +12,12 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
 {
     public void Configure(EntityTypeBuilder<Permission> builder)
     {
-        builder.ToTable("zora_permissions");
+        builder.ToTable("zora_permissions", tb =>
+            tb.HasCheckConstraint(
+                "CHK_Permission_String",
+                "permission_string LIKE '[0-1][0-1][0-1][0-1][0-1]'"
+            )
+        );
 
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id)
@@ -53,10 +58,5 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
             .WithOne(pwi => pwi.Permission)
             .HasForeignKey(pwi => pwi.PermissionId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasCheckConstraint(
-            "CHK_Permission_String",
-            "permission_string LIKE '[0-1][0-1][0-1][0-1][0-1]'"
-        );
     }
 }

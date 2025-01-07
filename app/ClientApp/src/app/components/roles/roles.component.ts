@@ -14,13 +14,14 @@ import {MatSort} from "@angular/material/sort";
 import {QueryService} from "../../core/services/query.service";
 import {UserResponse, UserResponseDto} from "../../core/models/user.interface";
 import {UserService} from "../../core/services/user.service";
-import {NotificationDialogComponent} from "../../shared/components/notification-dialog/notification-dialog.component";
 import {ConfirmDialogComponent} from "../../shared/components/confirm-dialog/confirm-dialog.component";
 import {BaseDialogComponent} from "../../shared/components/base-dialog/base-dialog.component";
 import {DialogField} from 'src/app/shared/components/base-dialog/base-dialog.component';
 import {Validators} from "@angular/forms";
 import {PermissionService} from '../../core/services/permission.service';
-import {Constants} from 'src/app/core/constants';
+import {Constants, DefaultValues} from 'src/app/core/constants';
+import { NotificationUtils } from '../../core/utils/notification.utils';
+import { FormUtils } from '../../core/utils/form.utils';
 
 @Component({
     selector: 'app-roles',
@@ -47,7 +48,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
             validators: [Validators.minLength(3)]
         },
         {
-            name: 'permissions',
+            name: 'permissionIds',
             type: 'multiselect',
             label: 'Permissions',
             required: true,
@@ -80,6 +81,14 @@ export class RolesComponent implements OnInit, AfterViewInit {
     }
 
     public onCreate(): void {
+        const permissionsField: DialogField | undefined = this.roleFields.find(field => field.name === 'permissionIds');
+        if (!permissionsField) {
+            console.error('Permissions field not found');
+            return;
+        }
+        this.permissionService.getPermissions(DefaultValues.QUERY_PARAMS).subscribe((permissions) => {
+            permissionsField.options = FormUtils.toOptions(permissions.items);
+        });
         const dialogRef = this.dialog.open(BaseDialogComponent<CreateRole>, {
             width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
@@ -97,11 +106,11 @@ export class RolesComponent implements OnInit, AfterViewInit {
             .subscribe({
                 next: () => {
                     this.loadRoles();
-                    this.showNotification('Success', 'Role has been created successfully');
+                    NotificationUtils.showSuccess(this.dialog, 'Role has been created successfully');
                 },
                 error: (error) => {
                     console.error('Error creating role:', error);
-                    this.showNotification('Error', `Failed to create role: ${error.message}`, 'warning');
+                    NotificationUtils.showError(this.dialog, 'Failed to create role', error);
                 }
             });
     }
@@ -133,11 +142,11 @@ export class RolesComponent implements OnInit, AfterViewInit {
             .subscribe({
                 next: () => {
                     this.loadRoles();
-                    this.showNotification('Success', `Role "${role.name}" has been updated successfully`);
+                    NotificationUtils.showSuccess(this.dialog, `Role "${role.name}" has been updated successfully`);
                 },
                 error: (error) => {
                     console.error('Error updating role:', error);
-                    this.showNotification('Error', `Failed to update role: ${error.message}`, 'warning');
+                    NotificationUtils.showError(this.dialog, 'Failed to update role', error);
                 }
             });
     }
@@ -158,13 +167,13 @@ export class RolesComponent implements OnInit, AfterViewInit {
                 this.roleService.deleteRole(role.id)
                     .pipe(
                         catchError(error => {
-                            this.showNotification('Error', `Failed to delete role ${role.name}: ${error.message}`, 'warning');
+                            NotificationUtils.showError(this.dialog, `Failed to delete role ${role.name}`, error);
                             return of(null);
                         })
                     )
                     .subscribe(() => {
                         this.loadRoles();
-                        this.showNotification('Success', `Role "${role.name}" has been deleted successfully`);
+                        NotificationUtils.showSuccess(this.dialog, `Role "${role.name}" has been deleted successfully`);
                     });
             }
         });
@@ -172,12 +181,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
 
     public openEntityDialog(type: 'roles' | 'permissions', ids: number[]): void {
         if (ids.length === 0) {
-            this.dialog.open(NotificationDialogComponent, {
-                width: Constants.DIALOG_WIDTH,
-                data: {
-                    message: `No ${type} assigned to this role`
-                }
-            });
+            NotificationUtils.showInfo(this.dialog, `No ${type} assigned to this role`);
             return;
         }
 
@@ -247,7 +251,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
                 }),
                 catchError(error => {
                     console.error('Error fetching roles:', error);
-                    this.showNotification('Error', 'Failed to fetch roles', 'warning');
+                    NotificationUtils.showError(this.dialog, 'Failed to fetch roles', error);
                     return of({items: [], total: 0});
                 })
             )
@@ -256,17 +260,6 @@ export class RolesComponent implements OnInit, AfterViewInit {
                 this.totalItems = response.total;
                 this.isLoading = false;
             });
-    }
-
-    private showNotification(title: string, message: string, type: 'information' | 'warning' = 'information'): void {
-        this.dialog.open(NotificationDialogComponent, {
-            width: Constants.DIALOG_WIDTH,
-            data: {
-                title,
-                message,
-                type
-            }
-        });
     }
 
 }

@@ -21,7 +21,7 @@ namespace zora.API.Controllers;
 [Consumes("application/json")]
 [Description("Permission API")]
 public sealed class PermissionController : BaseCrudController<PermissionDto, CreatePermissionDto, UpdatePermissionDto,
-    PermissionResponseDto>
+    PermissionResponseDto, DynamicQueryPermissionParamsDto>
 {
     private readonly IMapper _mapper;
     private readonly IPermissionService _permissionService;
@@ -217,6 +217,33 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         {
             this.Logger.LogError(ex, "Failed to find permissions");
             return this.StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(PermissionResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [Tags("Permissions")]
+    [Description("Search permissions by matches of name, description, permission string, role, and work item")]
+    public override async Task<ActionResult<PermissionResponseDto>> Search(DynamicQueryPermissionParamsDto searchParams)
+    {
+        try
+        {
+            ActionResult authResult = this.HandleAdminAuthorizationAsync();
+            if (authResult is UnauthorizedResult)
+            {
+                return this.Unauthorized();
+            }
+
+            Result<PermissionResponseDto> result = await this._permissionService.SearchAsync(searchParams);
+            return result.IsFailed ? this.BadRequest(result.Errors) : this.Ok(result.Value);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error searching permissions");
+            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
 }

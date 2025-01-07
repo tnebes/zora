@@ -12,10 +12,11 @@ import {ConfirmDialogComponent} from 'src/app/shared/components/confirm-dialog/c
 import {BaseDialogComponent, DialogField} from 'src/app/shared/components/base-dialog/base-dialog.component';
 import {Validators} from '@angular/forms';
 import {RoleService} from 'src/app/core/services/role.service';
-import {RoleResponse} from "../../core/models/role.interface";
 import {Constants, DefaultValues} from "../../core/constants";
 import {QueryService} from "../../core/services/query.service";
 import {NotificationDialogComponent} from 'src/app/shared/components/notification-dialog/notification-dialog.component';
+import { FormUtils } from 'src/app/core/utils/form.utils';
+import { NotificationUtils } from '../../core/utils/notification.utils';
 
 @Component({
     selector: 'app-users',
@@ -104,13 +105,13 @@ export class UsersComponent implements OnInit, AfterViewInit {
                 this.userService.deleteUser(user.id)
                     .pipe(
                         catchError(error => {
-                            this.showNotification('Error', `Failed to delete user ${user.username}: ${error.message}`, 'warning');
+                            NotificationUtils.showError(this.dialog, `Failed to delete user ${user.username}`, error);
                             return of(null);
                         })
                     )
                     .subscribe(() => {
                         this.loadUsers();
-                        this.showNotification('Success', `User ${user.username} has been deleted successfully`);
+                        NotificationUtils.showSuccess(this.dialog, `User ${user.username} has been deleted successfully`);
                     });
             }
         });
@@ -134,11 +135,11 @@ export class UsersComponent implements OnInit, AfterViewInit {
             .subscribe({
                 next: () => {
                     this.loadUsers();
-                    this.showNotification('Success', 'User has been created successfully');
+                    NotificationUtils.showSuccess(this.dialog, 'User has been created successfully');
                 },
                 error: (error) => {
                     console.error('Error creating user:', error);
-                    this.showNotification('Error', `Failed to create user: ${error.message}`, 'warning');
+                    NotificationUtils.showError(this.dialog, 'Failed to create user', error);
                 }
             });
     }
@@ -180,12 +181,12 @@ export class UsersComponent implements OnInit, AfterViewInit {
             )
             .subscribe({
                 next: () => {
-                    this.showNotification('Success', `User ${user.username} has been updated successfully`);
+                    NotificationUtils.showSuccess(this.dialog, `User ${user.username} has been updated successfully`);
                     this.loadUsers();
                 },
                 error: (error) => {
                     console.error('Error updating user:', error);
-                    this.showNotification('Error', `Failed to update user: ${error.message}`, 'warning');
+                    NotificationUtils.showError(this.dialog, 'Failed to update user', error);
                 }
             });
     }
@@ -227,7 +228,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
                 }),
                 catchError(error => {
                     console.error('Error fetching users:', error);
-                    this.showNotification('Error', 'Failed to fetch users', 'warning');
+                    NotificationUtils.showError(this.dialog, 'Failed to fetch users', error);
                     return of({items: [], total: 0});
                 })
             )
@@ -252,22 +253,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
         // TODO add a search for roles
         this.roleService.getRoles(DefaultValues.QUERY_PARAMS)
             .subscribe(response => {
-                rolesField.options = this.toOptions(response.items);
+                rolesField.options = FormUtils.toOptions(response.items);
             });
-    }
-
-    private toOptions(items: RoleResponse[]): { value: number, display: string }[] {
-        return items.map(item => ({value: item.id, display: item.name}));
-    }
-
-    private showNotification(title: string, message: string, type: 'information' | 'warning' = 'information'): void {
-        this.dialog.open(NotificationDialogComponent, {
-            width: Constants.DIALOG_WIDTH,
-            data: {
-                title,
-                message,
-                type
-            }
-        });
     }
 }

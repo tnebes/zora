@@ -9,7 +9,6 @@ import {debounceTime, distinctUntilChanged, filter, merge, startWith, switchMap}
 import {PermissionResponse, CreatePermission, UpdatePermission} from '../../core/models/permission.interface';
 import {PermissionService} from '../../core/services/permission.service';
 import {BaseDialogComponent, DialogField} from '../../shared/components/base-dialog/base-dialog.component';
-import {NotificationDialogComponent} from "../../shared/components/notification-dialog/notification-dialog.component";
 import {ConfirmDialogComponent} from "../../shared/components/confirm-dialog/confirm-dialog.component";
 import {Constants} from '../../core/constants';
 import {QueryParams} from '../../core/models/query-params.interface';
@@ -18,6 +17,7 @@ import {
     EntitySelectorDialogComponent
 } from '../../shared/components/entity-display-dialog/entity-display-dialog.component';
 import {RoleService} from '../../core/services/role.service';
+import { NotificationUtils } from '../../core/utils/notification.utils';
 
 @Component({
     selector: 'app-permissions',
@@ -42,6 +42,13 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
             label: 'Permission Name',
             required: true,
             validators: [Validators.minLength(3)]
+        },
+        {
+            name: 'permissionString',
+            type: 'text',
+            label: 'Permission String (5 bits)',
+            required: true,
+            validators: [Validators.pattern(/^[0-1]{5}$/)]
         },
         {
             name: 'description',
@@ -94,11 +101,11 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
             .subscribe({
                 next: () => {
                     this.loadPermissions();
-                    this.showNotification('Success', 'Permission has been created successfully');
+                    NotificationUtils.showSuccess(this.dialog, 'Permission has been created successfully');
                 },
                 error: (error) => {
                     console.error('Error creating permission:', error);
-                    this.showNotification('Error', `Failed to create permission: ${error.message}`, 'warning');
+                    NotificationUtils.showError(this.dialog, 'Failed to create permission', error);
                 }
             });
     }
@@ -132,11 +139,11 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
             .subscribe({
                 next: () => {
                     this.loadPermissions();
-                    this.showNotification('Success', `Permission "${permission.name}" has been updated successfully`);
+                    NotificationUtils.showSuccess(this.dialog, `Permission "${permission.name}" has been updated successfully`);
                 },
                 error: (error) => {
                     console.error('Error updating permission:', error);
-                    this.showNotification('Error', `Failed to update permission: ${error.message}`, 'warning');
+                    NotificationUtils.showError(this.dialog, 'Failed to update permission', error);
                 }
             });
     }
@@ -157,13 +164,13 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                 this.permissionService.delete(permission.id)
                     .pipe(
                         catchError(error => {
-                            this.showNotification('Error', `Failed to delete permission ${permission.name}: ${error.message}`, 'warning');
+                            NotificationUtils.showError(this.dialog, `Failed to delete permission ${permission.name}`, error);
                             return of(null);
                         })
                     )
                     .subscribe(() => {
                         this.loadPermissions();
-                        this.showNotification('Success', `Permission "${permission.name}" has been deleted successfully`);
+                        NotificationUtils.showSuccess(this.dialog, `Permission "${permission.name}" has been deleted successfully`);
                     });
             }
         });
@@ -171,12 +178,7 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
 
     public openEntityDialog(roleIds: number[]): void {
         if (roleIds.length === 0) {
-            this.dialog.open(NotificationDialogComponent, {
-                width: Constants.DIALOG_WIDTH,
-                data: {
-                    message: 'No roles assigned to this permission'
-                }
-            });
+            NotificationUtils.showInfo(this.dialog, 'No roles assigned to this permission');
             return;
         }
 
@@ -231,7 +233,7 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                 }),
                 catchError(error => {
                     console.error('Error fetching permissions:', error);
-                    this.showNotification('Error', 'Failed to fetch permissions', 'warning');
+                    NotificationUtils.showError(this.dialog, 'Failed to fetch permissions', error);
                     return of({items: [], total: 0});
                 })
             )
@@ -240,16 +242,5 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                 this.totalItems = response.total;
                 this.isLoading = false;
             });
-    }
-
-    private showNotification(title: string, message: string, type: 'information' | 'warning' = 'information'): void {
-        this.dialog.open(NotificationDialogComponent, {
-            width: Constants.DIALOG_WIDTH,
-            data: {
-                title,
-                message,
-                type
-            }
-        });
     }
 }

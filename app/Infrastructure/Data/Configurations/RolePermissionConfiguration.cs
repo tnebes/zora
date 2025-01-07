@@ -12,7 +12,15 @@ public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermissi
 {
     public void Configure(EntityTypeBuilder<RolePermission> builder)
     {
+        builder.ToTable("zora_role_permissions");
+
         builder.HasKey(rp => new { rp.RoleId, rp.PermissionId });
+
+        builder.Property(rp => rp.RoleId)
+            .HasColumnName("role_id");
+
+        builder.Property(rp => rp.PermissionId)
+            .HasColumnName("permission_id");
 
         builder.HasOne(rp => rp.Role)
             .WithMany(r => r.RolePermissions)
@@ -23,7 +31,5 @@ public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermissi
             .WithMany(p => p.RolePermissions)
             .HasForeignKey(rp => rp.PermissionId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.ToTable("zora_role_permissions");
     }
 }

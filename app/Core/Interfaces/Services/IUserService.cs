@@ -17,6 +17,5 @@ public interface IUserService : IBaseService<User, CreateMinimumUserDto, UpdateU
     Task<Result<User>> ValidateUser(LoginRequestDto login);
     bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username);
     T ToDto<T>(User user) where T : UserDto;
-    Task<Result<UserResponseDto<FullUserDto>>> SearchUsersAsync(DynamicQueryParamsDto queryParams);
-    IQueryable<User> GetQueryable(DynamicQueryParamsDto queryParams);
+    new Task<Result<UserResponseDto<FullUserDto>>> SearchAsync(DynamicQueryParamsDto queryParams);
 }

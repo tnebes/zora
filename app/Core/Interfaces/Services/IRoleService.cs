@@ -15,4 +15,5 @@ public interface IRoleService : IBaseService<Role, CreateRoleDto, UpdateRoleDto,
     bool IsRole(ClaimsPrincipal httpContextUser, string role);
     bool IsAdmin(ClaimsPrincipal httpContextUser);
     Task<bool> AssignRoles(User user, IEnumerable<long> roleIds);
+    FullRoleDto MapToFullDtoAsync(Role role);
 }

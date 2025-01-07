@@ -119,4 +119,19 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
             return Result.Fail<(IEnumerable<Role>, int)>(new Error("Failed to find roles"));
         }
     }
+
+    public async Task<Result<(IEnumerable<Role> roles, int totalCount)>> SearchRoles(IQueryable<Role> query)
+    {
+        try
+        {
+            IEnumerable<Role> roles = await query.ToListAsync();
+            int totalCount = await query.CountAsync();
+            return Result.Ok((roles, totalCount));
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Failed to search roles");
+            return Result.Fail<(IEnumerable<Role>, int)>(new Error("Failed to search roles"));
+        }
+    }
 }

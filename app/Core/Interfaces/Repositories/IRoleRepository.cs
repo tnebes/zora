@@ -18,4 +18,5 @@ public interface IRoleRepository
     Task<Result<Role>> UpdateAsync(Role role);
     Task<bool> DeleteAsync(Role role);
     Task<Result<(IEnumerable<Role>, int totalCount)>> FindRolesAsync(QueryParamsDto findParams);
+    Task<Result<(IEnumerable<Role> roles, int totalCount)>> SearchRoles(IQueryable<Role> query);
 }

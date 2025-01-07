@@ -21,7 +21,7 @@ namespace zora.API.Controllers;
 [Consumes("application/json")]
 [Description("User API")]
 public sealed class UserController : BaseCrudController<FullUserDto, CreateMinimumUserDto, UpdateUserDto,
-    UserResponseDto<FullUserDto>>
+    UserResponseDto<FullUserDto>, DynamicQueryUserParamsDto>
 {
     private readonly IMapper _mapper;
     private readonly IUserService _userService;
@@ -75,7 +75,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
     [Tags("Users")]
     [Description("Search for users with pagination, searching and sorting support")]
     [Authorize]
-    public async Task<ActionResult<UserResponseDto<FullUserDto>>> Search(
+    public override async Task<ActionResult<UserResponseDto<FullUserDto>>> Search(
         [FromQuery] DynamicQueryUserParamsDto queryParams)
     {
         try
@@ -90,7 +90,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
                 this.QueryService.NormaliseQueryParams(queryParams);
             }
 
-            Result<UserResponseDto<FullUserDto>> users = await this._userService.SearchUsersAsync(queryParams);
+            Result<UserResponseDto<FullUserDto>> users = await this._userService.SearchAsync(queryParams);
 
             if (users.IsFailed)
             {

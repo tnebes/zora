@@ -3,6 +3,7 @@
 using AutoMapper;
 using zora.Core.Domain;
 using zora.Core.DTOs;
+using zora.Core.DTOs.Responses;
 
 #endregion
 
@@ -19,5 +20,10 @@ public sealed class RoleMappingProfile : Profile
             .ForMember(dest => dest.UserIds, opt => opt.MapFrom(src => src.UserRoles.Select(u => u.UserId)))
             .ForMember(dest => dest.PermissionIds,
                 opt => opt.MapFrom(src => src.RolePermissions.Select(p => p.PermissionId)));
+
+        this.CreateMap<Role, FullRoleDto>()
+            .IncludeBase<Role, RoleDto>()
+            .ForMember(dest => dest.Users, opt => opt.MapFrom(src => src.UserRoles.Select(u => new { u.UserId, u.User.Username })))
+            .ForMember(dest => dest.Permissions, opt => opt.MapFrom(src => src.RolePermissions.Select(p => new { p.PermissionId, p.Permission.Name })));
     }
 }

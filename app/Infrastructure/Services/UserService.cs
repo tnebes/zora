@@ -336,13 +336,13 @@ public sealed class UserService : IUserService, IZoraService
 
     public T ToDto<T>(User user) where T : UserDto => this._mapper.Map<T>(user);
 
-    public async Task<Result<UserResponseDto<FullUserDto>>> SearchUsersAsync(DynamicQueryParamsDto queryParams)
+    public async Task<Result<UserResponseDto<FullUserDto>>> SearchAsync(DynamicQueryParamsDto queryParams)
     {
         try
         {
             this._queryService.ValidateQueryParams(queryParams, ResourceType.User);
             Result<(IEnumerable<User> users, int totalCount)> searchUsers =
-                await this._userRepository.SearchUsers(this.GetQueryable(queryParams));
+                await this._userRepository.SearchUsers(this._queryService.GetEntityQueryable<User>(queryParams));
 
             if (searchUsers.IsFailed)
             {
@@ -364,9 +364,6 @@ public sealed class UserService : IUserService, IZoraService
                 .WithMetadata("exception", ex));
         }
     }
-
-    public IQueryable<User> GetQueryable(DynamicQueryParamsDto queryParams) =>
-        this._queryService.GetEntityQueryable<User>(queryParams);
 
     private static bool IsValid(User user)
     {

@@ -4,7 +4,7 @@ using zora.Core.DTOs.Responses;
 
 namespace zora.Core.Interfaces.Services;
 
-public interface IBaseService<TEntity, TCreateDto, TUpdateDto, TResponseDto> 
+public interface IBaseService<TEntity, TCreateDto, TUpdateDto, TResponseDto>
     where TEntity : class
     where TResponseDto : class
 {
@@ -15,4 +15,5 @@ public interface IBaseService<TEntity, TCreateDto, TUpdateDto, TResponseDto>
     Task<Result<TEntity>> UpdateAsync(long id, TUpdateDto updateDto);
     Task<bool> DeleteAsync(long id);
     Task<Result<TResponseDto>> FindAsync(QueryParamsDto findParams);
-} 
+    Task<Result<TResponseDto>> SearchAsync(DynamicQueryParamsDto searchParams);
+}
