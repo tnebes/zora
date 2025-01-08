@@ -8,7 +8,7 @@ using zora.Core.DTOs.Requests;
 
 namespace zora.Core.Interfaces.Repositories;
 
-public interface IRoleRepository
+public interface IRoleRepository : ISearchRepository<Role, DynamicQueryRoleParamsDto>
 {
     Task<IEnumerable<Role>> GetRolesByIdsAsync(IEnumerable<long> roleIds, bool includeProperties = false);
     Task<IEnumerable<Role>> GetRolesAsync(bool includeProperties = false);
@@ -19,8 +19,5 @@ public interface IRoleRepository
     Task<bool> DeleteAsync(Role role);
 
     Task<Result<(IEnumerable<Role>, int totalCount)>> FindRolesAsync(QueryParamsDto findParams,
-        bool includeProperties = false);
-
-    Task<Result<(IEnumerable<Role> roles, int totalCount)>> SearchRoles(IQueryable<Role> query,
         bool includeProperties = false);
 }

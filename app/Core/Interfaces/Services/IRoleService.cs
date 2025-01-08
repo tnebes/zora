@@ -9,7 +9,8 @@ using zora.Core.DTOs.Responses;
 
 namespace zora.Core.Interfaces.Services;
 
-public interface IRoleService : IBaseService<Role, CreateRoleDto, UpdateRoleDto, RoleResponseDto>
+public interface
+    IRoleService : IBaseService<Role, CreateRoleDto, UpdateRoleDto, RoleResponseDto, DynamicQueryRoleParamsDto>
 {
     bool IsRole(ClaimsPrincipal httpContextUser, string role);
     bool IsAdmin(ClaimsPrincipal httpContextUser);

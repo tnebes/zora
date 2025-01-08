@@ -148,6 +148,41 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
     }
 
+    protected void ApplyFilter<TEntity, TValue>(
+        ref IQueryable<TEntity> query,
+        TValue value,
+        Expression<Func<TEntity, TValue, bool>> predicate)
+    {
+        if (value != null)
+        {
+            ParameterExpression parameter = Expression.Parameter(typeof(TEntity));
+            InvocationExpression body = Expression.Invoke(predicate, parameter, Expression.Constant(value));
+            query = query.Where(Expression.Lambda<Func<TEntity, bool>>(body, parameter));
+        }
+    }
+
+    protected void ApplyListFilter<TEntity, TValue>(
+        ref IQueryable<TEntity> query,
+        string input,
+        Func<string, TValue> parser,
+        Expression<Func<TEntity, List<TValue>, bool>> predicate)
+    {
+        if (!string.IsNullOrWhiteSpace(input))
+        {
+            List<TValue> values = this.ParseStringToList(input, parser);
+            ParameterExpression parameter = Expression.Parameter(typeof(TEntity));
+            InvocationExpression body = Expression.Invoke(predicate, parameter, Expression.Constant(values));
+            query = query.Where(Expression.Lambda<Func<TEntity, bool>>(body, parameter));
+        }
+    }
+
+    protected List<T> ParseStringToList<T>(string input, Func<string, T> parser)
+    {
+        return input.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(parser)
+            .ToList();
+    }
+
     protected virtual IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression) =>
         this.FilteredDbSet.Where(expression);
 

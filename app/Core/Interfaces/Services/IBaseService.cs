@@ -7,9 +7,10 @@ using zora.Core.DTOs.Requests;
 
 namespace zora.Core.Interfaces.Services;
 
-public interface IBaseService<TEntity, TCreateDto, TUpdateDto, TResponseDto>
+public interface IBaseService<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryParamsDto>
     where TEntity : class
     where TResponseDto : class
+    where TDynamicQueryParamsDto : DynamicQueryParamsDto
 {
     Task<Result<(IEnumerable<TEntity>, int total)>> GetAsync(QueryParamsDto queryParams);
     Task<Result<TResponseDto>> GetDtoAsync(QueryParamsDto queryParams);
@@ -18,6 +19,5 @@ public interface IBaseService<TEntity, TCreateDto, TUpdateDto, TResponseDto>
     Task<Result<TEntity>> UpdateAsync(long id, TUpdateDto updateDto);
     Task<bool> DeleteAsync(long id);
     Task<Result<TResponseDto>> FindAsync(QueryParamsDto findParams);
-    Task<Result<TResponseDto>> SearchAsync(DynamicQueryParamsDto searchParams);
-    IQueryable<TEntity> GetEntityQueryable();
+    Task<Result<TResponseDto>> SearchAsync(TDynamicQueryParamsDto searchParams);
 }

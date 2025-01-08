@@ -12,5 +12,4 @@ public interface IQueryService
 {
     void NormaliseQueryParams(IQueryParamsDto queryParams);
     void ValidateQueryParams(DynamicQueryParamsDto queryParams, ResourceType type);
-    IQueryable<T> GetEntityQueryable<T>(DynamicQueryParamsDto queryParams, IQueryable<T> query) where T : class;
 }

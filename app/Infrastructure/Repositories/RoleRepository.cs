@@ -154,7 +154,15 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
         }
     }
 
-    public async Task<Result<(IEnumerable<Role> roles, int totalCount)>> SearchRoles(IQueryable<Role> query,
+    public async Task<Result<(IEnumerable<Role>, int totalCount)>> SearchAsync(DynamicQueryRoleParamsDto searchParams,
+        bool includeProperties = false)
+    {
+        IQueryable<Role> query = this.FilteredDbSet.AsQueryable();
+        query = this.GetQueryableRole(searchParams, query);
+        return await this.SearchRolesAsync(query, includeProperties);
+    }
+
+    public async Task<Result<(IEnumerable<Role> roles, int totalCount)>> SearchRolesAsync(IQueryable<Role> query,
         bool includeProperties = false)
     {
         try
@@ -183,5 +191,25 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
             .ThenInclude(ur => ur.User)
             .Include(r => r.UserRoles)
             .ThenInclude(ur => ur.Role);
+    }
+
+    private IQueryable<Role> GetQueryableRole(DynamicQueryRoleParamsDto queryParams, IQueryable<Role> query)
+    {
+        this.ApplyListFilter(ref query, queryParams.Id, long.Parse,
+            (role, ids) => ids.Contains(role.Id));
+
+        this.ApplyListFilter(ref query, queryParams.Name, s => s,
+            (role, names) => names.Contains(role.Name));
+
+        this.ApplyListFilter(ref query, queryParams.Permission, long.Parse,
+            (role, permissions) => role.RolePermissions.Any(rp => permissions.Contains(rp.Permission.Id)));
+
+        this.ApplyListFilter(ref query, queryParams.User, long.Parse,
+            (role, users) => role.UserRoles.Any(ur => users.Contains(ur.User.Id)));
+
+        this.ApplyFilter(ref query, queryParams.CreatedAt,
+            (role, date) => role.CreatedAt == date);
+
+        return query;
     }
 }

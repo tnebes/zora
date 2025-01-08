@@ -10,7 +10,8 @@ using zora.Core.DTOs.Responses;
 namespace zora.Core.Interfaces.Services;
 
 public interface
-    IPermissionService : IBaseService<Permission, CreatePermissionDto, UpdatePermissionDto, PermissionResponseDto>
+    IPermissionService : IBaseService<Permission, CreatePermissionDto, UpdatePermissionDto, PermissionResponseDto,
+    DynamicQueryPermissionParamsDto>
 {
     Task<bool> HasDirectPermissionAsync(PermissionRequestDto request);
     Task<Result<IEnumerable<Permission>>> GetAllAsync();

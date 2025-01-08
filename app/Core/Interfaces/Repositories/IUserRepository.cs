@@ -8,7 +8,7 @@ using zora.Core.DTOs.Requests;
 
 namespace zora.Core.Interfaces.Repositories;
 
-public interface IUserRepository
+public interface IUserRepository : ISearchRepository<User, DynamicQueryUserParamsDto>
 {
     Task<Result<User>> GetByIdAsync(long id, bool includeProperties = false);
     Task<Result<User>> GetByUsernameAsync(string username, bool includeProperties = false);
@@ -20,7 +20,7 @@ public interface IUserRepository
     Task<User> Add(User user);
     Task<Result<User>> Update(User originalUser);
 
-    Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsers(IQueryable<User> query,
+    Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsersAsync(IQueryable<User> query,
         bool includeProperties = false);
 
     Task<Result<(IEnumerable<User>, int totalCount)>> FindUsersAsync(QueryParamsDto findParams,

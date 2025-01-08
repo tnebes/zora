@@ -8,7 +8,7 @@ using zora.Core.DTOs.Requests;
 
 namespace zora.Core.Interfaces.Repositories;
 
-public interface IPermissionRepository
+public interface IPermissionRepository : ISearchRepository<Permission, DynamicQueryPermissionParamsDto>
 {
     Task<Result<IEnumerable<Permission>>> GetAllAsync(bool includeProperties = false);
     Task<Result<Permission>> GetByIdAsync(long id, bool includeProperties = false);

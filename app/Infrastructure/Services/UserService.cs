@@ -175,6 +175,7 @@ public sealed class UserService : IUserService, IZoraService
 
         if (originalUserResult.IsFailed)
         {
+            this._logger.LogWarning("User with ID {UserId} not found", id);
             return Result.Fail<User>(new Error("User not found")
                 .WithMetadata("errorType", ErrorType.NotFound));
         }
@@ -259,6 +260,35 @@ public sealed class UserService : IUserService, IZoraService
         }
     }
 
+    public async Task<Result<UserResponseDto<FullUserDto>>> SearchAsync(DynamicQueryUserParamsDto searchParams)
+    {
+        try
+        {
+            this._queryService.ValidateQueryParams(searchParams, ResourceType.User);
+            Result<(IEnumerable<User> users, int totalCount)> searchUsers =
+                await this._userRepository.SearchAsync(searchParams);
+
+            if (searchUsers.IsFailed)
+            {
+                return Result.Fail<UserResponseDto<FullUserDto>>(new Error("Error searching users")
+                    .WithMetadata(Constants.ERROR_TYPE, ErrorType.SystemError));
+            }
+
+            (IEnumerable<User> users, int totalCount) = searchUsers.Value;
+
+            UserResponseDto<FullUserDto> response =
+                users.ToFullUserResponseDto(totalCount, searchParams.Page, searchParams.PageSize, this._mapper);
+            return Result.Ok(response);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error searching users");
+            return Result.Fail<UserResponseDto<FullUserDto>>(new Error("Error searching users")
+                .WithMetadata(Constants.ERROR_TYPE, ErrorType.SystemError)
+                .WithMetadata("exception", ex));
+        }
+    }
+
     public bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username) =>
         httpContextUser.Identity?.Name == username;
 
@@ -287,35 +317,6 @@ public sealed class UserService : IUserService, IZoraService
     }
 
     public T ToDto<T>(User user) where T : UserDto => this._mapper.Map<T>(user);
-
-    public async Task<Result<UserResponseDto<FullUserDto>>> SearchAsync(DynamicQueryParamsDto queryParams)
-    {
-        try
-        {
-            this._queryService.ValidateQueryParams(queryParams, ResourceType.User);
-            Result<(IEnumerable<User> users, int totalCount)> searchUsers =
-                await this._userRepository.SearchUsers(this._queryService.GetEntityQueryable<User>(queryParams));
-
-            if (searchUsers.IsFailed)
-            {
-                return Result.Fail<UserResponseDto<FullUserDto>>(new Error("Error searching users")
-                    .WithMetadata(Constants.ERROR_TYPE, ErrorType.SystemError));
-            }
-
-            (IEnumerable<User> users, int totalCount) = searchUsers.Value;
-
-            UserResponseDto<FullUserDto> response =
-                users.ToFullUserResponseDto(totalCount, queryParams.Page, queryParams.PageSize, this._mapper);
-            return Result.Ok(response);
-        }
-        catch (Exception ex)
-        {
-            this._logger.LogError(ex, "Error searching users");
-            return Result.Fail<UserResponseDto<FullUserDto>>(new Error("Error searching users")
-                .WithMetadata(Constants.ERROR_TYPE, ErrorType.SystemError)
-                .WithMetadata("exception", ex));
-        }
-    }
 
     public async Task<Result<User>> GetUserByIdAsync(long userId)
     {

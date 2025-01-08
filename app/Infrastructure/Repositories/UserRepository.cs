@@ -87,7 +87,7 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         return Result.Ok(entityEntry.Entity);
     }
 
-    public async Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsers(IQueryable<User> query,
+    public async Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsersAsync(IQueryable<User> query,
         bool includeProperties = false)
     {
         try
@@ -171,6 +171,14 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         }
     }
 
+    public async Task<Result<(IEnumerable<User>, int totalCount)>> SearchAsync(DynamicQueryUserParamsDto searchParams,
+        bool includeProperties = false)
+    {
+        IQueryable<User> query = this.FilteredDbSet.AsQueryable();
+        query = this.GetQueryableUser(searchParams, query);
+        return await this.SearchUsersAsync(query, includeProperties);
+    }
+
     private IQueryable<User> IncludeProperties(IQueryable<User> query)
     {
         return query.Include(u => u.UserRoles)
@@ -181,5 +189,29 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
             .Include(u => u.CreatedWorkItems)
             .Include(u => u.UpdatedWorkItems)
             .Include(u => u.ManagedProjects);
+    }
+
+    private IQueryable<User> GetQueryableUser(DynamicQueryUserParamsDto queryParams, IQueryable<User> query)
+    {
+        this.ApplyListFilter(ref query, queryParams.Id, long.Parse,
+            (user, ids) => ids.Contains(user.Id));
+
+        this.ApplyListFilter(ref query, queryParams.Username, s => s,
+            (user, usernames) => usernames.Contains(user.Username));
+
+        this.ApplyListFilter(ref query, queryParams.Email, s => s,
+            (user, emails) => emails.Contains(user.Email));
+
+        this.ApplyListFilter(ref query, queryParams.Role, long.Parse,
+            (user, roles) => user.UserRoles.Any(ur => roles.Contains(ur.Role.Id)));
+
+        this.ApplyListFilter(ref query, queryParams.Permission, long.Parse,
+            (user, permissions) => user.UserRoles.Any(ur =>
+                ur.Role.RolePermissions.Any(rp => permissions.Contains(rp.Permission.Id))));
+
+        this.ApplyFilter(ref query, queryParams.CreatedAt,
+            (user, date) => date.Equals(user.CreatedAt));
+
+        return query;
     }
 }

@@ -11,11 +11,11 @@ using zora.Core.DTOs.Responses;
 
 namespace zora.Core.Interfaces.Services;
 
-public interface IUserService : IBaseService<User, CreateMinimumUserDto, UpdateUserDto, UserResponseDto<FullUserDto>>
+public interface IUserService : IBaseService<User, CreateMinimumUserDto, UpdateUserDto, UserResponseDto<FullUserDto>,
+    DynamicQueryUserParamsDto>
 {
     Task<Result<User>> GetUserByUsernameAsync(string username);
     Task<Result<User>> ValidateUser(LoginRequestDto login);
     bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username);
     T ToDto<T>(User user) where T : UserDto;
-    new Task<Result<UserResponseDto<FullUserDto>>> SearchAsync(DynamicQueryParamsDto queryParams);
 }

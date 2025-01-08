@@ -192,11 +192,43 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
         }
     }
 
+    public Task<Result<(IEnumerable<Permission>, int totalCount)>> SearchAsync(
+        DynamicQueryPermissionParamsDto searchParams, bool includeProperties = false)
+    {
+        IQueryable<Permission> query = this.FilteredDbSet.AsQueryable();
+        query = this.GetQueryablePermission(searchParams, query);
+        throw new NotImplementedException();
+    }
+
     private IQueryable<Permission> IncludeProperties(IQueryable<Permission> query)
     {
         return query.Include(p => p.RolePermissions)
             .ThenInclude(rp => rp.Role)
             .Include(p => p.PermissionWorkItems)
             .ThenInclude(pw => pw.WorkItem);
+    }
+
+    private IQueryable<Permission> GetQueryablePermission(DynamicQueryPermissionParamsDto queryParams,
+        IQueryable<Permission> query)
+    {
+        this.ApplyListFilter(ref query, queryParams.Id, long.Parse,
+            (permission, ids) => ids.Contains(permission.Id));
+
+        this.ApplyListFilter(ref query, queryParams.Name, s => s,
+            (permission, names) => names.Contains(permission.Name));
+
+        this.ApplyListFilter(ref query, queryParams.Description, s => s,
+            (permission, descriptions) => descriptions.Contains(permission.Description));
+
+        this.ApplyListFilter(ref query, queryParams.PermissionString, s => s,
+            (permission, permissionStrings) => permissionStrings.Contains(permission.PermissionString));
+
+        this.ApplyListFilter(ref query, queryParams.RoleIds, long.Parse,
+            (permission, roles) => permission.RolePermissions.Any(rp => roles.Contains(rp.Role.Id)));
+
+        this.ApplyListFilter(ref query, queryParams.WorkItemIds, long.Parse,
+            (permission, workItems) => permission.PermissionWorkItems.Any(pw => workItems.Contains(pw.WorkItem.Id)));
+
+        return query;
     }
 }

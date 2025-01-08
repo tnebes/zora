@@ -223,13 +223,13 @@ public class RoleService : IRoleService, IZoraService
         }
     }
 
-    public async Task<Result<RoleResponseDto>> SearchAsync(DynamicQueryParamsDto searchParams)
+    public async Task<Result<RoleResponseDto>> SearchAsync(DynamicQueryRoleParamsDto searchParams)
     {
         try
         {
             this._queryService.ValidateQueryParams(searchParams, ResourceType.Role);
             Result<(IEnumerable<Role> roles, int totalCount)> searchRoles =
-                await this._roleRepository.SearchRoles(this._queryService.GetEntityQueryable<Role>(searchParams));
+                await this._roleRepository.SearchAsync(searchParams);
 
             return Result.Ok(searchRoles.Value.roles.ToRoleResponseDto(searchRoles.Value.totalCount, searchParams.Page,
                 searchParams.PageSize, this._mapper));

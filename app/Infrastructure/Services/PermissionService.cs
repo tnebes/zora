@@ -201,8 +201,7 @@ public sealed class PermissionService : IPermissionService, IZoraService
         }
     }
 
-    public Task<Result<PermissionResponseDto>> SearchAsync(DynamicQueryParamsDto searchParams) =>
-        throw new NotImplementedException();
+    public async Task<Result<PermissionResponseDto>> SearchAsync(DynamicQueryPermissionParamsDto searchParams) => null;
 
     public async Task<bool> HasDirectPermissionAsync(PermissionRequestDto request)
     {
