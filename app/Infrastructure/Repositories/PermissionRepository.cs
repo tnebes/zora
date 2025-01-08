@@ -192,12 +192,21 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
         }
     }
 
-    public Task<Result<(IEnumerable<Permission>, int totalCount)>> SearchAsync(
+    public async Task<Result<(IEnumerable<Permission>, int totalCount)>> SearchAsync(
         DynamicQueryPermissionParamsDto searchParams, bool includeProperties = false)
     {
         IQueryable<Permission> query = this.FilteredDbSet.AsQueryable();
         query = this.GetQueryablePermission(searchParams, query);
-        throw new NotImplementedException();
+
+        if (includeProperties)
+        {
+            query = this.IncludeProperties(query);
+        }
+
+        int totalCount = await query.CountAsync();
+        List<Permission> permissions = await query.ToListAsync();
+
+        return Result.Ok((permissions.AsEnumerable(), totalCount));
     }
 
     private IQueryable<Permission> IncludeProperties(IQueryable<Permission> query)

@@ -201,7 +201,29 @@ public sealed class PermissionService : IPermissionService, IZoraService
         }
     }
 
-    public async Task<Result<PermissionResponseDto>> SearchAsync(DynamicQueryPermissionParamsDto searchParams) => null;
+    public async Task<Result<PermissionResponseDto>> SearchAsync(DynamicQueryPermissionParamsDto searchParams)
+    {
+        try
+        {
+            Result<(IEnumerable<Permission>, int totalCount)> result =
+                await this._permissionRepository.SearchAsync(searchParams, true);
+            if (result.IsFailed)
+            {
+                return Result.Fail<PermissionResponseDto>("Error searching permissions");
+            }
+
+            (IEnumerable<Permission> permissions, int total) = result.Value;
+            IEnumerable<PermissionDto> permissionDtos = this._mapper.Map<IEnumerable<PermissionDto>>(permissions);
+
+            return Result.Ok(new PermissionResponseDto
+                { Items = permissionDtos, Total = total, Page = searchParams.Page, PageSize = searchParams.PageSize });
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error searching permissions");
+            return Result.Fail<PermissionResponseDto>("Error searching permissions");
+        }
+    }
 
     public async Task<bool> HasDirectPermissionAsync(PermissionRequestDto request)
     {
