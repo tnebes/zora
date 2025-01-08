@@ -33,10 +33,10 @@
             </mat-cell>
         </ng-container>
 
-        <ng-container matColumnDef="roles">
+        <ng-container matColumnDef="users">
             <mat-header-cell *matHeaderCellDef> Assigned Users</mat-header-cell>
             <mat-cell *matCellDef="let role">
-                <button mat-button color="primary" (click)="openEntityDialog('roles', role.userIds)">
+                <button mat-button color="primary" (click)="openEntityDialog('users', role.userIds)">
                     View Users
                 </button>
             </mat-cell>

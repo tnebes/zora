@@ -35,7 +35,7 @@ interface DialogConfig {
     styleUrls: ['./roles.component.scss']
 })
 export class RolesComponent implements OnInit, AfterViewInit {
-    public readonly displayedColumns: string[] = ['name', 'createdAt', 'permissions', 'roles', 'actions'];
+    public readonly displayedColumns: string[] = ['name', 'createdAt', 'permissions', 'users', 'actions'];
     public readonly dataSource: MatTableDataSource<RoleResponse> = new MatTableDataSource();
     public searchTerm: Subject<string> = new Subject<string>();
     public isLoading: boolean = false;
@@ -181,22 +181,23 @@ export class RolesComponent implements OnInit, AfterViewInit {
         });
     }
 
-    public openEntityDialog(type: 'roles' | 'permissions', ids: number[]): void {
+    public openEntityDialog(type: 'users' | 'permissions', ids: number[]): void {
         if (ids.length === 0) {
             NotificationUtils.showInfo(this.dialog, `No ${type} assigned to this role`);
             return;
         }
 
-        const dialogConfig: { [key in 'roles' | 'permissions']: DialogConfig } = {
-            roles: {
+        const dialogConfig: { [key in 'users' | 'permissions']: DialogConfig } = {
+            users: {
                 service: () => this.userService.searchUsers({userIds: ids}),
                 mapData: (user: UserResponse) => ({
                     id: user.id,
-                    name: user.username
+                    name: user.username,
+                    email: user.email
                 }),
                 columns: [
                     {id: 'name', label: 'Name'},
-                    {id: 'id', label: 'ID'}
+                    {id: 'email', label: 'Email'}
                 ]
             },
             permissions: {
@@ -204,12 +205,13 @@ export class RolesComponent implements OnInit, AfterViewInit {
                 mapData: (permission: any) => ({
                     id: permission.id,
                     name: permission.name,
-                    description: permission.description
+                    description: permission.description,
+                    permissionString: this.permissionService.permissionStringToReadable(permission.permissionString)
                 }),
                 columns: [
                     {id: 'name', label: 'Name'},
                     {id: 'description', label: 'Description'},
-                    {id: 'id', label: 'ID'}
+                    {id: 'permissionString', label: 'Permission String'}
                 ]
             }
         };

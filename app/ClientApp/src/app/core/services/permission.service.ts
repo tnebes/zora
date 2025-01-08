@@ -53,7 +53,17 @@ export class PermissionService {
     }
 
     public searchPermissions(params: { permissionIds: number[] }): Observable<PermissionResponseDto> {
-        const httpParams = new HttpParams().set('permissionIds', params.permissionIds.join(','));
+        const httpParams = new HttpParams().set(Constants.ID, params.permissionIds.join(','));
         return this.http.get<PermissionResponseDto>(`${Constants.PERMISSIONS_SEARCH}`, {params: httpParams});
+    }
+
+    public permissionStringToReadable(permissionString: string): string[] {
+        const permissions: string[] = [];
+        for (let i = 0; i < permissionString.length; i++) {
+            if (permissionString[i] === '1') {
+                permissions.push(Constants.PERMISSION_STRING_BIT_NAMES[i]);
+            }
+        }
+        return permissions;
     }
 }

@@ -42,8 +42,12 @@ export class Constants {
 
     // UI Constants
     static readonly DIALOG_WIDTH: string = '400px';
-    static readonly ENTITY_DIALOG_WIDTH: string = '600px';
+    static readonly ENTITY_DIALOG_WIDTH: string = '800px';
     static readonly MAX_PAGE_SIZE: number = 1000;
+
+    // Permission constants
+    static readonly PERMISSION_STRING_BITS: number = 5;
+    static readonly PERMISSION_STRING_BIT_NAMES: string[] = ['Manage', 'Delete', 'Create', 'Write', 'Read'];
 }
 
 export class DefaultValues {

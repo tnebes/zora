@@ -228,7 +228,8 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Permissions")]
     [Description("Search permissions by matches of name, description, permission string, role, and work item")]
-    public override async Task<ActionResult<PermissionResponseDto>> Search([FromQuery] DynamicQueryPermissionParamsDto searchParams)
+    public override async Task<ActionResult<PermissionResponseDto>> Search(
+        [FromQuery] DynamicQueryPermissionParamsDto searchParams)
     {
         try
         {

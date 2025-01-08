@@ -188,8 +188,7 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                 name: role.name
             }));
             this.openEntitySelectorDialog(data, [
-                {id: 'name', label: 'Name'},
-                {id: 'id', label: 'ID'}
+                {id: 'name', label: 'Name'}
             ]);
         });
     }
