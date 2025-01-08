@@ -21,13 +21,17 @@ public sealed class RolePermissionRepository : BaseCompositeRepository<RolePermi
     {
     }
 
-    public async Task<Result<IEnumerable<RolePermission>>> GetByRoleIdAsync(long roleId)
+    public async Task<Result<IEnumerable<RolePermission>>> GetByRoleIdAsync(long roleId, bool includeProperties = false)
     {
         try
         {
-            List<RolePermission> rolePermissions = await this.DbContext.RolePermissions
-                .Include(rp => rp.Permission)
-                .Include(rp => rp.Role)
+            IQueryable<RolePermission> query = this.DbSet.AsQueryable();
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
+            List<RolePermission> rolePermissions = await query
                 .Where(rp => rp.RoleId == roleId)
                 .ToListAsync();
 
@@ -89,6 +93,7 @@ public sealed class RolePermissionRepository : BaseCompositeRepository<RolePermi
         {
             return Result.Fail<IEnumerable<RolePermission>>("No role permissions to create.");
         }
+
         try
         {
             IExecutionStrategy strategy = this.DbContext.Database.CreateExecutionStrategy();
@@ -114,5 +119,12 @@ public sealed class RolePermissionRepository : BaseCompositeRepository<RolePermi
             this.Logger.LogError(ex, "Error creating range of role permissions: {Message}", ex.Message);
             return Result.Fail<IEnumerable<RolePermission>>(Constants.ERROR_500_MESSAGE);
         }
+    }
+
+    private IQueryable<RolePermission> IncludeProperties(IQueryable<RolePermission> query)
+    {
+        return query.Include(rp => rp.Permission)
+            .ThenInclude(p => p.RolePermissions)
+            .ThenInclude(rp => rp.Role);
     }
 }

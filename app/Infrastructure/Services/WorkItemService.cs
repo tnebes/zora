@@ -1,5 +1,6 @@
 #region
 
+using FluentResults;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.Enums;
@@ -11,7 +12,7 @@ using zora.Core.Interfaces.Services;
 namespace zora.Infrastructure.Services;
 
 [ServiceLifetime(ServiceLifetime.Scoped)]
-public class WorkItemService : IWorkItemService, IZoraService
+public sealed class WorkItemService : IWorkItemService, IZoraService
 {
     private readonly ILogger<WorkItemService> _logger;
     private readonly IWorkItemRepository _workItemRepository;
@@ -24,55 +25,47 @@ public class WorkItemService : IWorkItemService, IZoraService
         this._workItemRepository = workItemRepository;
     }
 
-    public async Task<T?> GetNearestAncestorOf<T>(long resourceId) where T : WorkItem
+    public async Task<Result<T>> GetNearestAncestorOf<T>(long workItemId) where T : WorkItem
     {
         try
         {
-            WorkItem? workItem = await this._workItemRepository.GetWorkItemAsync(resourceId);
-            if (workItem == null)
+            Result<WorkItem> result = await this._workItemRepository.GetWorkItemAsync(workItemId, true);
+            if (result.IsFailed)
             {
-                this._logger.LogWarning("Work item {ResourceId} not found", resourceId);
-                return null;
+                this._logger.LogWarning("Work item {WorkItemId} not found", workItemId);
+                return Result.Fail<T>($"Work item {workItemId} not found");
             }
 
-            WorkItem? ancestor = null;
-
-            switch (workItem)
+            WorkItem workItem = result.Value;
+            T? ancestor = workItem switch
             {
-                case ZoraTask task:
-                    if (typeof(T) == typeof(Project))
-                    {
-                        ancestor = task.Project;
-                    }
-                    else if (typeof(T) == typeof(ZoraProgram))
-                    {
-                        ancestor = task.Project?.Program;
-                    }
+                ZoraTask task when typeof(T) == typeof(Project) => task.Project as T,
+                ZoraTask task when typeof(T) == typeof(ZoraProgram) => task.Project?.Program as T,
+                Project project when typeof(T) == typeof(ZoraProgram) => project.Program as T,
+                ZoraProgram => null,
+                _ => null
+            };
 
-                    break;
-
-                case Project project:
-                    if (typeof(T) == typeof(ZoraProgram))
-                    {
-                        ancestor = project.Program;
-                    }
-
-                    break;
-
-                case ZoraProgram:
-                    this._logger.LogWarning("Program {ResourceId} has no ancestors", resourceId);
-                    break;
-            }
-
-            return ancestor as T;
+            return ancestor != null
+                ? Result.Ok(ancestor)
+                : Result.Fail<T>($"Ancestor not found for work item {workItemId}");
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            this._logger.LogError(e, "Error getting nearest ancestor of work item {ResourceId}", resourceId);
-            return null;
+            this._logger.LogError(ex, "Error getting nearest ancestor of work item {WorkItemId}", workItemId);
+            return Result.Fail<T>($"Error getting nearest ancestor of work item {workItemId}");
         }
     }
 
-    public Task<WorkItemType> GetWorkItemType(long workItemId) =>
-        this._workItemRepository.GetWorkItemTypeAsync(workItemId);
+    public async Task<Result<WorkItemType>> GetWorkItemType(long workItemId)
+    {
+        Result<WorkItemType> result = await this._workItemRepository.GetWorkItemTypeAsync(workItemId);
+        if (result.IsFailed)
+        {
+            this._logger.LogError("Failed to retrieve work item type for ID {WorkItemId}", workItemId);
+            return Result.Fail<WorkItemType>($"Failed to retrieve work item type for ID {workItemId}");
+        }
+
+        return result.Value;
+    }
 }

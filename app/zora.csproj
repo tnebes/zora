@@ -51,7 +51,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Core\POCOs\"/>
         <Folder Include="logs\"/>
     </ItemGroup>
 

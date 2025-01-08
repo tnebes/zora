@@ -8,7 +8,6 @@ using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Requests.Interfaces;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Services;
-using zora.Infrastructure.Data;
 
 #endregion
 
@@ -17,21 +16,8 @@ namespace zora.Infrastructure.Services;
 [ServiceLifetime(ServiceLifetime.Scoped)]
 public sealed class QueryService : IQueryService, IZoraService
 {
-    private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<QueryService> _logger;
-    private readonly Dictionary<Type, Func<DynamicQueryParamsDto, IQueryable<object>>> _queryBuilders;
-
-    public QueryService(ILogger<QueryService> logger, ApplicationDbContext dbContext)
-    {
-        this._logger = logger;
-        this._dbContext = dbContext;
-        this._queryBuilders = new Dictionary<Type, Func<DynamicQueryParamsDto, IQueryable<object>>>
-        {
-            { typeof(User), query => this.GetQueryableUser((DynamicQueryUserParamsDto)query) },
-            { typeof(Role), query => this.GetQueryableRole((DynamicQueryRoleParamsDto)query) },
-            { typeof(Permission), query => this.GetQueryablePermission((DynamicQueryPermissionParamsDto)query) }
-        };
-    }
+    public QueryService(ILogger<QueryService> logger) => this._logger = logger;
 
     public void NormaliseQueryParams(IQueryParamsDto queryParams)
     {
@@ -48,22 +34,41 @@ public sealed class QueryService : IQueryService, IZoraService
         }
     }
 
-    public IQueryable<T> GetEntityQueryable<T>(DynamicQueryParamsDto queryParams) where T : class
+    public IQueryable<T> GetEntityQueryable<T>(DynamicQueryParamsDto queryParams, IQueryable<T> query) where T : class
     {
-        if (!this._queryBuilders.TryGetValue(typeof(T),
-                out Func<DynamicQueryParamsDto, IQueryable<object>>? queryBuilder))
+        try
         {
-            this._logger.LogError("Invalid type {Type}", typeof(T));
-            throw new ArgumentOutOfRangeException(nameof(T), "Invalid type");
-        }
+            IQueryable<T> queryable = (typeof(T) switch
+            {
+                { } t when t == typeof(User) => this.GetQueryableUser(
+                    (DynamicQueryUserParamsDto)queryParams
+                    ,(IQueryable<User>)query) as IQueryable<T>,
+                { } t when t == typeof(Role) => this.GetQueryableRole(
+                    (DynamicQueryRoleParamsDto)queryParams
+                    ,(IQueryable<Role>)query) as IQueryable<T>,
+                { } t when t == typeof(Permission) => this.GetQueryablePermission(
+                    (DynamicQueryPermissionParamsDto)queryParams
+                    ,(IQueryable<Permission>)query) as IQueryable<T>,
+                _ => null
+            })!;
 
-        return (IQueryable<T>)queryBuilder(queryParams);
+            if (queryable == null)
+            {
+                this._logger.LogError("Invalid type {Type}", typeof(T));
+                throw new ArgumentOutOfRangeException(nameof(T), "Invalid type");
+            }
+
+            return queryable;
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting queryable {Type}", typeof(T));
+            throw;
+        }
     }
 
-    private IQueryable<Role> GetQueryableRole(DynamicQueryRoleParamsDto queryParams)
+    private IQueryable<Role> GetQueryableRole(DynamicQueryRoleParamsDto queryParams, IQueryable<Role> query)
     {
-        IQueryable<Role> query = this._dbContext.Roles.AsQueryable();
-
         this.ApplyListFilter(ref query, queryParams.Id, long.Parse,
             (role, ids) => ids.Contains(role.Id));
 
@@ -76,16 +81,14 @@ public sealed class QueryService : IQueryService, IZoraService
         this.ApplyListFilter(ref query, queryParams.User, long.Parse,
             (role, users) => role.UserRoles.Any(ur => users.Contains(ur.User.Id)));
 
-        QueryService.ApplyFilter(ref query, queryParams.CreatedAt,
+        this.ApplyFilter(ref query, queryParams.CreatedAt,
             (role, date) => role.CreatedAt == date);
 
         return query;
     }
 
-    private IQueryable<User> GetQueryableUser(DynamicQueryUserParamsDto queryParams)
+    private IQueryable<User> GetQueryableUser(DynamicQueryUserParamsDto queryParams, IQueryable<User> query)
     {
-        IQueryable<User> query = this._dbContext.Users.AsQueryable();
-
         this.ApplyListFilter(ref query, queryParams.Id, long.Parse,
             (user, ids) => ids.Contains(user.Id));
 
@@ -102,24 +105,26 @@ public sealed class QueryService : IQueryService, IZoraService
             (user, permissions) => user.UserRoles.Any(ur =>
                 ur.Role.RolePermissions.Any(rp => permissions.Contains(rp.Permission.Id))));
 
-        QueryService.ApplyFilter(ref query, queryParams.CreatedAt,
+        this.ApplyFilter(ref query, queryParams.CreatedAt,
             (user, date) => date.Equals(user.CreatedAt));
 
         return query;
     }
 
-    private IQueryable<Permission> GetQueryablePermission(DynamicQueryPermissionParamsDto queryParams)
+    private IQueryable<Permission> GetQueryablePermission(DynamicQueryPermissionParamsDto queryParams,
+        IQueryable<Permission> query)
     {
-        IQueryable<Permission> query = this._dbContext.Permissions.AsQueryable();
+        this.ApplyListFilter(ref query, queryParams.Id, long.Parse,
+            (permission, ids) => ids.Contains(permission.Id));
 
-        QueryService.ApplyFilter(ref query, queryParams.Name,
-            (permission, name) => permission.Name.Contains(name));
+        this.ApplyListFilter(ref query, queryParams.Name, s => s,
+            (permission, names) => names.Contains(permission.Name));
 
-        QueryService.ApplyFilter(ref query, queryParams.Description,
-            (permission, description) => permission.Description.Contains(description));
+        this.ApplyListFilter(ref query, queryParams.Description, s => s,
+            (permission, descriptions) => descriptions.Contains(permission.Description));
 
-        QueryService.ApplyFilter(ref query, queryParams.PermissionString,
-            (permission, permissionString) => permission.PermissionString.Contains(permissionString));
+        this.ApplyListFilter(ref query, queryParams.PermissionString, s => s,
+            (permission, permissionStrings) => permissionStrings.Contains(permission.PermissionString));
 
         this.ApplyListFilter(ref query, queryParams.RoleIds, long.Parse,
             (permission, roles) => permission.RolePermissions.Any(rp => roles.Contains(rp.Role.Id)));
@@ -130,7 +135,7 @@ public sealed class QueryService : IQueryService, IZoraService
         return query;
     }
 
-    private static void ApplyFilter<TEntity, TValue>(
+    private void ApplyFilter<TEntity, TValue>(
         ref IQueryable<TEntity> query,
         TValue value,
         Expression<Func<TEntity, TValue, bool>> predicate)

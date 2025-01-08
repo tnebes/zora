@@ -1,6 +1,7 @@
 #region
 
 using System.Security.Claims;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Memory;
 using zora.API.Extensions;
@@ -24,17 +25,20 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
     private readonly IMemoryCache _cache;
     private readonly ILogger<AuthorisationService> _logger;
     private readonly IPermissionService _permissionService;
+    private readonly IUserRoleService _userRoleService;
     private readonly IWorkItemService _workItemService;
 
     public AuthorisationService(
         ILogger<AuthorisationService> logger,
         IPermissionService permissionService,
         IWorkItemService workItemService,
+        IUserRoleService userRoleService,
         IMemoryCache cache)
     {
         this._logger = logger;
         this._permissionService = permissionService;
         this._workItemService = workItemService;
+        this._userRoleService = userRoleService;
         this._cache = cache;
     }
 
@@ -46,8 +50,12 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             return false;
         }
 
-        string cacheKey =
-            $"{AuthorisationService.CacheKeyPrefix}{permissionRequest.UserId}_{permissionRequest.ResourceId}_{permissionRequest.RequestedPermission}";
+        if (await this._userRoleService.IsAdminAsync(permissionRequest.UserId))
+        {
+            return true;
+        }
+
+        string cacheKey = AuthorisationService.GetCacheKey(permissionRequest);
 
         if (this._cache.TryGetValue(cacheKey, out bool cachedResult))
         {
@@ -76,71 +84,54 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             return ValidationResult.Fail("Permission request cannot be null", StatusCodes.Status400BadRequest);
         }
 
-        long userIdClaim;
         try
         {
-            userIdClaim = user.GetUserId();
+            long userIdClaim = user.GetUserId();
+            if (userIdClaim != permissionRequest.UserId)
+            {
+                this._logger.LogWarning("User ID mismatch. Token ID: {TokenId}, Request ID: {RequestId}",
+                    userIdClaim, permissionRequest.UserId);
+                return ValidationResult.Fail("User ID in request does not match authenticated user",
+                    StatusCodes.Status403Forbidden);
+            }
+
+            return ValidationResult.Success();
         }
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error getting user ID from claims");
             return ValidationResult.Fail("Error getting user ID from claims", StatusCodes.Status400BadRequest);
         }
-
-        if (userIdClaim != permissionRequest.UserId)
-        {
-            this._logger.LogWarning("User ID mismatch. Token ID: {TokenId}, Request ID: {RequestId}",
-                userIdClaim, permissionRequest.UserId);
-            return ValidationResult.Fail("User ID in request does not match authenticated user",
-                StatusCodes.Status403Forbidden);
-        }
-
-        return ValidationResult.Success();
     }
 
     public async Task HandleAsync(AuthorizationHandlerContext context)
     {
         foreach (IAuthorizationRequirement requirement in context.Requirements)
         {
-            if (requirement is not WorkItemPermissionRequirement workItemRequirement)
+            if (requirement is not WorkItemPermissionRequirement workItemRequirement ||
+                context.User.Identity?.IsAuthenticated != true)
             {
-                continue;
-            }
-
-            if (context.User.Identity?.IsAuthenticated != true)
-            {
-                continue;
-            }
-
-            long userId;
-            try
-            {
-                userId = context.User.GetUserId();
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError(ex, "Error getting user ID from claims");
-                continue;
-            }
-
-            PermissionRequestDto permissionRequest = new PermissionRequestDto
-            {
-                UserId = userId,
-                ResourceId = workItemRequirement.WorkItemId,
-                RequestedPermission = workItemRequirement.RequiredPermission
-            };
-
-            ValidationResult validationResult = this.ValidateRequestAndClaims(permissionRequest, context.User);
-            if (!validationResult.IsValid)
-            {
-                this._logger.LogWarning("Validation failed: {ErrorMessage}", validationResult.ErrorMessage);
                 continue;
             }
 
             try
             {
-                bool isAuthorized = await this.IsAuthorisedAsync(permissionRequest);
-                if (isAuthorized)
+                long userId = context.User.GetUserId();
+                PermissionRequestDto permissionRequest = new()
+                {
+                    UserId = userId,
+                    ResourceId = workItemRequirement.WorkItemId,
+                    RequestedPermission = workItemRequirement.RequiredPermission
+                };
+
+                ValidationResult validationResult = this.ValidateRequestAndClaims(permissionRequest, context.User);
+                if (!validationResult.IsValid)
+                {
+                    this._logger.LogWarning("Validation failed: {ErrorMessage}", validationResult.ErrorMessage);
+                    continue;
+                }
+
+                if (await this.IsAuthorisedAsync(permissionRequest))
                 {
                     context.Succeed(requirement);
                 }
@@ -153,52 +144,32 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex,
-                    "Error during authorization for user {UserId} on work item {WorkItemId}",
-                    userId, workItemRequirement.WorkItemId);
+                this._logger.LogError(ex, "Error during authorization handling");
             }
         }
     }
 
-    private async Task<bool> CheckAuthorizationAsync(PermissionRequestDto request)
-    {
-        if (await this._permissionService.HasDirectPermissionAsync(request))
-        {
-            return true;
-        }
+    private static string GetCacheKey(PermissionRequestDto request) =>
+        $"{AuthorisationService.CacheKeyPrefix}{request.UserId}_{request.ResourceId}_{request.RequestedPermission}";
 
-        return await this.CheckAncestorPermissionsAsync(request);
-    }
+    private async Task<bool> CheckAuthorizationAsync(PermissionRequestDto request) =>
+        await this._permissionService.HasDirectPermissionAsync(request) ||
+        await this.CheckAncestorPermissionsAsync(request);
 
     private async Task<bool> CheckAncestorPermissionsAsync(PermissionRequestDto request)
     {
-        WorkItemType workItemType = await this._workItemService.GetWorkItemType(request.ResourceId);
-        WorkItem? ancestor;
-
-        switch (workItemType)
+        Result<WorkItemType> workItemTypeResult = await this._workItemService.GetWorkItemType(request.ResourceId);
+        if (workItemTypeResult.IsFailed)
         {
-            case WorkItemType.Task:
-                ancestor = await this._workItemService.GetNearestAncestorOf<Project>(request.ResourceId);
-                break;
-            case WorkItemType.Project:
-                ancestor = await this._workItemService.GetNearestAncestorOf<ZoraProgram>(request.ResourceId);
-                break;
-            case WorkItemType.Program:
-                this._logger.LogWarning(
-                    "Program is the top level ancestor for resource {ResourceId}",
-                    request.ResourceId);
-                return false;
-            default:
-                this._logger.LogError("Unknown work item type: {WorkItemType}", workItemType);
-                return false;
+            this._logger.LogError("Failed to retrieve work item type for resource {ResourceId}", request.ResourceId);
+            return false;
         }
 
+        WorkItem? ancestor = await this.GetAncestorByType(request.ResourceId, workItemTypeResult.Value);
         if (ancestor == null)
         {
-            this._logger.LogInformation(
-                "No ancestor found for resource {ResourceId} of type {WorkItemType}",
-                request.ResourceId,
-                workItemType);
+            this._logger.LogInformation("No ancestor found for resource {ResourceId} of type {WorkItemType}",
+                request.ResourceId, workItemTypeResult.Value);
             return false;
         }
 
@@ -209,9 +180,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             RequestedPermission = request.RequestedPermission
         };
 
-        bool isAuthorised = await this.IsAuthorisedAsync(ancestorRequest);
-
-        if (isAuthorised)
+        if (await this.IsAuthorisedAsync(ancestorRequest))
         {
             this._logger.LogInformation(
                 "Authorised for user {UserId} on ancestor {AncestorId} of resource {ResourceId} with permission {Permission}",
@@ -219,7 +188,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             return true;
         }
 
-        if (ancestor is Project project && project.ProgramId.HasValue)
+        if (ancestor is Project { ProgramId: not null } project)
         {
             return await this.CheckAncestorPermissionsAsync(new PermissionRequestDto
             {
@@ -233,5 +202,28 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             "Not authorised for user {UserId} on ancestor {AncestorId} of resource {ResourceId} with permission {Permission}",
             request.UserId, ancestor.Id, request.ResourceId, request.RequestedPermission);
         return false;
+    }
+
+    private async Task<WorkItem?> GetAncestorByType(long resourceId, WorkItemType workItemType)
+    {
+        return workItemType switch
+        {
+            WorkItemType.Task => await this.GetAncestorResult<Project>(resourceId),
+            WorkItemType.Project => await this.GetAncestorResult<ZoraProgram>(resourceId),
+            WorkItemType.Program => null,
+            _ => null
+        };
+    }
+
+    private async Task<WorkItem?> GetAncestorResult<T>(long resourceId) where T : WorkItem
+    {
+        Result<T> result = await this._workItemService.GetNearestAncestorOf<T>(resourceId);
+        if (result.IsFailed)
+        {
+            this._logger.LogError("Failed to retrieve ancestor for resource {ResourceId}", resourceId);
+            return null;
+        }
+
+        return result.Value;
     }
 }

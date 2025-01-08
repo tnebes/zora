@@ -19,11 +19,18 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
     {
     }
 
-    public new async Task<Result<IEnumerable<Permission>>> GetAllAsync()
+    public async Task<Result<IEnumerable<Permission>>> GetAllAsync(bool includeProperties = false)
     {
         try
         {
-            List<Permission> permissions = await this.FindAll().ToListAsync();
+            IQueryable<Permission> query = this.FilteredDbSet.AsQueryable();
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
+            List<Permission> permissions = await query.ToListAsync();
+
             return Result.Ok(permissions.AsEnumerable());
         }
         catch (Exception ex)
@@ -33,11 +40,17 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
         }
     }
 
-    public new async Task<Result<Permission>> GetByIdAsync(long id)
+    public async Task<Result<Permission>> GetByIdAsync(long id, bool includeProperties = false)
     {
         try
         {
-            Permission? permission = await base.GetByIdAsync(id);
+            IQueryable<Permission> query = this.FilteredDbSet.AsQueryable();
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
+            Permission? permission = await query.FirstOrDefaultAsync(p => p.Id == id);
 
             if (permission != null)
             {
@@ -84,11 +97,15 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
     }
 
     public async Task<Result<(IEnumerable<Permission> permissions, int totalCount)>> GetPagedAsync(
-        QueryParamsDto queryParams)
+        QueryParamsDto queryParams, bool includeProperties = false)
     {
         try
         {
             IQueryable<Permission> query = this.FindAll();
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
 
             int totalCount = await query.CountAsync();
 
@@ -107,13 +124,18 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
     }
 
     public async Task<Result<(IEnumerable<Permission> permissions, int totalCount)>> FindPermissionsAsync(
-        QueryParamsDto findParams)
+        QueryParamsDto findParams, bool includeProperties = false)
     {
         try
         {
-            IQueryable<Permission> query = this.FindAll()
-                .Where(p => p.Name.Contains(findParams.SearchTerm) ||
-                            p.Description.Contains(findParams.SearchTerm));
+            IQueryable<Permission> query = this.FilteredDbSet.AsQueryable();
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
+            query = query.Where(p => p.Name.Contains(findParams.SearchTerm) ||
+                                     p.Description.Contains(findParams.SearchTerm));
 
             int totalCount = await query.CountAsync();
 
@@ -145,12 +167,18 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
         }
     }
 
-    public async Task<Result<(IEnumerable<Permission> permissions, int totalCount)>> GetByIdsAsync(List<long> ids)
+    public async Task<Result<(IEnumerable<Permission> permissions, int totalCount)>> GetByIdsAsync(List<long> ids,
+        bool includeProperties = false)
     {
         try
         {
-            IQueryable<Permission> query = this.FindAll()
-                .Where(p => ids.Contains(p.Id));
+            IQueryable<Permission> query = this.FilteredDbSet.AsQueryable();
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
+            query = query.Where(p => ids.Contains(p.Id));
 
             int totalCount = await query.CountAsync();
             List<Permission> permissions = await query.ToListAsync();
@@ -162,5 +190,13 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
             this.Logger.LogError(ex, "Error getting permissions by ids");
             return Result.Fail<(IEnumerable<Permission>, int)>("Failed to retrieve permissions by ids");
         }
+    }
+
+    private IQueryable<Permission> IncludeProperties(IQueryable<Permission> query)
+    {
+        return query.Include(p => p.RolePermissions)
+            .ThenInclude(rp => rp.Role)
+            .Include(p => p.PermissionWorkItems)
+            .ThenInclude(pw => pw.WorkItem);
     }
 }

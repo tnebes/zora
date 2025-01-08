@@ -23,18 +23,24 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
     {
     }
 
-    public new async Task<Result<User>> GetByIdAsync(long id)
+    public new async Task<Result<User>> GetByIdAsync(long id, bool includeProperties = false)
     {
         await UserRepository.Semaphore.WaitAsync();
         try
         {
-            User? user = await base.GetByIdAsync(id);
-            if (user == null)
+            IQueryable<User> query = this.FilteredDbSet.AsQueryable();
+            if (includeProperties)
             {
-                return Result.Fail<User>(new Error("User not found"));
+                query = this.IncludeProperties(query);
             }
 
-            return Result.Ok(user);
+            User? user = await query.FirstOrDefaultAsync(user => user.Id == id);
+            return user == null ? Result.Fail<User>(new Error("User not found")) : Result.Ok(user);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error getting user by id {Id}", id);
+            return Result.Fail<User>(new Error("Failed to get user by id"));
         }
         finally
         {
@@ -42,8 +48,17 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         }
     }
 
-    public async Task<(IEnumerable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams) =>
-        await this.GetPagedAsync(queryParams.Page, queryParams.PageSize);
+    public async Task<(IEnumerable<User>, int totalCount)> GetUsersAsync(QueryParamsDto queryParams,
+        bool includeProperties = false)
+    {
+        IQueryable<User> query = this.FilteredDbSet.AsQueryable();
+        if (includeProperties)
+        {
+            query = this.IncludeProperties(query);
+        }
+
+        return await this.GetPagedAsync(query, queryParams.Page, queryParams.PageSize);
+    }
 
     public async Task<bool> IsUsernameUniqueAsync(string username)
     {
@@ -72,10 +87,16 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         return Result.Ok(entityEntry.Entity);
     }
 
-    public async Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsers(IQueryable<User> query)
+    public async Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsers(IQueryable<User> query,
+        bool includeProperties = false)
     {
         try
         {
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
             IEnumerable<User> users = await query.ToListAsync();
             int totalCount = await query.CountAsync();
             return Result.Ok((users, totalCount));
@@ -87,9 +108,15 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         }
     }
 
-    public async Task<Result<User>> GetByUsernameAsync(string username)
+    public async Task<Result<User>> GetByUsernameAsync(string username, bool includeProperties = false)
     {
-        User? user = await this.FindByCondition(user => user.Username == username).FirstOrDefaultAsync();
+        IQueryable<User> query = this.FilteredDbSet.AsQueryable();
+        if (includeProperties)
+        {
+            query = this.IncludeProperties(query);
+        }
+
+        User? user = await query.FirstOrDefaultAsync(user => user.Username == username);
 
         if (user == null)
         {
@@ -99,7 +126,7 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         return Result.Ok(user);
     }
 
-    public async Task<Result<User>> GetByEmailAsync(string email)
+    public async Task<Result<User>> GetByEmailAsync(string email, bool includeProperties = false)
     {
         User? user = await this.FindByCondition(user => user.Email == email)
             .FirstOrDefaultAsync();
@@ -107,18 +134,22 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         return user == null ? Result.Fail<User>(new Error("User not found")) : Result.Ok(user);
     }
 
-    public async Task<Result<(IEnumerable<User>, int totalCount)>> FindUsersAsync(QueryParamsDto findParams)
+    public async Task<Result<(IEnumerable<User>, int totalCount)>> FindUsersAsync(QueryParamsDto findParams,
+        bool includeProperties = false)
     {
         await UserRepository.Semaphore.WaitAsync();
         try
         {
-            IQueryable<User> query = this.DbContext.Users
-                .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-                .Where(u =>
-                    EF.Functions.Like(u.Username, $"%{findParams.SearchTerm}%") ||
-                    EF.Functions.Like(u.Email, $"%{findParams.SearchTerm}%") ||
-                    u.UserRoles.Any(ur => EF.Functions.Like(ur.Role.Name, $"%{findParams.SearchTerm}%")));
+            IQueryable<User> query = this.FilteredDbSet.AsQueryable();
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
+            query = query.Where(u =>
+                EF.Functions.Like(u.Username, $"%{findParams.SearchTerm}%") ||
+                EF.Functions.Like(u.Email, $"%{findParams.SearchTerm}%") ||
+                u.UserRoles.Any(ur => EF.Functions.Like(ur.Role.Name, $"%{findParams.SearchTerm}%")));
 
             int totalCount = await query.CountAsync();
 
@@ -138,5 +169,17 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         {
             UserRepository.Semaphore.Release();
         }
+    }
+
+    private IQueryable<User> IncludeProperties(IQueryable<User> query)
+    {
+        return query.Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .ThenInclude(ur => ur.RolePermissions)
+            .ThenInclude(ur => ur.Permission)
+            .Include(u => u.AssignedWorkItems)
+            .Include(u => u.CreatedWorkItems)
+            .Include(u => u.UpdatedWorkItems)
+            .Include(u => u.ManagedProjects);
     }
 }

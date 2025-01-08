@@ -26,6 +26,7 @@ public sealed class RoleMappingProfile : Profile
             .ForMember(dest => dest.Users,
                 opt => opt.MapFrom(src => src.UserRoles.ToDictionary(u => u.UserId, u => u.User.Username)))
             .ForMember(dest => dest.Permissions,
-                opt => opt.MapFrom(src => src.RolePermissions.ToDictionary(p => p.PermissionId, p => p.Permission.Name)));
+                opt => opt.MapFrom(src =>
+                    src.RolePermissions.ToDictionary(p => p.PermissionId, p => p.Permission.Name)));
     }
 }

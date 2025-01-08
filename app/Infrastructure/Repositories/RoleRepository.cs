@@ -23,17 +23,41 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
         this._dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<Role>> GetRolesByIdsAsync(IEnumerable<long> roleIds)
+    public async Task<IEnumerable<Role>> GetRolesByIdsAsync(IEnumerable<long> roleIds, bool includeProperties = false)
     {
-        return await this._dbContext.Roles
+        IQueryable<Role> query = this.FilteredDbSet.AsQueryable();
+        if (includeProperties)
+        {
+            query = this.IncludeProperties(query);
+        }
+
+        return await query
             .Where(r => roleIds.Contains(r.Id))
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Role>> GetRolesAsync() => await this.GetAllAsync();
+    public async Task<IEnumerable<Role>> GetRolesAsync(bool includeProperties = false)
+    {
+        IQueryable<Role> query = this.FilteredDbSet.AsQueryable();
+        if (includeProperties)
+        {
+            query = this.IncludeProperties(query);
+        }
 
-    public async Task<(IEnumerable<Role>, int total)> GetPagedAsync(QueryParamsDto queryParams) =>
-        await base.GetPagedAsync(queryParams.Page, queryParams.PageSize);
+        return await query.ToListAsync();
+    }
+
+    public async Task<(IEnumerable<Role>, int total)> GetPagedAsync(QueryParamsDto queryParams,
+        bool includeProperties = false)
+    {
+        IQueryable<Role> query = this.FilteredDbSet.AsQueryable();
+        if (includeProperties)
+        {
+            query = this.IncludeProperties(query);
+        }
+
+        return await base.GetPagedAsync(query, queryParams.Page, queryParams.PageSize);
+    }
 
     public async Task<Result<Role>> CreateAsync(Role role)
     {
@@ -46,15 +70,21 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
         catch (Exception e)
         {
             this._logger.LogError(e, "Failed to create role: {ErrorMessage}", e.Message);
-            return Result.Fail<Role>(e.Message);
+            return Result.Fail<Role>(new Error("Failed to create role").CausedBy(e));
         }
     }
 
-    public new async Task<Result<Role>> GetByIdAsync(long id)
+    public new async Task<Result<Role>> GetByIdAsync(long id, bool includeProperties = false)
     {
         try
         {
-            Role? role = await base.GetByIdAsync(id);
+            IQueryable<Role> query = this.FilteredDbSet.AsQueryable();
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
+            Role? role = await query.FirstOrDefaultAsync(r => r.Id == id);
             return role != null
                 ? Result.Ok(role)
                 : Result.Fail<Role>($"Role with id {id} not found");
@@ -62,7 +92,7 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
         catch (Exception e)
         {
             this._logger.LogError(e, "Failed to get role by id: {ErrorMessage}", e.Message);
-            return Result.Fail<Role>(e.Message);
+            return Result.Fail<Role>(new Error("Failed to get role by id").CausedBy(e));
         }
     }
 
@@ -76,7 +106,7 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
         catch (Exception e)
         {
             this._logger.LogError(e, "Failed to update role: {ErrorMessage}", e.Message);
-            return Result.Fail<Role>(e.Message);
+            return Result.Fail<Role>(new Error("Failed to update role").CausedBy(e));
         }
     }
 
@@ -94,15 +124,19 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
         }
     }
 
-    public async Task<Result<(IEnumerable<Role>, int totalCount)>> FindRolesAsync(QueryParamsDto findParams)
+    public async Task<Result<(IEnumerable<Role>, int totalCount)>> FindRolesAsync(QueryParamsDto findParams,
+        bool includeProperties = false)
     {
         try
         {
-            IQueryable<Role> query = this.DbContext.Roles
-                .Include(r => r.RolePermissions)
-                .ThenInclude(rp => rp.Permission)
-                .Where(r =>
-                    EF.Functions.Like(r.Name, $"%{findParams.SearchTerm}%"));
+            IQueryable<Role> query = this.FilteredDbSet.AsQueryable();
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
+            query = query.Where(r =>
+                EF.Functions.Like(r.Name, $"%{findParams.SearchTerm}%"));
 
             int totalCount = await query.CountAsync();
 
@@ -120,10 +154,16 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
         }
     }
 
-    public async Task<Result<(IEnumerable<Role> roles, int totalCount)>> SearchRoles(IQueryable<Role> query)
+    public async Task<Result<(IEnumerable<Role> roles, int totalCount)>> SearchRoles(IQueryable<Role> query,
+        bool includeProperties = false)
     {
         try
         {
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
             IEnumerable<Role> roles = await query.ToListAsync();
             int totalCount = await query.CountAsync();
             return Result.Ok((roles, totalCount));
@@ -133,5 +173,15 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
             this.Logger.LogError(ex, "Failed to search roles");
             return Result.Fail<(IEnumerable<Role>, int)>(new Error("Failed to search roles"));
         }
+    }
+
+    private IQueryable<Role> IncludeProperties(IQueryable<Role> query)
+    {
+        return query.Include(r => r.RolePermissions)
+            .ThenInclude(rp => rp.Permission)
+            .Include(r => r.UserRoles)
+            .ThenInclude(ur => ur.User)
+            .Include(r => r.UserRoles)
+            .ThenInclude(ur => ur.Role);
     }
 }

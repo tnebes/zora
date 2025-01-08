@@ -50,7 +50,9 @@ public abstract class BaseRepository<T> where T : BaseEntity
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error retrieving all entities of type {EntityType}. Exception: {ExceptionMessage}", typeof(T).Name, Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex,
+                "Error retrieving all entities of type {EntityType}. Exception: {ExceptionMessage}", typeof(T).Name,
+                Constants.ERROR_500_MESSAGE);
             throw new InvalidOperationException($"Unable to retrieve all entities of type {typeof(T).Name}", ex);
         }
     }
@@ -75,9 +77,7 @@ public abstract class BaseRepository<T> where T : BaseEntity
     {
         try
         {
-            int totalCount = await this.FilteredDbSet.CountAsync();
-            IQueryable<T> entities = this.FilteredDbSet.Skip((page - 1) * pageSize).Take(pageSize);
-            return (entities, totalCount);
+            return await this.GetPagedAsync(this.FilteredDbSet, page, pageSize);
         }
         catch (Exception ex)
         {
@@ -88,6 +88,13 @@ public abstract class BaseRepository<T> where T : BaseEntity
                 $"Unable to retrieve paged entities of type {typeof(T).Name} for page {page} with page size {pageSize}",
                 ex);
         }
+    }
+
+    protected async Task<(IQueryable<T>, int totalCount)> GetPagedAsync(IQueryable<T> query, int page, int pageSize)
+    {
+        int totalCount = await query.CountAsync();
+        IQueryable<T> entities = query.Skip((page - 1) * pageSize).Take(pageSize);
+        return (entities, totalCount);
     }
 
     protected virtual async Task<T> AddAsync(T entity)

@@ -19,4 +19,5 @@ public interface IBaseService<TEntity, TCreateDto, TUpdateDto, TResponseDto>
     Task<bool> DeleteAsync(long id);
     Task<Result<TResponseDto>> FindAsync(QueryParamsDto findParams);
     Task<Result<TResponseDto>> SearchAsync(DynamicQueryParamsDto searchParams);
+    IQueryable<TEntity> GetEntityQueryable();
 }

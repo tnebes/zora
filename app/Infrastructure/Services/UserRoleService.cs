@@ -1,5 +1,6 @@
 #region
 
+using FluentResults;
 using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
@@ -11,7 +12,7 @@ using zora.Core.Interfaces.Services;
 namespace zora.Infrastructure.Services;
 
 [ServiceLifetime(ServiceLifetime.Scoped)]
-public class UserRoleService : IUserRoleService, IZoraService
+public sealed class UserRoleService : IUserRoleService, IZoraService
 {
     private readonly ILogger<UserRoleService> _logger;
     private readonly IUserRoleRepository _userRoleRepository;
@@ -22,9 +23,11 @@ public class UserRoleService : IUserRoleService, IZoraService
         this._logger = logger;
     }
 
-    public async Task<IEnumerable<UserRole>> GetUserRolesByUserIdAsync(long userId) =>
-        await this._userRoleRepository.GetByUserIdAsync(userId);
-
+    public async Task<IEnumerable<UserRole>> GetUserRolesByUserIdAsync(long userId)
+    {
+        Result<IEnumerable<UserRole>> result = await this._userRoleRepository.GetByUserIdAsync(userId);
+        return result.IsSuccess ? result.Value : Enumerable.Empty<UserRole>();
+    }
 
     public Task<bool> IsRoleAsync(IEnumerable<UserRole> userRoles, string roleName) =>
         Task.FromResult(userRoles.Any(role => role.Role.Name == roleName));

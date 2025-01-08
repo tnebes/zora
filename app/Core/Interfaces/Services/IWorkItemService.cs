@@ -1,5 +1,6 @@
 #region
 
+using FluentResults;
 using zora.Core.Domain;
 using zora.Core.Enums;
 
@@ -9,7 +10,7 @@ namespace zora.Core.Interfaces.Services;
 
 public interface IWorkItemService
 {
-    Task<T?> GetNearestAncestorOf<T>(long resourceId) where T : WorkItem;
+    Task<Result<T>> GetNearestAncestorOf<T>(long resourceId) where T : WorkItem;
 
-    Task<WorkItemType> GetWorkItemType(long workItemId);
+    Task<Result<WorkItemType>> GetWorkItemType(long workItemId);
 }
