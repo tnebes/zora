@@ -189,8 +189,7 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
             .ThenInclude(rp => rp.Permission)
             .Include(r => r.UserRoles)
             .ThenInclude(ur => ur.User)
-            .Include(r => r.UserRoles)
-            .ThenInclude(ur => ur.Role);
+            .Include(r => r.UserRoles);
     }
 
     private IQueryable<Role> GetQueryableRole(DynamicQueryRoleParamsDto queryParams, IQueryable<Role> query)

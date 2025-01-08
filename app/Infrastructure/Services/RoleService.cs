@@ -166,7 +166,7 @@ public class RoleService : IRoleService, IZoraService
                 .ToList();
 
             await this._rolePermissionRepository.CreateRangeAsync(rolePermissions);
-            return await this._roleRepository.GetByIdAsync(role.Id);
+            return await this._roleRepository.GetByIdAsync(role.Id, true);
         }
         catch (Exception ex)
         {
