@@ -8,6 +8,7 @@ interface MenuItem {
 
 @Component({
     selector: 'app-sidebar',
+    styleUrls: ['./sidebar.component.scss'],
     template: `
     <nav class="sidebar">
       <ul class="nav flex-column">
@@ -21,28 +22,7 @@ interface MenuItem {
         </li>
       </ul>
     </nav>
-  `,
-    styles: [`
-    .sidebar {
-      padding: 20px;
-      height: 100%;
-      border-right: 1px solid #dee2e6;
-    }
-    .nav-link {
-      padding: 10px 15px;
-      color: #333;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .nav-link.active {
-      background-color: #e9ecef;
-      border-radius: 4px;
-    }
-    .bi {
-      font-size: 1.2rem;
-    }
-  `]
+  `
 })
 export class SidebarComponent {
     public readonly menuItems: MenuItem[] = [

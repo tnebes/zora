@@ -211,7 +211,8 @@ export class RolesComponent implements OnInit, AfterViewInit {
                 columns: [
                     {id: 'name', label: 'Name'},
                     {id: 'description', label: 'Description'},
-                    {id: 'permissionString', label: 'Permission String'}
+                    {id: 'permissionString', label: 'Permissions' },
+                    {id: 'workItems', label: 'Work Items'}
                 ]
             }
         };

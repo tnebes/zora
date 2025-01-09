@@ -1,0 +1,19 @@
+.sidebar {
+    padding: 20px;
+    height: 100%;
+    border-right: 1px solid #dee2e6;
+}
+.nav-link {
+    padding: 10px 15px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.nav-link.active {
+    background-color: #e9ecef;
+    border-radius: 4px;
+}
+.bi {
+    font-size: 1.2rem;
+}
