@@ -37,7 +37,7 @@ public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TRespo
 
     public abstract Task<ActionResult<TResponseDto>> Search(TDynamicQueryDto searchParams);
 
-    protected virtual ActionResult HandleAdminAuthorizationAsync()
+    protected virtual ActionResult HandleAdminAuthorization()
     {
         if (!this.RoleService.IsAdmin(this.HttpContext.User))
         {

@@ -229,7 +229,7 @@ public class DataSeeder : IZoraService, IDataSeeder
 
     private static string GeneratePermissionString()
     {
-        return new string(Enumerable.Range(0, 6)
+        return new string(Enumerable.Range(0, 5)
             .Select(_ => new Faker().Random.Bool() ? '1' : '0')
             .ToArray());
     }

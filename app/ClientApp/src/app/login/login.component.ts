@@ -23,7 +23,7 @@ export class LoginComponent {
             .subscribe({
                 next: (response: LoginResponse) => {
                     this.authenticationService.saveToken(response.token);
-                    this.router.navigate(['/'], {replaceUrl: true});
+                    this.router.navigate(['/'], {replaceUrl: true}).then(() => window.location.reload());
                 },
                 error: (error: Error) => {
                     console.error('Login failed:', error);

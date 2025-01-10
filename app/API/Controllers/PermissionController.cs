@@ -49,7 +49,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
     {
         try
         {
-            ActionResult authResult = this.HandleAdminAuthorizationAsync();
+            ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
                 return this.Unauthorized();
@@ -85,7 +85,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
     {
         try
         {
-            ActionResult authResult = this.HandleAdminAuthorizationAsync();
+            ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
                 return this.Unauthorized();
@@ -123,7 +123,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
     {
         try
         {
-            ActionResult authResult = this.HandleAdminAuthorizationAsync();
+            ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
                 return this.Unauthorized();
@@ -162,7 +162,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
     {
         try
         {
-            ActionResult authResult = this.HandleAdminAuthorizationAsync();
+            ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
                 return this.Unauthorized();
@@ -233,7 +233,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
     {
         try
         {
-            ActionResult authResult = this.HandleAdminAuthorizationAsync();
+            ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
                 return this.Unauthorized();

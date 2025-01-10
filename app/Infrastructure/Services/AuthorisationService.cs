@@ -165,6 +165,9 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             return false;
         }
 
+        this._logger.LogDebug("Retrieved work item type {WorkItemType} for resource {ResourceId}",
+            workItemTypeResult.Value, request.ResourceId);
+
         WorkItem? ancestor = await this.GetAncestorByType(request.ResourceId, workItemTypeResult.Value);
         if (ancestor == null)
         {
@@ -172,6 +175,9 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
                 request.ResourceId, workItemTypeResult.Value);
             return false;
         }
+
+        this._logger.LogDebug("Retrieved ancestor {AncestorId} for resource {ResourceId} of type {WorkItemType}",
+            ancestor.Id, request.ResourceId, workItemTypeResult.Value);
 
         PermissionRequestDto ancestorRequest = new()
         {
@@ -188,8 +194,13 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             return true;
         }
 
+        this._logger.LogInformation(
+            "Not authorised for user {UserId} on ancestor {AncestorId} of resource {ResourceId} with permission {Permission}",
+            request.UserId, ancestor.Id, request.ResourceId, request.RequestedPermission);
+
         if (ancestor is Project { ProgramId: not null } project)
         {
+            this._logger.LogDebug("Checking ancestor permissions for program {ProgramId}", project.ProgramId.Value);
             return await this.CheckAncestorPermissionsAsync(new PermissionRequestDto
             {
                 UserId = request.UserId,
@@ -198,7 +209,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             });
         }
 
-        this._logger.LogInformation(
+        this._logger.LogDebug(
             "Not authorised for user {UserId} on ancestor {AncestorId} of resource {ResourceId} with permission {Permission}",
             request.UserId, ancestor.Id, request.ResourceId, request.RequestedPermission);
         return false;

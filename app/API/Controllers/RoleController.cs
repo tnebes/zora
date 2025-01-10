@@ -43,7 +43,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
     {
         try
         {
-            ActionResult authResult = this.HandleAdminAuthorizationAsync();
+            ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
                 return this.Unauthorized();
