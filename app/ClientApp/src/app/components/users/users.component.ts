@@ -1,22 +1,22 @@
-import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
-import {MatTableDataSource} from '@angular/material/table';
-import {merge, of, Subject} from 'rxjs';
-import {catchError, debounceTime, distinctUntilChanged, filter, startWith, switchMap} from 'rxjs/operators';
-import {QueryParams} from '../../core/models/query-params.interface';
-import {CreateUser, UpdateUser, UserResponse} from '../../core/models/user.interface';
-import {UserService} from '../../core/services/user.service';
-import {MatDialog} from '@angular/material/dialog';
-import {ConfirmDialogComponent} from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
-import {BaseDialogComponent, DialogField} from 'src/app/shared/components/base-dialog/base-dialog.component';
-import {Validators} from '@angular/forms';
-import {RoleService} from 'src/app/core/services/role.service';
-import {Constants, DefaultValues} from "../../core/constants";
-import {QueryService} from "../../core/services/query.service";
-import {NotificationDialogComponent} from 'src/app/shared/components/notification-dialog/notification-dialog.component';
-import {FormUtils} from 'src/app/core/utils/form.utils';
-import {NotificationUtils} from '../../core/utils/notification.utils';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import { merge, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, startWith, switchMap } from 'rxjs/operators';
+import { QueryParams } from '../../core/models/query-params.interface';
+import { CreateUser, UpdateUser, UserResponse } from '../../core/models/user.interface';
+import { UserService } from '../../core/services/user.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { BaseDialogComponent, DialogField } from 'src/app/shared/components/base-dialog/base-dialog.component';
+import { Validators } from '@angular/forms';
+import { RoleService } from 'src/app/core/services/role.service';
+import { Constants, DefaultValues } from "../../core/constants";
+import { QueryService } from "../../core/services/query.service";
+import { FormUtils } from 'src/app/core/utils/form.utils';
+import { NotificationUtils } from '../../core/utils/notification.utils';
+import { EntitySelectorDialogComponent } from 'src/app/shared/components/entity-display-dialog/entity-display-dialog.component';
 
 @Component({
     selector: 'app-users',
@@ -198,6 +198,34 @@ export class UsersComponent implements OnInit, AfterViewInit {
         return Object.values(roles).join(', ');
     }
 
+    public openEntityDialog(roles: { [key: number]: string }): void {
+        if (Object.keys(roles).length === 0) {
+            NotificationUtils.showInfo(this.dialog, 'No roles assigned to this user');
+            return;
+        }
+
+        const roleIds: number[] = Object.keys(roles).map(Number);
+
+        this.roleService.searchRoles({ ids: roleIds }).subscribe((response) => {
+            const data = response.items.map(role => ({
+                id: role.id,
+                name: role.name
+            }));
+            this.openEntitySelectorDialog(data, [{ id: 'name', label: 'Name' }]);
+        });
+    }
+
+    private openEntitySelectorDialog(entities: any[], columns: { id: string, label: string }[]): void {
+        this.dialog.open(EntitySelectorDialogComponent, {
+            width: Constants.ENTITY_DIALOG_WIDTH,
+            data: {
+                entities,
+                columns
+            }
+        });
+    }
+
+
     private setupSearchAndSort(): void {
         merge(
             this.searchTerm.pipe(
@@ -229,7 +257,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
                 catchError(error => {
                     console.error('Error fetching users:', error);
                     NotificationUtils.showError(this.dialog, 'Failed to fetch users', error);
-                    return of({items: [], total: 0});
+                    return of({ items: [], total: 0 });
                 })
             )
             .subscribe(response => {
