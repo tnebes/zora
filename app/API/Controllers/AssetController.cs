@@ -80,6 +80,14 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     {
         try
         {
+            Result<CreateAssetDto> assetValidationResult = this._assetService.IsValidAssetCreateDto(createDto);
+            
+            if (assetValidationResult.IsFailed)
+            {
+                this.Logger.LogError("Asset creation request is invalid: {Error}", assetValidationResult.Errors);
+                return this.StatusCode(StatusCodes.Status400BadRequest, assetValidationResult.Errors);
+            }
+
             Result<Asset> createdAssetResult = await this._assetService.CreateAsync(createDto);
 
             if (createdAssetResult.IsFailed)
@@ -114,6 +122,14 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             if (authResult is UnauthorizedResult)
             {
                 return this.Unauthorized();
+            }
+
+            Result<UpdateAssetDto> dtoResult = this._assetService.IsValidAssetUpdateDto(updateDto);
+
+            if (dtoResult.IsFailed)
+            {
+                this.Logger.LogError("Asset update request is invalid: {Error}", dtoResult.Errors);
+                return this.StatusCode(StatusCodes.Status400BadRequest, dtoResult.Errors);
             }
 
             if (id <= 0L)
