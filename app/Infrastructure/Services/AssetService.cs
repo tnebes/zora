@@ -18,9 +18,9 @@ public sealed class AssetService : IAssetService, IZoraService
 {
 
     private readonly IAssetRepository _assetRepository;
-    private readonly Logger<AssetService> _logger;
+    private readonly ILogger<AssetService> _logger;
 
-    public AssetService(IAssetRepository assetRepository, Logger<AssetService> logger)
+    public AssetService(IAssetRepository assetRepository, ILogger<AssetService> logger)
     {
         this._assetRepository = assetRepository;
         this._logger = logger;

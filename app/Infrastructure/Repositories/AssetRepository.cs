@@ -24,7 +24,7 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
         try
         {
-            IQueryable<Asset> query = this.DbSet.AsQueryable();
+            IQueryable<Asset> query = this.FilteredDbSet.AsQueryable();
 
             if (includeProperties)
             {
