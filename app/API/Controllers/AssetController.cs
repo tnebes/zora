@@ -15,6 +15,9 @@ using zora.Core.Interfaces.Services;
 
 namespace zora.API.Controllers;
 
+/// <summary>
+///     Controller for managing assets.
+/// </summary>
 [ApiController]
 [Authorize]
 [Route("api/v1/assets")]
@@ -24,20 +27,37 @@ namespace zora.API.Controllers;
 public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, UpdateAssetDto, AssetResponseDto,
     DynamicQueryAssetParamsDto>, IZoraService
 {
+    /// <summary>
+    ///     Service for managing assets.
+    /// </summary>
     private readonly IAssetService _assetService;
 
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="AssetController" /> class.
+    /// </summary>
+    /// <param name="assetService">The service for managing assets.</param>
+    /// <param name="queryService">The service for handling queries.</param>
+    /// <param name="roleService">The service for managing roles.</param>
+    /// <param name="logger">The logger.</param>
     public AssetController(
         IAssetService assetService,
         IQueryService queryService,
         IRoleService roleService,
         ILogger<AssetController> logger)
-        : base(logger, roleService, queryService) =>
+        : base(logger, roleService, queryService)
+    {
         this._assetService = assetService;
+    }
 
+    /// <summary>
+    ///     Gets all assets.
+    /// </summary>
+    /// <param name="queryParams">The query parameters.</param>
+    /// <returns>A list of assets.</returns>
     [HttpGet]
     [ProducesResponseType(typeof(AssetResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
     [Description("Get all assets using query parameters")]
     public override async Task<ActionResult<AssetResponseDto>> Get([FromQuery] QueryParamsDto queryParams)
@@ -69,10 +89,16 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         }
     }
 
+    /// <summary>
+    ///     Creates a new asset.
+    /// </summary>
+    /// <param name="createDto">The asset data to create.</param>
+    /// <returns>The created asset.</returns>
     [HttpPost]
     [ProducesResponseType(typeof(Asset), StatusCodes.Status201Created)]
-    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
     [Description("Create a new asset")]
     [Authorize]
@@ -80,12 +106,12 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     {
         try
         {
-            Result<CreateAssetDto> assetValidationResult = this._assetService.IsValidAssetCreateDto(createDto);
-            
+            Result<CreateAssetDto> assetValidationResult = this._assetService.ValidateDto(createDto);
+
             if (assetValidationResult.IsFailed)
             {
                 this.Logger.LogError("Asset creation request is invalid: {Error}", assetValidationResult.Errors);
-                return this.StatusCode(StatusCodes.Status400BadRequest, assetValidationResult.Errors);
+                return this.BadRequest(assetValidationResult.Errors);
             }
 
             Result<Asset> createdAssetResult = await this._assetService.CreateAsync(createDto);
@@ -106,12 +132,18 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         }
     }
 
+    /// <summary>
+    ///     Updates an existing asset.
+    /// </summary>
+    /// <param name="id">The ID of the asset to update.</param>
+    /// <param name="updateDto">The asset data to update.</param>
+    /// <returns>The updated asset.</returns>
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(Asset), StatusCodes.Status200OK)]
-    [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
-    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
     [Description("Update an existing asset")]
     public override async Task<ActionResult<Asset>> Update(long id, [FromBody] UpdateAssetDto updateDto)
@@ -124,12 +156,12 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                 return this.Unauthorized();
             }
 
-            Result<UpdateAssetDto> dtoResult = this._assetService.IsValidAssetUpdateDto(updateDto);
+            Result<UpdateAssetDto> dtoResult = this._assetService.ValidateDto(updateDto);
 
             if (dtoResult.IsFailed)
             {
                 this.Logger.LogError("Asset update request is invalid: {Error}", dtoResult.Errors);
-                return this.StatusCode(StatusCodes.Status400BadRequest, dtoResult.Errors);
+                return this.BadRequest(dtoResult.Errors);
             }
 
             if (id <= 0L)
@@ -162,12 +194,17 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         }
     }
 
+    /// <summary>
+    ///     Deletes an existing asset.
+    /// </summary>
+    /// <param name="id">The ID of the asset to delete.</param>
+    /// <returns>True if the asset was deleted successfully, otherwise false.</returns>
     [HttpDelete("{id}")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-    [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
-    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
     [Description("Delete an existing asset")]
     public override async Task<ActionResult<bool>> Delete(long id)
@@ -203,11 +240,16 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         }
     }
 
+    /// <summary>
+    ///     Finds assets based on specific criteria.
+    /// </summary>
+    /// <param name="findParams">The find parameters.</param>
+    /// <returns>A list of assets matching the criteria.</returns>
     [HttpGet("find")]
     [ProducesResponseType(typeof(AssetResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
     [Description("Find assets based on specific criteria")]
     public override async Task<ActionResult<AssetResponseDto>> Find([FromQuery] QueryParamsDto findParams)
@@ -243,11 +285,15 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         }
     }
 
+    /// <summary>
+    ///     Searches assets using dynamic query parameters.
+    /// </summary>
+    /// <param name="searchParams">The search parameters.</param>
+    /// <returns>A list of assets matching the search criteria.</returns>
     [HttpGet("search")]
     [ProducesResponseType(typeof(AssetResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
     [Description("Search assets using dynamic query parameters")]
     public override async Task<ActionResult<AssetResponseDto>> Search(

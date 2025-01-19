@@ -17,10 +17,10 @@ namespace zora.Infrastructure.Services;
 public sealed class AssetService : IAssetService, IZoraService
 {
 
-    private readonly AssetRepository _assetRepository;
+    private readonly IAssetRepository _assetRepository;
     private readonly Logger<AssetService> _logger;
 
-    public AssetService(AssetRepository assetRepository, Logger<AssetService> logger)
+    public AssetService(IAssetRepository assetRepository, Logger<AssetService> logger)
     {
         this._assetRepository = assetRepository;
         this._logger = logger;
@@ -44,11 +44,6 @@ public sealed class AssetService : IAssetService, IZoraService
 
     public Task<Result<AssetResponseDto>> SearchAsync(DynamicQueryAssetParamsDto searchParams) =>
         throw new NotImplementedException();
-    public Result<CreateAssetDto> IsValidAssetCreateDto(CreateAssetDto createDto) => throw new NotImplementedException();
-    public Result<UpdateAssetDto> IsValidAssetUpdateDto(UpdateAssetDto updateDto) => throw new NotImplementedException();
 
-    private string[] validateAssetDto(object dto)
-    {
-        throw new NotImplementedException();
-    }
+    public Result<TRequestDto> ValidateDto<TRequestDto>(TRequestDto dto) where TRequestDto : class => throw new NotImplementedException();
 }
