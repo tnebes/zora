@@ -8,7 +8,7 @@ using zora.Core.Domain;
 
 namespace zora.Infrastructure.Data.Configurations;
 
-public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
+public sealed class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
 {
     public void Configure(EntityTypeBuilder<WorkItem> builder)
     {

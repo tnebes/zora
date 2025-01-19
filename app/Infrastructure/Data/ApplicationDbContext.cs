@@ -15,7 +15,7 @@ using zora.Infrastructure.Data.Configurations;
 namespace zora.Infrastructure.Data;
 
 [ServiceLifetime(ServiceLifetime.Scoped)]
-public class ApplicationDbContext : DbContext, IDbContext, IZoraService
+public sealed class ApplicationDbContext : DbContext, IDbContext, IZoraService
 {
     private readonly ILogger<ApplicationDbContext> _logger;
     private readonly ISecretsManagerService _secretsManagerService;

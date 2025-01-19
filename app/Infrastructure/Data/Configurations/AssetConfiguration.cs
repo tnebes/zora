@@ -8,7 +8,7 @@ using zora.Core.Domain;
 
 namespace zora.Infrastructure.Data.Configurations;
 
-public class AssetConfiguration : IEntityTypeConfiguration<Asset>
+public sealed class AssetConfiguration : IEntityTypeConfiguration<Asset>
 {
     public void Configure(EntityTypeBuilder<Asset> builder)
     {

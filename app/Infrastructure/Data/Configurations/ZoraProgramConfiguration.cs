@@ -8,7 +8,7 @@ using zora.Core.Domain;
 
 namespace zora.Infrastructure.Data.Configurations;
 
-public class ZoraProgramConfiguration : IEntityTypeConfiguration<ZoraProgram>
+public sealed class ZoraProgramConfiguration : IEntityTypeConfiguration<ZoraProgram>
 {
     public void Configure(EntityTypeBuilder<ZoraProgram> builder)
     {

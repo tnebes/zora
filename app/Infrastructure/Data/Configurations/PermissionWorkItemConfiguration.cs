@@ -8,7 +8,7 @@ using zora.Core.Domain;
 
 namespace zora.Infrastructure.Data.Configurations;
 
-public class PermissionWorkItemConfiguration : IEntityTypeConfiguration<PermissionWorkItem>
+public sealed class PermissionWorkItemConfiguration : IEntityTypeConfiguration<PermissionWorkItem>
 {
     public void Configure(EntityTypeBuilder<PermissionWorkItem> builder)
     {

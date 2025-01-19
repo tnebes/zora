@@ -9,7 +9,7 @@ using zora.Infrastructure.Data;
 
 namespace zora.Infrastructure.DataSeed;
 
-public class DataSeeder : IZoraService, IDataSeeder
+public sealed class DataSeeder : IZoraService, IDataSeeder
 {
     private const int NUM_USERS = 1500;
     private const int NUM_PROGRAMS = 10;

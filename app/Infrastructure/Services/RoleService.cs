@@ -18,7 +18,7 @@ using Constants = zora.Core.Constants;
 namespace zora.Infrastructure.Services;
 
 [ServiceLifetime(ServiceLifetime.Scoped)]
-public class RoleService : IRoleService, IZoraService
+public sealed class RoleService : IRoleService, IZoraService
 {
     private readonly ILogger<RoleService> _logger;
     private readonly IMapper _mapper;

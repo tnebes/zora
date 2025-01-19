@@ -12,7 +12,7 @@ public class AssetDto
     public string? UpdatedByUsername { get; set; }
 }
 
-public class AssetWithWorkItemsDto : AssetDto
+public sealed class AssetWithWorkItemsDto : AssetDto
 {
     public ICollection<WorkItemDto> WorkItems { get; set; } = new List<WorkItemDto>();
 }

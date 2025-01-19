@@ -8,7 +8,7 @@ using zora.Core.Domain;
 
 namespace zora.Infrastructure.Data.Configurations;
 
-public class ZoraTaskConfiguration : IEntityTypeConfiguration<ZoraTask>
+public sealed class ZoraTaskConfiguration : IEntityTypeConfiguration<ZoraTask>
 {
     public void Configure(EntityTypeBuilder<ZoraTask> builder)
     {

@@ -14,7 +14,7 @@ namespace zora.Infrastructure.Repositories;
 
 public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, IZoraService
 {
-    public AssetRepository(ApplicationDbContext dbContext, ILogger<BaseRepository<Asset>> logger) : base(dbContext,
+    public AssetRepository(ApplicationDbContext dbContext, ILogger<AssetRepository> logger) : base(dbContext,
         logger)
     {
     }
@@ -59,21 +59,8 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         this.ApplyListFilter(ref query, queryParams.AssetPath, s => s,
             (asset, assetPaths) => assetPaths.Contains(asset.AssetPath));
 
-        this.ApplyListFilter(ref query, queryParams.WorkAssetId, long.Parse,
-            (asset, workAssetIds) => workAssetIds.Contains(asset.WorkAssetId));
-
-        this.ApplyFilter(ref query, queryParams.CreatedAt,
-            (asset, date) => date.Equals(asset.CreatedAt));
-
-        // Sorting
-        if (!string.IsNullOrWhiteSpace(queryParams.Sort))
-        {
-            query = query.OrderByDynamic(queryParams.Sort);
-        }
-        else
-        {
-            query = query.OrderBy(a => a.Id);
-        }
+        this.ApplyListFilter(ref query, queryParams.WorkItemId, long.Parse,
+            (asset, workAssetIds) => asset.WorkItemAssets.Any(wi => workAssetIds.Contains(wi.WorkItemId)));
 
         return query;
     }

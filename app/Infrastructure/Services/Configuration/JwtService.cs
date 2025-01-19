@@ -14,7 +14,7 @@ using zora.Core.Interfaces.Services;
 namespace zora.Infrastructure.Services.Configuration;
 
 [ServiceLifetime(ServiceLifetime.Scoped)]
-public class JwtService : IJwtService, IZoraService
+public sealed class JwtService : IJwtService, IZoraService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<JwtService> _logger;
