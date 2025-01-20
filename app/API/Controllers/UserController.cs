@@ -107,7 +107,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:long}")]
     [ProducesResponseType<int>(StatusCodes.Status204NoContent)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
@@ -192,7 +192,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
         }
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:long}")]
     [ProducesResponseType(typeof(UserResponseDto<FullUserDto>), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]

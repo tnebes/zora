@@ -40,7 +40,8 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error searching assets. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error searching assets. Exception: {ExceptionMessage}",
+                Constants.ERROR_500_MESSAGE);
             return Result.Fail<(IEnumerable<Asset>, int totalCount)>(Constants.ERROR_500_MESSAGE);
         }
     }

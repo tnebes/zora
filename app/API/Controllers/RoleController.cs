@@ -102,7 +102,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         }
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:long}")]
     [ProducesResponseType(typeof(RoleDto), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
@@ -136,7 +136,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]

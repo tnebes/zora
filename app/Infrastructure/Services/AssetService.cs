@@ -3,9 +3,7 @@
 using FluentResults;
 using zora.Core.Attributes;
 using zora.Core.Domain;
-using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Requests.Interfaces;
 using zora.Core.DTOs.Responses;
 using zora.Core.Interfaces.Services;
 
@@ -16,7 +14,6 @@ namespace zora.Infrastructure.Services;
 [ServiceLifetime(ServiceLifetime.Scoped)]
 public sealed class AssetService : IAssetService, IZoraService
 {
-
     private readonly IAssetRepository _assetRepository;
     private readonly ILogger<AssetService> _logger;
 
@@ -26,8 +23,10 @@ public sealed class AssetService : IAssetService, IZoraService
         this._logger = logger;
     }
 
-    public Task<Result<(IEnumerable<Asset>, int total)>> GetAsync(QueryParamsDto queryParams) =>
-        throw new NotImplementedException();
+    public async Task<Result<(IEnumerable<Asset>, int total)>> GetAsync(QueryParamsDto queryParams)
+    {
+        var assets = await this._assetRepository.GetPagedAsync(queryParams);
+    }
 
     public Task<Result<AssetResponseDto>> GetDtoAsync(QueryParamsDto queryParams) =>
         throw new NotImplementedException();
@@ -45,5 +44,6 @@ public sealed class AssetService : IAssetService, IZoraService
     public Task<Result<AssetResponseDto>> SearchAsync(DynamicQueryAssetParamsDto searchParams) =>
         throw new NotImplementedException();
 
-    public Result<TRequestDto> ValidateDto<TRequestDto>(TRequestDto dto) where TRequestDto : class => throw new NotImplementedException();
+    public Result<TRequestDto> ValidateDto<TRequestDto>(TRequestDto dto) where TRequestDto : class =>
+        throw new NotImplementedException();
 }

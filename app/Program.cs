@@ -1,7 +1,6 @@
 #region
 
 using Serilog;
-using Serilog.Core;
 using zora.Core.Interfaces.Services;
 using zora.Extensions;
 
@@ -24,7 +23,8 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Application terminated unexpectedly due to an unhandled exception.\nPlease read the logs for more information.");
+    Log.Fatal(ex,
+        "Application terminated unexpectedly due to an unhandled exception.\nPlease read the logs for more information.");
     string path = Path.Combine(Directory.GetCurrentDirectory(), "logs", "crash.log");
     await File.WriteAllTextAsync(path, ex.ToString());
 }

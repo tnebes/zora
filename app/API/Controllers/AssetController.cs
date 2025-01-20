@@ -5,9 +5,7 @@ using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core.Domain;
-using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Requests.Interfaces;
 using zora.Core.DTOs.Responses;
 using zora.Core.Interfaces.Services;
 
@@ -44,10 +42,8 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         IQueryService queryService,
         IRoleService roleService,
         ILogger<AssetController> logger)
-        : base(logger, roleService, queryService)
-    {
+        : base(logger, roleService, queryService) =>
         this._assetService = assetService;
-    }
 
     /// <summary>
     ///     Gets all assets.
@@ -138,7 +134,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     /// <param name="id">The ID of the asset to update.</param>
     /// <param name="updateDto">The asset data to update.</param>
     /// <returns>The updated asset.</returns>
-    [HttpPut("{id}")]
+    [HttpPut("{id:long}")]
     [ProducesResponseType(typeof(Asset), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -199,7 +195,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     /// </summary>
     /// <param name="id">The ID of the asset to delete.</param>
     /// <returns>True if the asset was deleted successfully, otherwise false.</returns>
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:long}")]
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

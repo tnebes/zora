@@ -1,4 +1,8 @@
+#region
+
 using zora.Core.DTOs.Responses.Interface;
+
+#endregion
 
 namespace zora.Core.DTOs.Responses;
 
