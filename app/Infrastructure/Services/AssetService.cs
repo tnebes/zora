@@ -30,13 +30,15 @@ public sealed class AssetService : IAssetService, IZoraService
 
     public async Task<Result<(IEnumerable<Asset>, int total)>> GetAsync(QueryParamsDto queryParams)
     {
-        Result<(IEnumerable<Asset> Assets, int TotalCount)> assets = await this._assetRepository.GetPagedAsync(queryParams);
+        Result<(IEnumerable<Asset> Assets, int TotalCount)> assets =
+            await this._assetRepository.GetPagedAsync(queryParams);
         return assets;
     }
 
     public async Task<Result<AssetResponseDto>> GetDtoAsync(QueryParamsDto queryParams)
     {
-        Result<(IEnumerable<Asset> Assets, int TotalCount)> assetsResult = await this._assetRepository.GetPagedAsync(queryParams);
+        Result<(IEnumerable<Asset> Assets, int TotalCount)> assetsResult =
+            await this._assetRepository.GetPagedAsync(queryParams);
 
         if (assetsResult.IsFailed)
         {
@@ -56,10 +58,7 @@ public sealed class AssetService : IAssetService, IZoraService
         return Result.Ok(assetResponseDto);
     }
 
-    public async Task<Result<Asset>> GetByIdAsync(long id)
-    {
-        return await this._assetRepository.GetByIdAsync(id);
-    }
+    public async Task<Result<Asset>> GetByIdAsync(long id) => await this._assetRepository.GetByIdAsync(id);
 
     public async Task<Result<Asset>> CreateAsync(CreateAssetDto createDto)
     {
@@ -72,7 +71,8 @@ public sealed class AssetService : IAssetService, IZoraService
         Result<Asset> existingAssetResult = await this._assetRepository.GetByIdAsync(id);
         if (existingAssetResult.IsFailed)
         {
-            this._logger.LogError("Failed to find asset with id {Id}. Errors: {Errors}", id, existingAssetResult.Errors);
+            this._logger.LogError("Failed to find asset with id {Id}. Errors: {Errors}", id,
+                existingAssetResult.Errors);
             return existingAssetResult;
         }
 
@@ -88,7 +88,8 @@ public sealed class AssetService : IAssetService, IZoraService
         Result<Asset> assetResult = await this._assetRepository.GetByIdAsync(id);
         if (assetResult.IsFailed)
         {
-            this._logger.LogError("Failed to find asset with id {Id} for deletion. Errors: {Errors}", id, assetResult.Errors);
+            this._logger.LogError("Failed to find asset with id {Id} for deletion. Errors: {Errors}", id,
+                assetResult.Errors);
             return false;
         }
 
@@ -98,7 +99,8 @@ public sealed class AssetService : IAssetService, IZoraService
 
     public async Task<Result<AssetResponseDto>> FindAsync(QueryParamsDto findParams)
     {
-        Result<(IEnumerable<Asset> Assets, int TotalCount)> assetsResult = await this._assetRepository.GetPagedAsync(findParams);
+        Result<(IEnumerable<Asset> Assets, int TotalCount)> assetsResult =
+            await this._assetRepository.GetPagedAsync(findParams);
         if (assetsResult.IsFailed)
         {
             this._logger.LogError("Failed to find assets. Errors: {Errors}", assetsResult.Errors);
@@ -120,7 +122,8 @@ public sealed class AssetService : IAssetService, IZoraService
 
     public async Task<Result<AssetResponseDto>> SearchAsync(DynamicQueryAssetParamsDto searchParams)
     {
-        Result<(IEnumerable<Asset> Items, int Total)> searchResult = await this._assetRepository.SearchAsync(searchParams);
+        Result<(IEnumerable<Asset> Items, int Total)> searchResult =
+            await this._assetRepository.SearchAsync(searchParams);
         if (searchResult.IsFailed)
         {
             this._logger.LogError("Failed to search assets. Errors: {Errors}", searchResult.Errors);
@@ -181,11 +184,12 @@ public sealed class AssetService : IAssetService, IZoraService
                 return Result.Fail<TRequestDto>("File is required");
             }
         }
-        else 
+        else
         {
             this._logger.LogError("Invalid request DTO type: {DtoType}", dto.GetType().Name);
             throw new InvalidOperationException("Invalid request DTO type");
         }
+
         return Result.Ok(dto);
     }
 }

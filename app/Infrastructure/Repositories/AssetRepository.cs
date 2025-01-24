@@ -100,7 +100,8 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
     }
 
-    public async Task<Result<(IEnumerable<Asset> Assets, int TotalCount)>> GetPagedAsync(QueryParamsDto paramsDto, bool includeProperties = false)
+    public async Task<Result<(IEnumerable<Asset> Assets, int TotalCount)>> GetPagedAsync(QueryParamsDto paramsDto,
+        bool includeProperties = false)
     {
         try
         {
@@ -149,7 +150,8 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error updating asset. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error updating asset. Exception: {ExceptionMessage}",
+                Constants.ERROR_500_MESSAGE);
             return Result.Fail(Constants.ERROR_500_MESSAGE);
         }
     }
@@ -172,12 +174,14 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error deleting asset. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error deleting asset. Exception: {ExceptionMessage}",
+                Constants.ERROR_500_MESSAGE);
             return Result.Fail(Constants.ERROR_500_MESSAGE);
         }
     }
 
-    public async Task<Result<IEnumerable<Asset>>> FindByCondition(Expression<Func<Asset, bool>> expression, bool includeProperties = false)
+    public async Task<Result<IEnumerable<Asset>>> FindByCondition(Expression<Func<Asset, bool>> expression,
+        bool includeProperties = false)
     {
         try
         {
@@ -192,7 +196,8 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error finding assets by condition. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error finding assets by condition. Exception: {ExceptionMessage}",
+                Constants.ERROR_500_MESSAGE);
             return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
         }
     }
@@ -212,7 +217,8 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error getting queryable assets. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error getting queryable assets. Exception: {ExceptionMessage}",
+                Constants.ERROR_500_MESSAGE);
             return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
         }
     }
@@ -232,7 +238,8 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error finding all assets. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error finding all assets. Exception: {ExceptionMessage}",
+                Constants.ERROR_500_MESSAGE);
             return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
         }
     }
