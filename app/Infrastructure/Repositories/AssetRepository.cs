@@ -1,10 +1,13 @@
 #region
 
+using System.Linq.Expressions;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using zora.Core;
+using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
+using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
 using zora.Infrastructure.Data;
 
@@ -12,6 +15,7 @@ using zora.Infrastructure.Data;
 
 namespace zora.Infrastructure.Repositories;
 
+[ServiceLifetime(ServiceLifetime.Scoped)]
 public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, IZoraService
 {
     public AssetRepository(ApplicationDbContext dbContext, ILogger<AssetRepository> logger) : base(dbContext,
@@ -24,7 +28,7 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
         try
         {
-            IQueryable<Asset> query = this.FilteredDbSet.AsQueryable();
+            IQueryable<Asset> query = this.FilteredDbSet;
 
             if (includeProperties)
             {
@@ -43,6 +47,193 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
             this.Logger.LogError(ex, "Error searching assets. Exception: {ExceptionMessage}",
                 Constants.ERROR_500_MESSAGE);
             return Result.Fail<(IEnumerable<Asset>, int totalCount)>(Constants.ERROR_500_MESSAGE);
+        }
+    }
+
+    public async Task<Result<Asset>> GetByIdAsync(long id, bool includeProperties = false)
+    {
+        try
+        {
+            IQueryable<Asset> query = this.FilteredDbSet;
+
+            if (includeProperties)
+            {
+                query = query.Include(a => a.WorkItemAssets);
+            }
+
+            Asset asset = await query.FirstOrDefaultAsync(e => e.Id == id);
+
+            if (asset == null)
+            {
+                this.Logger.LogWarning("Asset with id {Id} not found", id);
+                return Result.Fail<Asset>(Constants.ERROR_404_MESSAGE);
+            }
+
+            return Result.Ok(asset);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error getting asset by id. Exception: {ExceptionMessage}",
+                Constants.ERROR_500_MESSAGE);
+            return Result.Fail<Asset>(Constants.ERROR_500_MESSAGE);
+        }
+    }
+
+    public async Task<Result<IEnumerable<Asset>>> GetAllAsync(bool includeProperties = false)
+    {
+        try
+        {
+            IQueryable<Asset> query = this.FilteredDbSet;
+
+            if (includeProperties)
+            {
+                query = query.Include(a => a.WorkItemAssets);
+            }
+
+            return Result.Ok((await query.ToListAsync()).AsEnumerable());
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error getting all assets. Exception: {ExceptionMessage}",
+                Constants.ERROR_500_MESSAGE);
+            return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
+        }
+    }
+
+    public async Task<Result<(IEnumerable<Asset> Assets, int TotalCount)>> GetPagedAsync(QueryParamsDto paramsDto, bool includeProperties = false)
+    {
+        try
+        {
+            IQueryable<Asset> query = this.FilteredDbSet;
+
+            if (includeProperties)
+            {
+                query = query.Include(a => a.WorkItemAssets);
+            }
+
+            (IQueryable<Asset> filteredAssets, int totalCount) =
+                await this.GetPagedAsync(query, paramsDto.Page, paramsDto.PageSize);
+
+            return Result.Ok(((await filteredAssets.ToListAsync()).AsEnumerable(), totalCount));
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error getting paged assets. Exception: {ExceptionMessage}",
+                Constants.ERROR_500_MESSAGE);
+            return Result.Fail<(IEnumerable<Asset>, int totalCount)>(Constants.ERROR_500_MESSAGE);
+        }
+    }
+
+    public async Task<Result<Asset>> AddAsync(Asset entity)
+    {
+        try
+        {
+            await this.DbSet.AddAsync(entity);
+            await this.DbContext.SaveChangesAsync();
+            return Result.Ok(entity);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error adding asset. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            return Result.Fail<Asset>(Constants.ERROR_500_MESSAGE);
+        }
+    }
+
+    public async Task<Result> UpdateAsync(Asset entity)
+    {
+        try
+        {
+            this.DbSet.Update(entity);
+            await this.DbContext.SaveChangesAsync();
+            return Result.Ok();
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error updating asset. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            return Result.Fail(Constants.ERROR_500_MESSAGE);
+        }
+    }
+
+    public async Task<Result> DeleteAsync(long id)
+    {
+        try
+        {
+            Asset asset = await this.FilteredDbSet.FirstOrDefaultAsync(a => a.Id == id);
+            if (asset == null)
+            {
+                this.Logger.LogWarning("Asset with id {Id} not found", id);
+                return Result.Fail(Constants.ERROR_404_MESSAGE);
+            }
+
+            asset.Deleted = true;
+            this.DbSet.Update(asset);
+            await this.DbContext.SaveChangesAsync();
+            return Result.Ok();
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error deleting asset. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            return Result.Fail(Constants.ERROR_500_MESSAGE);
+        }
+    }
+
+    public async Task<Result<IEnumerable<Asset>>> FindByCondition(Expression<Func<Asset, bool>> expression, bool includeProperties = false)
+    {
+        try
+        {
+            IQueryable<Asset> query = this.FilteredDbSet;
+
+            if (includeProperties)
+            {
+                query = query.Include(a => a.WorkItemAssets);
+            }
+
+            return Result.Ok((await query.Where(expression).ToListAsync()).AsEnumerable());
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error finding assets by condition. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
+        }
+    }
+
+    public async Task<Result<IEnumerable<Asset>>> GetQueryable(bool includeProperties = false)
+    {
+        try
+        {
+            IQueryable<Asset> query = this.FilteredDbSet;
+
+            if (includeProperties)
+            {
+                query = query.Include(a => a.WorkItemAssets);
+            }
+
+            return Result.Ok((await query.ToListAsync()).AsEnumerable());
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error getting queryable assets. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
+        }
+    }
+
+    public async Task<Result<IEnumerable<Asset>>> FindAll(bool includeProperties = false)
+    {
+        try
+        {
+            IQueryable<Asset> query = this.FilteredDbSet;
+
+            if (includeProperties)
+            {
+                query = query.Include(a => a.WorkItemAssets);
+            }
+
+            return Result.Ok((await query.ToListAsync()).AsEnumerable());
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error finding all assets. Exception: {ExceptionMessage}", Constants.ERROR_500_MESSAGE);
+            return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
         }
     }
 
