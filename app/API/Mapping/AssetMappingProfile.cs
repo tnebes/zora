@@ -17,8 +17,8 @@ public sealed class AssetMappingProfile : Profile
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
-            .ForMember(dest => dest.CreatedByUsername, opt => opt.MapFrom(src => src.CreatedBy.Username))
-            .ForMember(dest => dest.UpdatedByUsername, opt => opt.MapFrom(src => src.UpdatedBy.Username))
+            .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy.Id))
+            .ForMember(dest => dest.UpdatedBy, opt => opt.MapFrom(src => src.UpdatedBy.Id))
             .ForMember(dest => dest.AssetPath, opt => opt.MapFrom(src => src.AssetPath));
         this.CreateMap<Asset, AssetWithWorkItemsDto>()
             .IncludeBase<Asset, AssetDto>()
