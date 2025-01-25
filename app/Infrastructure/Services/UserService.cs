@@ -265,7 +265,7 @@ public sealed class UserService : IUserService, IZoraService
         try
         {
             this._queryService.ValidateQueryParams(searchParams, ResourceType.User);
-            Result<(IEnumerable<User> users, int totalCount)> searchUsers =
+            Result<(IEnumerable<User> users, int TotalCount)> searchUsers =
                 await this._userRepository.SearchAsync(searchParams);
 
             if (searchUsers.IsFailed)

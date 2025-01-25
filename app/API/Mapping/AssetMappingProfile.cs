@@ -7,6 +7,8 @@ using zora.Core.DTOs.Requests;
 
 #endregion
 
+namespace zora.API.Mapping;
+
 public sealed class AssetMappingProfile : Profile
 {
     public AssetMappingProfile()

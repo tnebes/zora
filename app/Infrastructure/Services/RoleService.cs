@@ -228,10 +228,10 @@ public sealed class RoleService : IRoleService, IZoraService
         try
         {
             this._queryService.ValidateQueryParams(searchParams, ResourceType.Role);
-            Result<(IEnumerable<Role> roles, int totalCount)> searchRoles =
+            Result<(IEnumerable<Role> roles, int TotalCount)> searchRoles =
                 await this._roleRepository.SearchAsync(searchParams);
 
-            return Result.Ok(searchRoles.Value.roles.ToRoleResponseDto(searchRoles.Value.totalCount, searchParams.Page,
+            return Result.Ok(searchRoles.Value.roles.ToRoleResponseDto(searchRoles.Value.TotalCount, searchParams.Page,
                 searchParams.PageSize, this._mapper));
         }
         catch (Exception ex)

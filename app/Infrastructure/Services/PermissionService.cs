@@ -205,7 +205,7 @@ public sealed class PermissionService : IPermissionService, IZoraService
     {
         try
         {
-            Result<(IEnumerable<Permission>, int totalCount)> result =
+            Result<(IEnumerable<Permission>, int TotalCount)> result =
                 await this._permissionRepository.SearchAsync(searchParams, true);
             if (result.IsFailed)
             {

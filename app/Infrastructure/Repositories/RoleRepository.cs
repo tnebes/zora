@@ -154,7 +154,7 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
         }
     }
 
-    public async Task<Result<(IEnumerable<Role>, int totalCount)>> SearchAsync(DynamicQueryRoleParamsDto searchParams,
+    public async Task<Result<(IEnumerable<Role>, int TotalCount)>> SearchAsync(DynamicQueryRoleParamsDto searchParams,
         bool includeProperties = false)
     {
         IQueryable<Role> query = this.FilteredDbSet.AsQueryable();
@@ -162,7 +162,7 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
         return await this.SearchRolesAsync(query, includeProperties);
     }
 
-    public async Task<Result<(IEnumerable<Role> roles, int totalCount)>> SearchRolesAsync(IQueryable<Role> query,
+    public async Task<Result<(IEnumerable<Role> roles, int TotalCount)>> SearchRolesAsync(IQueryable<Role> query,
         bool includeProperties = false)
     {
         try

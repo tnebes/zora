@@ -87,7 +87,7 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         return Result.Ok(entityEntry.Entity);
     }
 
-    public async Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsersAsync(IQueryable<User> query,
+    public async Task<Result<(IEnumerable<User> users, int TotalCount)>> SearchUsersAsync(IQueryable<User> query,
         bool includeProperties = false)
     {
         try
@@ -171,7 +171,7 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         }
     }
 
-    public async Task<Result<(IEnumerable<User>, int totalCount)>> SearchAsync(DynamicQueryUserParamsDto searchParams,
+    public async Task<Result<(IEnumerable<User>, int TotalCount)>> SearchAsync(DynamicQueryUserParamsDto searchParams,
         bool includeProperties = false)
     {
         IQueryable<User> query = this.FilteredDbSet.AsQueryable();

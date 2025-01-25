@@ -23,30 +23,23 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
     }
 
-    public async Task<Result<(IEnumerable<Asset>, int totalCount)>> SearchAsync(DynamicQueryAssetParamsDto searchParams,
+    public async Task<Result<(IEnumerable<Asset>, int TotalCount)>> SearchAsync(DynamicQueryAssetParamsDto searchParams,
         bool includeProperties = false)
     {
         try
         {
-            IQueryable<Asset> query = this.FilteredDbSet;
-
-            if (includeProperties)
-            {
-                query = query.Include(a => a.WorkItemAssets);
-            }
-
+            IQueryable<Asset> query = this.BuildBaseQuery(includeProperties);
             query = this.GetQueryableAsset(searchParams, query);
 
             (IQueryable<Asset> filteredAssets, int totalCount) =
                 await this.GetPagedAsync(query, searchParams.Page, searchParams.PageSize);
-
-            return Result.Ok((filteredAssets.AsEnumerable(), totalCount));
+            List<Asset> assets = await filteredAssets.ToListAsync();
+            return Result.Ok<(IEnumerable<Asset>, int)>((assets, totalCount));
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error searching assets. Exception: {ExceptionMessage}",
-                Constants.ERROR_500_MESSAGE);
-            return Result.Fail<(IEnumerable<Asset>, int totalCount)>(Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error searching assets");
+            return Result.Fail<(IEnumerable<Asset>, int)>(Constants.ERROR_500_MESSAGE);
         }
     }
 
@@ -54,27 +47,16 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
         try
         {
-            IQueryable<Asset> query = this.FilteredDbSet;
+            IQueryable<Asset> query = this.BuildBaseQuery(includeProperties);
+            Asset? asset = await query.FirstOrDefaultAsync(e => e.Id == id);
 
-            if (includeProperties)
-            {
-                query = query.Include(a => a.WorkItemAssets);
-            }
-
-            Asset asset = await query.FirstOrDefaultAsync(e => e.Id == id);
-
-            if (asset == null)
-            {
-                this.Logger.LogWarning("Asset with id {Id} not found", id);
-                return Result.Fail<Asset>(Constants.ERROR_404_MESSAGE);
-            }
-
-            return Result.Ok(asset);
+            return asset != null
+                ? Result.Ok(asset)
+                : Result.Fail<Asset>(Constants.ERROR_404_MESSAGE);
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error getting asset by id. Exception: {ExceptionMessage}",
-                Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error getting asset by id {Id}", id);
             return Result.Fail<Asset>(Constants.ERROR_500_MESSAGE);
         }
     }
@@ -83,19 +65,13 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
         try
         {
-            IQueryable<Asset> query = this.FilteredDbSet;
-
-            if (includeProperties)
-            {
-                query = query.Include(a => a.WorkItemAssets);
-            }
-
-            return Result.Ok((await query.ToListAsync()).AsEnumerable());
+            IQueryable<Asset> query = this.BuildBaseQuery(includeProperties);
+            List<Asset> assets = await query.ToListAsync();
+            return Result.Ok<IEnumerable<Asset>>(assets);
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error getting all assets. Exception: {ExceptionMessage}",
-                Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error getting all assets");
             return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
         }
     }
@@ -105,23 +81,16 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
         try
         {
-            IQueryable<Asset> query = this.FilteredDbSet;
-
-            if (includeProperties)
-            {
-                query = query.Include(a => a.WorkItemAssets);
-            }
-
+            IQueryable<Asset> query = this.BuildBaseQuery(includeProperties);
             (IQueryable<Asset> filteredAssets, int totalCount) =
                 await this.GetPagedAsync(query, paramsDto.Page, paramsDto.PageSize);
-
-            return Result.Ok(((await filteredAssets.ToListAsync()).AsEnumerable(), totalCount));
+            List<Asset> assets = await filteredAssets.ToListAsync();
+            return Result.Ok<(IEnumerable<Asset>, int)>((assets, totalCount));
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error getting paged assets. Exception: {ExceptionMessage}",
-                Constants.ERROR_500_MESSAGE);
-            return Result.Fail<(IEnumerable<Asset>, int totalCount)>(Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error getting paged assets");
+            return Result.Fail<(IEnumerable<Asset>, int)>(Constants.ERROR_500_MESSAGE);
         }
     }
 
@@ -185,19 +154,13 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
         try
         {
-            IQueryable<Asset> query = this.FilteredDbSet;
-
-            if (includeProperties)
-            {
-                query = query.Include(a => a.WorkItemAssets);
-            }
-
-            return Result.Ok((await query.Where(expression).ToListAsync()).AsEnumerable());
+            IQueryable<Asset> query = this.BuildBaseQuery(includeProperties);
+            List<Asset> assets = await query.Where(expression).ToListAsync();
+            return Result.Ok<IEnumerable<Asset>>(assets);
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error finding assets by condition. Exception: {ExceptionMessage}",
-                Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error finding assets by condition");
             return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
         }
     }
@@ -206,19 +169,13 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
         try
         {
-            IQueryable<Asset> query = this.FilteredDbSet;
-
-            if (includeProperties)
-            {
-                query = query.Include(a => a.WorkItemAssets);
-            }
-
-            return Result.Ok((await query.ToListAsync()).AsEnumerable());
+            IQueryable<Asset> query = this.BuildBaseQuery(includeProperties);
+            List<Asset> assets = await query.ToListAsync();
+            return Result.Ok<IEnumerable<Asset>>(assets);
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error getting queryable assets. Exception: {ExceptionMessage}",
-                Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error getting queryable assets");
             return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
         }
     }
@@ -227,19 +184,13 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
         try
         {
-            IQueryable<Asset> query = this.FilteredDbSet;
-
-            if (includeProperties)
-            {
-                query = query.Include(a => a.WorkItemAssets);
-            }
-
-            return Result.Ok((await query.ToListAsync()).AsEnumerable());
+            IQueryable<Asset> query = this.BuildBaseQuery(includeProperties);
+            List<Asset> assets = await query.ToListAsync();
+            return Result.Ok<IEnumerable<Asset>>(assets);
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Error finding all assets. Exception: {ExceptionMessage}",
-                Constants.ERROR_500_MESSAGE);
+            this.Logger.LogError(ex, "Error finding all assets");
             return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
         }
     }
@@ -262,5 +213,13 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
             (asset, workAssetIds) => asset.WorkItemAssets.Any(wi => workAssetIds.Contains(wi.WorkItemId)));
 
         return query;
+    }
+
+    private IQueryable<Asset> BuildBaseQuery(bool includeProperties)
+    {
+        IQueryable<Asset> query = this.FilteredDbSet;
+        return includeProperties
+            ? query.Include(a => a.WorkItemAssets)
+            : query;
     }
 }

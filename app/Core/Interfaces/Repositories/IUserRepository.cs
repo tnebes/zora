@@ -20,7 +20,7 @@ public interface IUserRepository : ISearchRepository<User, DynamicQueryUserParam
     Task<User> Add(User user);
     Task<Result<User>> Update(User originalUser);
 
-    Task<Result<(IEnumerable<User> users, int totalCount)>> SearchUsersAsync(IQueryable<User> query,
+    Task<Result<(IEnumerable<User> users, int TotalCount)>> SearchUsersAsync(IQueryable<User> query,
         bool includeProperties = false);
 
     Task<Result<(IEnumerable<User>, int totalCount)>> FindUsersAsync(QueryParamsDto findParams,
