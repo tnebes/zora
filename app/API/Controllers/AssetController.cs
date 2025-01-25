@@ -247,7 +247,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
-    [Description("Find assets based on specific criteria")]
+    [Description("Find assets that contain any of specific criteria")]
     public override async Task<ActionResult<AssetResponseDto>> Find([FromQuery] QueryParamsDto findParams)
     {
         try

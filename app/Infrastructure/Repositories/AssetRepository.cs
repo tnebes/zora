@@ -1,6 +1,5 @@
 #region
 
-using System.Linq.Expressions;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using zora.Core;
@@ -94,7 +93,7 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
     }
 
-    public async Task<Result<Asset>> AddAsync(Asset entity)
+    public new async Task<Result<Asset>> AddAsync(Asset entity)
     {
         try
         {
@@ -109,7 +108,7 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
     }
 
-    public async Task<Result> UpdateAsync(Asset entity)
+    public new async Task<Result> UpdateAsync(Asset entity)
     {
         try
         {
@@ -125,7 +124,7 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
     }
 
-    public async Task<Result> DeleteAsync(long id)
+    public new async Task<Result> DeleteAsync(long id)
     {
         try
         {
@@ -149,19 +148,28 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
     }
 
-    public async Task<Result<IEnumerable<Asset>>> FindByCondition(Expression<Func<Asset, bool>> expression,
+    public async Task<Result<(IEnumerable<Asset> Assets, int TotalCount)>> FindByConditionAsync(string searchTerm,
         bool includeProperties = false)
     {
         try
         {
             IQueryable<Asset> query = this.BuildBaseQuery(includeProperties);
-            List<Asset> assets = await query.Where(expression).ToListAsync();
-            return Result.Ok<IEnumerable<Asset>>(assets);
+
+            query = query.Where(a =>
+                EF.Functions.Like(a.Name, $"%{searchTerm}%") ||
+                EF.Functions.Like(a.Description, $"%{searchTerm}%") ||
+                EF.Functions.Like(a.AssetPath, $"%{searchTerm}%") ||
+                (a.CreatedBy != null && EF.Functions.Like(a.CreatedBy.Username, $"%{searchTerm}%")) ||
+                (a.UpdatedBy != null && EF.Functions.Like(a.UpdatedBy.Username, $"%{searchTerm}%"))
+            );
+
+            List<Asset> assets = await query.ToListAsync();
+            return Result.Ok<(IEnumerable<Asset>, int)>((assets, assets.Count));
         }
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error finding assets by condition");
-            return Result.Fail<IEnumerable<Asset>>(Constants.ERROR_500_MESSAGE);
+            return Result.Fail<(IEnumerable<Asset>, int)>(Constants.ERROR_500_MESSAGE);
         }
     }
 

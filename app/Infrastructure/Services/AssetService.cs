@@ -99,8 +99,15 @@ public sealed class AssetService : IAssetService, IZoraService
 
     public async Task<Result<AssetResponseDto>> FindAsync(QueryParamsDto findParams)
     {
+        string searchTerm = findParams.SearchTerm ?? string.Empty;
+        if (string.IsNullOrEmpty(searchTerm) || searchTerm.Length < 3)
+        {
+            return Result.Fail<AssetResponseDto>("Search term is required and must be at least 3 characters long");
+        }
+
         Result<(IEnumerable<Asset> Assets, int TotalCount)> assetsResult =
-            await this._assetRepository.GetPagedAsync(findParams);
+            await this._assetRepository.FindByConditionAsync(searchTerm);
+
         if (assetsResult.IsFailed)
         {
             this._logger.LogError("Failed to find assets. Errors: {Errors}", assetsResult.Errors);

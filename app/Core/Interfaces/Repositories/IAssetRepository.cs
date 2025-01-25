@@ -1,6 +1,5 @@
 #region
 
-using System.Linq.Expressions;
 using FluentResults;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
@@ -21,7 +20,7 @@ public interface IAssetRepository : ISearchRepository<Asset, DynamicQueryAssetPa
     Task<Result> UpdateAsync(Asset entity);
     Task<Result> DeleteAsync(long id);
 
-    Task<Result<IEnumerable<Asset>>> FindByCondition(Expression<Func<Asset, bool>> expression,
+    Task<Result<(IEnumerable<Asset> Assets, int TotalCount)>> FindByConditionAsync(string searchTerm,
         bool includeProperties = false);
 
     Task<Result<IEnumerable<Asset>>> GetQueryable(bool includeProperties = false);
