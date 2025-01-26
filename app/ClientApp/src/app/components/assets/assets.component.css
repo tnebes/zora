@@ -1,0 +1,26 @@
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+}
+
+.table-header button {
+    margin-right: 16px;
+}
+
+.table-header mat-form-field {
+    flex: 1;
+}
+
+.mat-table {
+    width: 100%;
+}
+
+.mat-cell {
+    padding: 8px;
+}
+
+.mat-row {
+    cursor: pointer;
+}

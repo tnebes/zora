@@ -290,3 +290,5 @@ __pycache__/
 
 *.secret
 .cursorrules
+.clinerules
+cline_docs/*

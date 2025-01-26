@@ -29,6 +29,11 @@ export class Constants {
     static readonly PERMISSIONS_FIND: string = `${Constants.PERMISSIONS}/find`;
     static readonly PERMISSIONS_SEARCH: string = `${Constants.PERMISSIONS}/search`;
 
+    // Assets endpoints
+    static readonly ASSETS: string = `${Constants.BASE_URL}/assets`;
+    static readonly ASSETS_FIND: string = `${Constants.ASSETS}/find`;
+    static readonly ASSETS_SEARCH: string = `${Constants.ASSETS}/search`;
+
     // Common field names
     static readonly ID: string = 'id';
     static readonly USERNAME: string = 'username';
@@ -48,6 +53,7 @@ export class Constants {
     // Permission constants
     static readonly PERMISSION_STRING_BITS: number = 5;
     static readonly PERMISSION_STRING_BIT_NAMES: string[] = ['Manage', 'Delete', 'Create', 'Write', 'Read'];
+
 }
 
 export class DefaultValues {
