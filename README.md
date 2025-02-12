@@ -9,9 +9,14 @@
 - Run the `db.sql` script in the MSSQL database using root user
 - Run `startup.sql` with the changed password in the MSSQL database using root user
 - Setting up secrets
+   - `cd zora/app/`
    - `dotnet user-secrets init`
    - `dotnet user-secrets set "Zora:ConnectionString" "Server=.;Database=zora;User Id=zora_service;Password=YourStrongPasswordHere;TrustServerCertificate=True;"`
    - `dotnet user-secrets set "Zora:SecretKey" "some_secret_key"`
+   - create `C:\Users\YOURUSERNAME\AppData\Roaming\ASP.NET\https` folder
+   - create `C:\Users\YOURUSERNAME\.aspnet\https` folder
+- `GET /api/v1/seed` for initial data seeding (only for development purposes)
+    - in `DataSeeder.cs` file, change the number of users, programs, projects, tasks, roles, permissions, assets
 
 ## Acronym
 Platform for Work Organisation (Platforma **z**a **o**rganizaciju **ra**da)
