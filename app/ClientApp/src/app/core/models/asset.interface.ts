@@ -11,8 +11,9 @@ export interface AssetResponse {
 
 export interface CreateAsset {
     name: string;
-    description?: string;
+    description?: string | null;
     assetPath: string;
+    asset: File;
 }
 
 export interface UpdateAsset extends CreateAsset {

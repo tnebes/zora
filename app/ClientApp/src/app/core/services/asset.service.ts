@@ -23,7 +23,13 @@ export class AssetService {
     }
 
     public create(asset: CreateAsset): Observable<AssetResponse> {
-        return this.http.post<AssetResponse>(this.apiUrl, asset);
+        const formData = new FormData();
+        formData.append('file', asset.asset);
+        formData.append('name', asset.name);
+        formData.append('description', asset.description || '');
+        formData.append('assetPath', asset.assetPath);
+
+        return this.http.post<AssetResponse>(`${this.apiUrl}`, formData);
     }
 
     public update(asset: UpdateAsset): Observable<AssetResponse> {
