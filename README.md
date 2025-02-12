@@ -8,9 +8,9 @@
 - Clone the repository
 - Run the `db.sql` script in the MSSQL database using root user
 - Run `startup.sql` with the changed password in the MSSQL database using root user
-- `dotnet user-secrets`
+- Setting up secrets
    - `dotnet user-secrets init`
-   - `dotnet user-secrets set "Zora:ConnectionString" "Server=localhost;Database=zora;User Id=zora_service;Password=your_password_here;TrustServerCertificate=True;"`
+   - `dotnet user-secrets set "Zora:ConnectionString" "Server=.;Database=zora;User Id=zora_service;Password=YourStrongPasswordHere;TrustServerCertificate=True;"`
    - `dotnet user-secrets set "Zora:SecretKey" "some_secret_key"`
 
 ## Acronym

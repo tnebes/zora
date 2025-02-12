@@ -180,7 +180,7 @@ CREATE INDEX IX_Asset_Name ON assets(name);
 CREATE INDEX IX_Asset_CreatedBy ON assets(created_by);
 CREATE INDEX IX_Asset_UpdatedBy ON assets(updated_by);
 
-INSERT INTO zora_users (username, password, email) VALUES ('tnebes', 'letmeinside', 'tnebes@draucode.com');
+INSERT INTO zora_users (username, password, email) VALUES ('tnebes', '$2a$12$VG2.zKWyQq0rt/MJgarft.AaFr36jlICrCzo5YEN2CWAjtCWSmw6K', 'tnebes@draucode.com');
 INSERT INTO zora_roles (name) VALUES ('Admin');
 INSERT INTO zora_user_roles (user_id, role_id)
    SELECT u.id, r.id
