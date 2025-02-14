@@ -34,10 +34,11 @@ export class AssetsComponent implements OnInit, AfterViewInit {
     ) { }
 
     ngOnInit(): void {
-        this.loadAssets();
     }
 
     ngAfterViewInit(): void {
+        this.loadAssets();
+        
         merge(this.sort.sortChange, this.paginator.page)
             .pipe(
                 startWith({}),
@@ -64,9 +65,12 @@ export class AssetsComponent implements OnInit, AfterViewInit {
     }
 
     loadAssets(): void {
+        const page = this.paginator ? this.paginator.pageIndex + 1 : 1;
+        const pageSize = this.paginator ? this.paginator.pageSize : 10;
+        
         this.assetService.getAssets({
-            page: this.paginator.pageIndex + 1,
-            pageSize: this.paginator.pageSize,
+            page: page,
+            pageSize: pageSize,
             searchTerm: this.currentSearchValue
         }).subscribe({
             next: (response: AssetResponseDto) => {

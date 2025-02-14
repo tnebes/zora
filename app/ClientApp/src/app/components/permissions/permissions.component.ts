@@ -31,6 +31,7 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
     public isLoading: boolean = false;
     public totalItems: number = 0;
     public currentSearchValue: string = '';
+    public errorMessage: string = '';
 
     @ViewChild(MatPaginator) private readonly paginator!: MatPaginator;
     @ViewChild(MatSort) private readonly sort!: MatSort;
@@ -78,9 +79,12 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
     }
 
     public onSearch(event: Event): void {
-        const target = event.target as HTMLInputElement;
-        this.currentSearchValue = target.value;
-        this.searchTerm.next(this.currentSearchValue);
+        const searchTerm = (event.target as HTMLInputElement).value;
+        if (searchTerm.length >= 3) {
+            this.searchPermissions(searchTerm);
+        } else {
+            this.loadPermissions();
+        }
     }
 
     public onCreate(): void {
@@ -217,18 +221,19 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                 startWith({}),
                 switchMap(() => {
                     this.isLoading = true;
+                    const params: QueryParams = {
+                        page: this.paginator.pageIndex + 1,
+                        pageSize: this.paginator.pageSize,
+                        searchTerm: '',
+                        sortColumn: this.sort.active,
+                        sortDirection: this.sort.direction as 'asc' | 'desc'
+                    };
 
                     if (!this.currentSearchValue || this.currentSearchValue.length < 3) {
-                        const params: QueryParams = {
-                            page: this.paginator.pageIndex + 1,
-                            pageSize: this.paginator.pageSize,
-                            searchTerm: '',
-                            sortColumn: this.sort.active,
-                            sortDirection: this.sort.direction as 'asc' | 'desc'
-                        };
                         return this.permissionService.getPermissions(this.queryService.normaliseQueryParams(params));
+                    } else {
+                        return this.permissionService.findPermissionsByTerm(this.currentSearchValue);
                     }
-                    return this.permissionService.findPermissionsByTerm(this.currentSearchValue);
                 }),
                 catchError(error => {
                     console.error('Error fetching permissions:', error);
@@ -241,5 +246,19 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                 this.totalItems = response.total;
                 this.isLoading = false;
             });
+    }
+
+    searchPermissions(searchTerm: string): void {
+        this.permissionService.findPermissionsByTerm(searchTerm).subscribe({
+            next: (response) => {
+                this.dataSource.data = response.items;
+                this.totalItems = response.total;
+                this.isLoading = false;
+            },
+            error: (error) => {
+                this.isLoading = false;
+                this.errorMessage = error.message;
+            }
+        });
     }
 }
