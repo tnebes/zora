@@ -46,6 +46,6 @@ export class AssetService {
         }
 
         const params = new HttpParams().set('searchTerm', searchTerm);
-        return this.http.get<AssetResponseDto>(Constants.ASSETS_FIND, { params });
+        return this.http.get<AssetResponseDto>(`${Constants.ASSETS_FIND}`, { params });
     }
 } 

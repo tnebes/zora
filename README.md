@@ -2,6 +2,7 @@
 
 ## Instructions
 - Install and configure MSSQL
+  - Set up MSSQL so that it accepts connections from custom users.
 - Install dotnet (9.x.x) core
 - Install nodejs (v22.x.x) and npm (v10.x.x)
 - Install angular  (19.x.x) cli (v14.x.x)

@@ -4,11 +4,12 @@ import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 
 export interface DialogField {
     name: string;
-    type: 'text' | 'email' | 'password' | 'select' | 'multiselect';
+    type: 'text' | 'email' | 'password' | 'select' | 'multiselect' | 'file';
     label: string;
     required?: boolean;
     options?: Array<{ value: any; display: string }>;
     validators?: Array<any>;
+    accept?: string;
 }
 
 export interface BaseDialogData<T> {
@@ -20,71 +21,8 @@ export interface BaseDialogData<T> {
 
 @Component({
     selector: 'app-base-dialog',
-    template: `
-    <h2 mat-dialog-title>{{ data.title }}</h2>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <mat-dialog-content>
-        <div class="form-fields">
-          <ng-container *ngFor="let field of data.fields">
-            <mat-form-field *ngIf="field.type !== 'multiselect'">
-              <mat-label>{{ field.label }}</mat-label>
-
-              <input *ngIf="field.type === 'text' || field.type === 'email' || field.type === 'password'"
-                     matInput
-                     [type]="field.type"
-                     [formControlName]="field.name"
-                     [required]="field.required ?? false">
-
-              <mat-select *ngIf="field.type === 'select'"
-                         [formControlName]="field.name"
-                         [required]="field.required ?? false">
-                <mat-option *ngFor="let option of field.options"
-                           [value]="option.value">
-                  {{ option.display }}
-                </mat-option>
-              </mat-select>
-
-              <mat-error *ngIf="form.get(field.name)?.errors">
-                {{ getErrorMessage(field.name) }}
-              </mat-error>
-            </mat-form-field>
-
-            <mat-form-field *ngIf="field.type === 'multiselect'">
-              <mat-label>{{ field.label }}</mat-label>
-              <mat-select [formControlName]="field.name"
-                         [required]="field.required ?? false"
-                         multiple>
-                <mat-option *ngFor="let option of field.options"
-                           [value]="option.value">
-                  {{ option.display }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </ng-container>
-        </div>
-      </mat-dialog-content>
-
-      <mat-dialog-actions align="end">
-        <button mat-button type="button" mat-dialog-close>Cancel</button>
-        <button mat-raised-button
-                color="primary"
-                type="submit"
-                [disabled]="!form.valid || isSubmitting">
-          {{ data.mode === 'create' ? 'Create' : 'Save' }}
-        </button>
-      </mat-dialog-actions>
-    </form>
-  `,
-    styles: [`
-    .form-fields {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    mat-form-field {
-      width: 100%;
-    }
-  `]
+    templateUrl: './base-dialog.component.html',
+    styleUrls: ['./base-dialog.component.scss']
 })
 export class BaseDialogComponent<T> {
     public form: FormGroup;
@@ -109,7 +47,8 @@ export class BaseDialogComponent<T> {
 
             const initialValue = this.data.entity ?
                 (this.data.entity as any)[field.name] :
-                field.type === 'multiselect' ? [] : '';
+                field.type === 'multiselect' ? [] :
+                field.type === 'file' ? null : '';
 
             group[field.name] = [initialValue, validators];
         });
@@ -131,5 +70,18 @@ export class BaseDialogComponent<T> {
         if (this.form.valid) {
             this.dialogRef.close(this.form.value);
         }
+    }
+
+    public onFileSelected(event: Event, fieldName: string): void {
+        const fileInput = event.target as HTMLInputElement;
+        const file = fileInput.files?.[0];
+        if (file) {
+            this.form.get(fieldName)?.setValue(file);
+        }
+    }
+
+    public getFileName(fieldName: string): string {
+        const file = this.form.get(fieldName)?.value;
+        return file?.name || '';
     }
 }

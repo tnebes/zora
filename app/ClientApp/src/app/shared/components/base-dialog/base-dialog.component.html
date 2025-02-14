@@ -1,0 +1,68 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="form-fields">
+      <ng-container *ngFor="let field of data.fields">
+        <mat-form-field *ngIf="field.type !== 'multiselect' && field.type !== 'file'">
+          <mat-label>{{ field.label }}</mat-label>
+
+          <input *ngIf="field.type === 'text' || field.type === 'email' || field.type === 'password'"
+                 matInput
+                 [type]="field.type"
+                 [formControlName]="field.name"
+                 [required]="field.required ?? false">
+
+          <mat-select *ngIf="field.type === 'select'"
+                     [formControlName]="field.name"
+                     [required]="field.required ?? false">
+            <mat-option *ngFor="let option of field.options"
+                       [value]="option.value">
+              {{ option.display }}
+            </mat-option>
+          </mat-select>
+
+          <mat-error *ngIf="form.get(field.name)?.errors">
+            {{ getErrorMessage(field.name) }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field *ngIf="field.type === 'multiselect'">
+          <mat-label>{{ field.label }}</mat-label>
+          <mat-select [formControlName]="field.name"
+                     [required]="field.required ?? false"
+                     multiple>
+            <mat-option *ngFor="let option of field.options"
+                       [value]="option.value">
+              {{ option.display }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div *ngIf="field.type === 'file'" class="file-upload-field mb-3">
+          <div class="input-group">
+            <label class="input-group-text">{{ field.label }}</label>
+            <input type="file"
+                   class="form-control"
+                   [accept]="field.accept || '*'"
+                   (change)="onFileSelected($event, field.name)"
+                   [attr.required]="field.required">
+          </div>
+          <div *ngIf="form.get(field.name)?.value" class="mt-2 alert alert-info p-2">
+            <i class="bi bi-file-earmark me-2"></i>
+            Selected file: {{ getFileName(field.name) }}
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>Cancel</button>
+    <button mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="!form.valid || isSubmitting">
+      {{ data.mode === 'create' ? 'Create' : 'Save' }}
+    </button>
+  </mat-dialog-actions>
+</form> 
