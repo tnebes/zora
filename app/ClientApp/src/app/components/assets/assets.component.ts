@@ -1,18 +1,18 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatDialog } from '@angular/material/dialog';
-import { MatPaginator } from "@angular/material/paginator";
-import { MatSort } from "@angular/material/sort";
-import { Subject, catchError, of, merge as observableMerge } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, startWith, switchMap } from 'rxjs/operators';
-import { AssetResponse, CreateAsset, UpdateAsset} from "../../core/models/asset.interface";
-import { AssetService } from "../../core/services/asset.service";
-import { QueryService } from "../../core/services/query.service";
-import { BaseDialogComponent, DialogField } from 'src/app/shared/components/base-dialog/base-dialog.component';
-import { Constants } from 'src/app/core/constants';
-import { ConfirmDialogComponent } from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
-import { NotificationUtils } from '../../core/utils/notification.utils';
-import { QueryParams } from '../../core/models/query-params.interface';
+import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
+import {MatTableDataSource} from '@angular/material/table';
+import {MatDialog} from '@angular/material/dialog';
+import {MatPaginator} from "@angular/material/paginator";
+import {MatSort} from "@angular/material/sort";
+import {Subject, catchError, of, merge as observableMerge} from 'rxjs';
+import {debounceTime, distinctUntilChanged, filter, startWith, switchMap} from 'rxjs/operators';
+import {AssetResponse, CreateAsset, UpdateAsset} from "../../core/models/asset.interface";
+import {AssetService} from "../../core/services/asset.service";
+import {QueryService} from "../../core/services/query.service";
+import {BaseDialogComponent, DialogField} from 'src/app/shared/components/base-dialog/base-dialog.component';
+import {Constants} from 'src/app/core/constants';
+import {ConfirmDialogComponent} from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
+import {NotificationUtils} from '../../core/utils/notification.utils';
+import {QueryParams} from '../../core/models/query-params.interface';
 
 @Component({
     selector: 'app-assets',
@@ -62,9 +62,11 @@ export class AssetsComponent implements OnInit, AfterViewInit {
         private readonly dialog: MatDialog,
         private readonly assetService: AssetService,
         private readonly queryService: QueryService
-    ) { }
+    ) {
+    }
 
-    ngOnInit(): void { }
+    ngOnInit(): void {
+    }
 
     ngAfterViewInit(): void {
         this.loadAssets();
@@ -76,8 +78,11 @@ export class AssetsComponent implements OnInit, AfterViewInit {
 
     public onSearch(event: Event): void {
         const searchTerm = (event.target as HTMLInputElement).value;
-        this.currentSearchValue = searchTerm;
-        this.searchTerm.next(searchTerm);
+        if (searchTerm.length >= 3) {
+            this.searchAssets(searchTerm);
+        } else {
+            this.loadAssets();
+        }
     }
 
     public onCreate(): void {
@@ -173,7 +178,8 @@ export class AssetsComponent implements OnInit, AfterViewInit {
         observableMerge([
             this.searchTerm.pipe(
                 debounceTime(300),
-                distinctUntilChanged()
+                distinctUntilChanged(),
+                filter(term => !term || term.length >= 3)
             ),
             this.sort.sortChange,
             this.paginator.page
@@ -189,6 +195,7 @@ export class AssetsComponent implements OnInit, AfterViewInit {
                         sortColumn: this.sort.active,
                         sortDirection: this.sort.direction as 'asc' | 'desc'
                     };
+
                     if (!this.currentSearchValue || this.currentSearchValue.length < 3) {
                         return this.assetService.getAssets(this.queryService.normaliseQueryParams(params));
                     } else {
@@ -198,7 +205,7 @@ export class AssetsComponent implements OnInit, AfterViewInit {
                 catchError(error => {
                     console.error('Error fetching assets:', error);
                     NotificationUtils.showError(this.dialog, 'Failed to fetch assets', error);
-                    return of({ items: [], total: 0 });
+                    return of({items: [], total: 0});
                 })
             )
             .subscribe(response => {
@@ -206,5 +213,19 @@ export class AssetsComponent implements OnInit, AfterViewInit {
                 this.totalItems = response.total;
                 this.isLoading = false;
             });
+    }
+
+    public searchAssets(searchTerm: string): void {
+        this.assetService.findAssetsByTerm(searchTerm).subscribe({
+            next: (response) => {
+                this.dataSource.data = response.items;
+                this.totalItems = response.total;
+                this.isLoading = false;
+            },
+            error: (error) => {
+                this.isLoading = false;
+                this.errorMessage = error.message;
+            }
+        });
     }
 }

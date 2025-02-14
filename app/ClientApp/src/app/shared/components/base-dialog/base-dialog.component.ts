@@ -48,7 +48,7 @@ export class BaseDialogComponent<T> {
             const initialValue = this.data.entity ?
                 (this.data.entity as any)[field.name] :
                 field.type === 'multiselect' ? [] :
-                field.type === 'file' ? null : '';
+                    field.type === 'file' ? null : '';
 
             group[field.name] = [initialValue, validators];
         });

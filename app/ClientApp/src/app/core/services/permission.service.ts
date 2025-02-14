@@ -47,7 +47,7 @@ export class PermissionService {
         }
 
         const params = new HttpParams().set('searchTerm', searchTerm);
-        
+
         return this.http.get<PermissionResponseDto>(`${Constants.PERMISSIONS_FIND}`, {params});
     }
 

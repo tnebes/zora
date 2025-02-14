@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { AssetResponse, CreateAsset, UpdateAsset, AssetResponseDto } from "../models/asset.interface";
-import { QueryParams } from "../models/query-params.interface";
-import { Constants } from '../constants';
-import { QueryService } from './query.service';
+import {Injectable} from '@angular/core';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {Observable} from 'rxjs';
+import {AssetResponse, CreateAsset, UpdateAsset, AssetResponseDto} from "../models/asset.interface";
+import {QueryParams} from "../models/query-params.interface";
+import {Constants} from '../constants';
+import {QueryService} from './query.service';
 
 @Injectable({
     providedIn: 'root'
@@ -15,11 +15,12 @@ export class AssetService {
     constructor(
         private readonly http: HttpClient,
         private readonly queryService: QueryService
-    ) {}
+    ) {
+    }
 
     public getAssets(queryParams: QueryParams): Observable<AssetResponseDto> {
         const params: HttpParams = this.queryService.getHttpParams(queryParams);
-        return this.http.get<AssetResponseDto>(this.apiUrl, { params });
+        return this.http.get<AssetResponseDto>(this.apiUrl, {params});
     }
 
     public create(asset: CreateAsset): Observable<AssetResponse> {
@@ -46,6 +47,6 @@ export class AssetService {
         }
 
         const params = new HttpParams().set('searchTerm', searchTerm);
-        return this.http.get<AssetResponseDto>(`${Constants.ASSETS_FIND}`, { params });
+        return this.http.get<AssetResponseDto>(`${Constants.ASSETS_FIND}`, {params});
     }
-} 
+}
