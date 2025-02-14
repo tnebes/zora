@@ -8,7 +8,7 @@ END
 GO
 
 CREATE LOGIN [zora_service] WITH 
-    PASSWORD = 'YourStrongPasswordHere',
+    PASSWORD = 'your_strong_password_here',
     DEFAULT_DATABASE = [zora],
     CHECK_EXPIRATION = OFF,
     CHECK_POLICY = ON

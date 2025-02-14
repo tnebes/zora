@@ -11,7 +11,6 @@ import { QueryService } from "../../core/services/query.service";
 import { BaseDialogComponent } from 'src/app/shared/components/base-dialog/base-dialog.component';
 import { Constants } from 'src/app/core/constants';
 import { ConfirmDialogComponent } from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
-import { FileInputComponent } from 'src/app/shared/components/file-input/file-input.component';
 
 @Component({
     selector: 'app-assets',
@@ -113,7 +112,6 @@ export class AssetsComponent implements OnInit, AfterViewInit {
                         label: 'File',
                         required: true,
                         accept: '*',
-                        component: FileInputComponent
                     }
                 ]
             }

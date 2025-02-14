@@ -13,6 +13,7 @@ import {MatTableModule} from "@angular/material/table";
 import {NotificationDialogComponent} from './components/notification-dialog/notification-dialog.component';
 import {MatIconModule} from '@angular/material/icon';
 
+
 @NgModule({
     declarations: [
         BaseDialogComponent,
@@ -40,7 +41,7 @@ import {MatIconModule} from '@angular/material/icon';
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
-        MatIconModule
+        MatIconModule,
     ]
 })
 export class SharedModule {

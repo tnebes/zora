@@ -11,8 +11,8 @@
 - Setting up secrets
    - `cd zora/app/`
    - `dotnet user-secrets init`
-   - `dotnet user-secrets set "Zora:ConnectionString" "Server=.;Database=zora;User Id=zora_service;Password=YourStrongPasswordHere;TrustServerCertificate=True;"`
-   - `dotnet user-secrets set "Zora:SecretKey" "some_secret_key"`
+   - `dotnet user-secrets set "Zora:ConnectionString" "Server=.;Database=zora;User Id=zora_service;Password=your_strong_password_here;TrustServerCertificate=True;"`
+   - `dotnet user-secrets set "Zora:SecretKey" "some_secret_key_that_should_be_very_long_and_random_1234567890"`
    - create `C:\Users\YOURUSERNAME\AppData\Roaming\ASP.NET\https` folder
    - create `C:\Users\YOURUSERNAME\.aspnet\https` folder
 - `GET /api/v1/seed` for initial data seeding (only for development purposes)
