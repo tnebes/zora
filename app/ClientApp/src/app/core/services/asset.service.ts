@@ -27,9 +27,12 @@ export class AssetService {
         const formData = new FormData();
         formData.append('file', asset.asset);
         formData.append('name', asset.name);
-        formData.append('description', asset.description || '');
+        formData.append('description', asset.description ?? '');
         formData.append('assetPath', asset.assetPath);
-
+        if (asset.workAssetId) {
+            formData.append('workAssetId', asset.workAssetId.toString());
+        }
+        
         return this.http.post<AssetResponse>(`${this.apiUrl}`, formData);
     }
 

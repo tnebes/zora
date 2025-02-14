@@ -43,7 +43,7 @@
                         <label class="input-group-text">{{ field.label }}</label>
                         <input type="file"
                                class="form-control"
-                               [accept]="field.accept || '*'"
+                               [accept]="field.accept ?? '*'"
                                (change)="onFileSelected($event, field.name)"
                                [attr.required]="field.required">
                     </div>

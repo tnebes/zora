@@ -14,6 +14,7 @@ export interface CreateAsset {
     description?: string | null;
     assetPath: string;
     asset: File;
+    workAssetId?: number | null;
 }
 
 export interface UpdateAsset extends CreateAsset {
