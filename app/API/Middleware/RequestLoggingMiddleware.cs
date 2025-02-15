@@ -13,17 +13,22 @@ public sealed class RequestLoggingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        DateTime startTime = DateTime.UtcNow;
+
         try
         {
             await this._next(context);
         }
         finally
         {
-            this._logger.LogInformation(
-                "Request {Method} {Url} => {StatusCode}",
+            TimeSpan elapsed = DateTime.UtcNow - startTime;
+
+            this._logger.LogDebug(
+                "Request {Method} {Url} => {StatusCode} in {Elapsed}ms",
                 context.Request.Method,
                 context.Request.Path,
-                context.Response.StatusCode);
+                context.Response.StatusCode,
+                elapsed.TotalMilliseconds);
 
             if (context.Request.Headers.Authorization.Count > 0)
             {
@@ -31,6 +36,8 @@ public sealed class RequestLoggingMiddleware
                     "Authorization header present: {Type}",
                     context.Request.Headers.Authorization.ToString().Split(' ')[0]);
             }
+
+            this._logger.LogDebug("Correlation ID: {CorrelationId}", context.TraceIdentifier);
         }
     }
 }

@@ -1,7 +1,6 @@
 #region
 
 using System.ComponentModel;
-using AutoMapper;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,20 +26,15 @@ namespace zora.API.Controllers;
 public sealed class UserController : BaseCrudController<FullUserDto, CreateMinimumUserDto, UpdateUserDto,
     UserResponseDto<FullUserDto>, DynamicQueryUserParamsDto>
 {
-    private readonly IMapper _mapper;
     private readonly IUserService _userService;
 
     public UserController(
         IRoleService roleService,
         IUserService userService,
         IQueryService queryService,
-        ILogger<UserController> logger,
-        IMapper mapper)
-        : base(logger, roleService, queryService)
-    {
+        ILogger<UserController> logger)
+        : base(logger, roleService, queryService) =>
         this._userService = userService;
-        this._mapper = mapper;
-    }
 
     /// <summary>
     /// Retrieves a paginated list of users with support for filtering, sorting, and searching.

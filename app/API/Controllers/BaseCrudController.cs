@@ -8,6 +8,8 @@ using zora.Core.Interfaces.Services;
 
 #endregion
 
+namespace zora.API.Controllers;
+
 /// <summary>
 /// Base controller providing common CRUD operations.
 /// Implements basic functionality for create, read, update, and delete operations.

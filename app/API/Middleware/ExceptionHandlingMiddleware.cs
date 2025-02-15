@@ -1,5 +1,6 @@
 #region
 
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -10,29 +11,29 @@ namespace zora.API.Middleware;
 
 public sealed class ExceptionHandlingMiddleware
 {
-    private readonly IHostEnvironment environment;
-    private readonly ILogger<ExceptionHandlingMiddleware> logger;
-    private readonly RequestDelegate next;
+    private readonly IHostEnvironment _environment;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly RequestDelegate _next;
 
     public ExceptionHandlingMiddleware(
         RequestDelegate next,
         ILogger<ExceptionHandlingMiddleware> logger,
         IHostEnvironment environment)
     {
-        this.next = next;
-        this.logger = logger;
-        this.environment = environment;
+        this._next = next;
+        this._logger = logger;
+        this._environment = environment;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await this.next(context);
+            await this._next(context);
         }
         catch (Exception exception)
         {
-            this.logger.LogError(exception, "An unexpected error occurred.");
+            this._logger.LogError(exception, "An unexpected error occurred.");
             await this.HandleExceptionAsync(context, exception);
         }
     }
@@ -40,22 +41,60 @@ public sealed class ExceptionHandlingMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-        ProblemDetails problem = new()
-        {
-            Status = context.Response.StatusCode,
-            Title = "An error occurred while processing your request.",
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
-            Instance = context.TraceIdentifier
-        };
-
-        if (this.environment.IsDevelopment())
-        {
-            problem.Detail = exception.ToString();
-        }
+        ProblemDetails problem = this.CreateProblemDetails(context, exception);
+        context.Response.StatusCode = problem.Status ?? (int)HttpStatusCode.InternalServerError;
 
         string json = JsonSerializer.Serialize(problem);
         await context.Response.WriteAsync(json);
+    }
+
+    private ProblemDetails CreateProblemDetails(HttpContext context, Exception exception)
+    {
+        int statusCode = exception switch
+        {
+            ArgumentException => (int)HttpStatusCode.BadRequest,
+            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+            ValidationException => (int)HttpStatusCode.BadRequest,
+            InvalidOperationException => (int)HttpStatusCode.BadRequest,
+            FileNotFoundException => (int)HttpStatusCode.NotFound,
+            DirectoryNotFoundException => (int)HttpStatusCode.NotFound,
+            NotSupportedException => (int)HttpStatusCode.NotImplemented,
+            _ => (int)HttpStatusCode.InternalServerError
+        };
+
+        Dictionary<string, object> extensions = new()
+        {
+            ["correlationId"] = context.TraceIdentifier
+        };
+
+        if (this._environment.IsDevelopment())
+        {
+            extensions["stackTrace"] = exception.StackTrace;
+        }
+
+        return new ProblemDetails
+        {
+            Status = statusCode,
+            Title = ExceptionHandlingMiddleware.GetTitleForException(exception),
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+            Instance = context.TraceIdentifier,
+            Detail = this._environment.IsDevelopment() ? exception.ToString() : null,
+            Extensions = extensions
+        };
+    }
+
+    private static string GetTitleForException(Exception exception)
+    {
+        return exception switch
+        {
+            ArgumentException => "Invalid request parameters",
+            UnauthorizedAccessException => "Access denied",
+            ValidationException => "Validation failed",
+            InvalidOperationException => "Invalid operation",
+            FileNotFoundException => "File not found",
+            DirectoryNotFoundException => "Directory not found",
+            NotSupportedException => "Operation not supported",
+            _ => "An error occurred while processing your request."
+        };
     }
 }

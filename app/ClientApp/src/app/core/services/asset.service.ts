@@ -32,7 +32,7 @@ export class AssetService {
         if (asset.workAssetId) {
             formData.append('workAssetId', asset.workAssetId.toString());
         }
-        
+
         return this.http.post<AssetResponse>(`${this.apiUrl}`, formData);
     }
 
