@@ -8,6 +8,10 @@ using zora.Core.Interfaces.Services;
 
 #endregion
 
+/// <summary>
+/// Base controller providing common CRUD operations.
+/// Implements basic functionality for create, read, update, and delete operations.
+/// </summary>
 public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto> :
     ControllerBase,
     ICrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>

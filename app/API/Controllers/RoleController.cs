@@ -15,6 +15,10 @@ using zora.Core.Interfaces.Services;
 
 namespace zora.API.Controllers;
 
+/// <summary>
+/// Controller for managing system roles.
+/// Provides CRUD operations for roles with admin authorization checks.
+/// </summary>
 [ApiController]
 [Authorize]
 [Route("api/v1/roles")]
@@ -33,12 +37,17 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         : base(logger, roleService, queryService) =>
         this._roleService = roleService;
 
+    /// <summary>
+    /// Retrieves a paginated list of roles with support for filtering, sorting, and searching.
+    /// </summary>
+    /// <param name="queryParams">Query parameters including page number, page size, and search term</param>
+    /// <returns>Paginated list of roles wrapped in RoleResponseDto</returns>
     [HttpGet]
     [ProducesResponseType(typeof(RoleResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
-    [Description("Get all roles using query parameters")]
+    [Description("Retrieves a paginated list of roles. Supports filtering, sorting, and searching.")]
     public override async Task<ActionResult<RoleResponseDto>> Get([FromQuery] QueryParamsDto queryParams)
     {
         try
@@ -68,12 +77,17 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         }
     }
 
+    /// <summary>
+    /// Creates a new role in the system. Requires admin privileges.
+    /// </summary>
+    /// <param name="roleDto">Data transfer object containing role details</param>
+    /// <returns>Created role object</returns>
     [HttpPost]
     [ProducesResponseType(typeof(RoleDto), StatusCodes.Status201Created)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
-    [Description("Create a new role")]
+    [Description("Creates a new role. Requires admin privileges.")]
     public override async Task<ActionResult<FullRoleDto>> Create([FromBody] CreateRoleDto roleDto)
     {
         try
@@ -102,13 +116,19 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         }
     }
 
+    /// <summary>
+    /// Updates an existing role by ID. Requires admin privileges.
+    /// </summary>
+    /// <param name="id">ID of the role to update</param>
+    /// <param name="roleDto">Data transfer object containing updated role details</param>
+    /// <returns>Updated role object</returns>
     [HttpPut("{id:long}")]
     [ProducesResponseType(typeof(RoleDto), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
-    [Description("Update an existing role")]
+    [Description("Updates an existing role by ID. Requires admin privileges.")]
     public override async Task<ActionResult<FullRoleDto>> Update(long id, [FromBody] UpdateRoleDto roleDto)
     {
         try
@@ -136,13 +156,18 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         }
     }
 
+    /// <summary>
+    /// Deletes a role by ID. Requires admin privileges.
+    /// </summary>
+    /// <param name="id">ID of the role to delete</param>
+    /// <returns>Boolean indicating success of the deletion operation</returns>
     [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
-    [Description("Delete a role")]
+    [Description("Deletes a role by ID. Requires admin privileges.")]
     public override async Task<ActionResult<bool>> Delete(long id)
     {
         try

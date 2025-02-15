@@ -15,6 +15,10 @@ using Constants = zora.Core.Constants;
 
 namespace zora.API.Controllers;
 
+/// <summary>
+/// Controller for managing system users.
+/// Provides CRUD operations for users with appropriate authorization checks.
+/// </summary>
 [ApiController]
 [Route("api/v1/users")]
 [Produces("application/json")]
@@ -38,12 +42,17 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
         this._mapper = mapper;
     }
 
+    /// <summary>
+    /// Retrieves a paginated list of users with support for filtering, sorting, and searching.
+    /// </summary>
+    /// <param name="queryParams">Query parameters including page number, page size, and search term</param>
+    /// <returns>Paginated list of users wrapped in UserResponseDto</returns>
     [HttpGet]
     [ProducesResponseType(typeof(UserResponseDto<FullUserDto>), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Users")]
-    [Description("Get all users with pagination, searching and sorting support")]
+    [Description("Retrieves a paginated list of users. Supports filtering, sorting, and searching.")]
     [Authorize]
     public override async Task<ActionResult<UserResponseDto<FullUserDto>>> Get([FromQuery] QueryParamsDto queryParams)
     {
@@ -107,13 +116,18 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
         }
     }
 
+    /// <summary>
+    /// Deletes a user by ID. Requires admin privileges or ownership of the account.
+    /// </summary>
+    /// <param name="id">ID of the user to delete</param>
+    /// <returns>Boolean indicating success of the deletion operation</returns>
     [HttpDelete("{id:long}")]
     [ProducesResponseType<int>(StatusCodes.Status204NoContent)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Users")]
-    [Description("Delete a user by ID")]
+    [Description("Deletes a user by ID. Requires admin privileges or ownership of the account.")]
     [Authorize]
     public override async Task<ActionResult<bool>> Delete([FromRoute] long id)
     {
@@ -146,13 +160,18 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
         }
     }
 
+    /// <summary>
+    /// Creates a new user in the system. Requires admin privileges.
+    /// </summary>
+    /// <param name="createMinimumUserDto">Data transfer object containing user details</param>
+    /// <returns>Created user object</returns>
     [HttpPost]
     [ProducesResponseType(typeof(UserResponseDto<FullUserDto>), StatusCodes.Status201Created)]
     [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Users")]
-    [Description("Create a new user")]
+    [Description("Creates a new user. Requires admin privileges.")]
     [Authorize]
     public override async Task<ActionResult<FullUserDto>> Create([FromBody] CreateMinimumUserDto createMinimumUserDto)
     {
@@ -192,6 +211,12 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
         }
     }
 
+    /// <summary>
+    /// Updates an existing user by ID. Requires admin privileges or ownership of the account.
+    /// </summary>
+    /// <param name="id">ID of the user to update</param>
+    /// <param name="updateUserDto">Data transfer object containing updated user details</param>
+    /// <returns>Updated user object</returns>
     [HttpPut("{id:long}")]
     [ProducesResponseType(typeof(UserResponseDto<FullUserDto>), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status400BadRequest)]
@@ -199,7 +224,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Users")]
-    [Description("Update a user by ID")]
+    [Description("Updates an existing user by ID. Requires admin privileges or ownership of the account.")]
     [Authorize]
     public override async Task<ActionResult<FullUserDto>> Update([FromRoute] long id,
         [FromBody] UpdateUserDto updateUserDto)

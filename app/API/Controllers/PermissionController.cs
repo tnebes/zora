@@ -15,6 +15,10 @@ using zora.Core.Interfaces.Services;
 
 namespace zora.API.Controllers;
 
+/// <summary>
+/// Controller for managing system permissions.
+/// Provides CRUD operations for permissions with admin authorization checks.
+/// </summary>
 [ApiController]
 [Authorize]
 [Route("api/v1/permissions")]
@@ -39,12 +43,17 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         this._mapper = mapper;
     }
 
+    /// <summary>
+    /// Retrieves a paginated list of permissions with support for filtering, sorting, and searching.
+    /// </summary>
+    /// <param name="queryParams">Query parameters including page number, page size, and search term</param>
+    /// <returns>Paginated list of permissions wrapped in PermissionResponseDto</returns>
     [HttpGet]
     [ProducesResponseType(typeof(PermissionResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Permissions")]
-    [Description("Get all permissions with pagination, searching and sorting support")]
+    [Description("Retrieves a paginated list of permissions. Supports filtering, sorting, and searching.")]
     public override async Task<ActionResult<PermissionResponseDto>> Get([FromQuery] QueryParamsDto queryParams)
     {
         try
@@ -75,12 +84,17 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         }
     }
 
+    /// <summary>
+    /// Creates a new permission in the system. Requires admin privileges.
+    /// </summary>
+    /// <param name="dto">Data transfer object containing permission details</param>
+    /// <returns>Created permission object</returns>
     [HttpPost]
     [ProducesResponseType(typeof(PermissionDto), StatusCodes.Status201Created)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Permissions")]
-    [Description("Create a new permission")]
+    [Description("Creates a new permission. Requires admin privileges.")]
     public override async Task<ActionResult<PermissionDto>> Create([FromBody] CreatePermissionDto dto)
     {
         try
@@ -112,13 +126,19 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         }
     }
 
+    /// <summary>
+    /// Updates an existing permission by ID. Requires admin privileges.
+    /// </summary>
+    /// <param name="id">ID of the permission to update</param>
+    /// <param name="dto">Data transfer object containing updated permission details</param>
+    /// <returns>Updated permission object</returns>
     [HttpPut("{id:long}")]
     [ProducesResponseType(typeof(PermissionDto), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Permissions")]
-    [Description("Update a permission")]
+    [Description("Updates an existing permission by ID. Requires admin privileges.")]
     public override async Task<ActionResult<PermissionDto>> Update(long id, [FromBody] UpdatePermissionDto dto)
     {
         try
@@ -151,13 +171,18 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         }
     }
 
+    /// <summary>
+    /// Deletes a permission by ID. Requires admin privileges.
+    /// </summary>
+    /// <param name="id">ID of the permission to delete</param>
+    /// <returns>Boolean indicating success of the deletion operation</returns>
     [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Permissions")]
-    [Description("Delete a permission")]
+    [Description("Deletes a permission by ID. Requires admin privileges.")]
     public override async Task<ActionResult<bool>> Delete(long id)
     {
         try

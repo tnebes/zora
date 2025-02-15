@@ -18,6 +18,10 @@ using zora.Core.Interfaces.Services;
 
 namespace zora.API.Controllers;
 
+/// <summary>
+/// Controller for handling user authentication.
+/// Provides endpoints for token generation and authentication status checks.
+/// </summary>
 [ApiController]
 [Route("api/v1/authentication")]
 [Produces("application/json")]
@@ -45,12 +49,17 @@ public sealed class AuthenticationController : ControllerBase
         this._mapper = mapper;
     }
 
+    /// <summary>
+    /// Authenticates a user and returns a JWT token if successful.
+    /// </summary>
+    /// <param name="login">Login credentials including username and password</param>
+    /// <returns>TokenResponseDto containing JWT token and user information</returns>
     [HttpPost("token")]
     [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Authentication")]
-    [Description("Authenticate the user")]
+    [Description("Authenticates a user and returns a JWT token if successful.")]
     [AllowAnonymous]
     public async Task<ActionResult<TokenResponseDto>> Authenticate([FromBody] LoginRequestDto login)
     {

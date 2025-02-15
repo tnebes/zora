@@ -11,6 +11,10 @@ using zora.Core.Interfaces.Services;
 
 namespace zora.API.Controllers;
 
+/// <summary>
+/// Controller for handling authorization checks.
+/// Provides endpoints to verify user permissions and admin status.
+/// </summary>
 [ApiController]
 [Route("api/v1/authorisation")]
 [Produces("application/json")]
@@ -33,6 +37,11 @@ public sealed class AuthorisationController : ControllerBase, IZoraService
         this._logger = logger;
     }
 
+    /// <summary>
+    /// Checks if the authenticated user is authorized to perform a specific action on a resource.
+    /// </summary>
+    /// <param name="permissionRequest">Details of the permission being requested</param>
+    /// <returns>Boolean indicating whether the user is authorized</returns>
     [Authorize]
     [HttpPost("is-authorised")]
     [ProducesResponseType<int>(StatusCodes.Status200OK)]
@@ -40,7 +49,7 @@ public sealed class AuthorisationController : ControllerBase, IZoraService
     [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<int>(StatusCodes.Status403Forbidden)]
     [Tags("Authorisation")]
-    [Description("Check if the user is authorised to perform the requested action on a given resource")]
+    [Description("Checks if the authenticated user is authorized to perform a specific action on a resource.")]
     public async Task<ActionResult<bool>> IsAuthorised([FromBody] PermissionRequestDto permissionRequest)
     {
         try

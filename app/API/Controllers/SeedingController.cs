@@ -1,5 +1,6 @@
 #region
 
+using System.ComponentModel;
 using Microsoft.AspNetCore.Mvc;
 using zora.Infrastructure.DataSeed;
 
@@ -7,6 +8,10 @@ using zora.Infrastructure.DataSeed;
 
 namespace zora.API.Controllers;
 
+/// <summary>
+/// Controller for database seeding operations.
+/// Provides endpoint for initializing database with seed data.
+/// </summary>
 [ApiController]
 [Route("api/v1/seed")]
 [Produces("application/json")]
@@ -23,9 +28,14 @@ public sealed class SeedingController : ControllerBase
         this._logger = logger;
     }
 
+    /// <summary>
+    /// Initializes the database with seed data. Should only be used in development environments.
+    /// </summary>
+    /// <returns>Boolean indicating success of the seeding operation</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Description("Initializes the database with seed data. Should only be used in development environments.")]
     public async Task<ActionResult<bool>> Seed()
     {
         try
