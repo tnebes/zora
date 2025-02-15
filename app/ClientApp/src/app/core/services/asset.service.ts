@@ -25,10 +25,11 @@ export class AssetService {
 
     public create(asset: CreateAsset): Observable<AssetResponse> {
         const formData = new FormData();
-        formData.append('file', asset.asset);
+        formData.append('file', asset.asset, asset.asset.name);
         formData.append('name', asset.name);
         formData.append('description', asset.description ?? '');
         formData.append('assetPath', asset.assetPath);
+
         if (asset.workAssetId) {
             formData.append('workAssetId', asset.workAssetId.toString());
         }

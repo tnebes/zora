@@ -59,8 +59,11 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
 
         if (this._cache.TryGetValue(cacheKey, out bool cachedResult))
         {
+            this._logger.LogDebug("Cache hit for key: {CacheKey}", cacheKey);
             return cachedResult;
         }
+
+        this._logger.LogDebug("Cache miss for key: {CacheKey}", cacheKey);
 
         try
         {

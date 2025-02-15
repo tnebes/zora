@@ -99,7 +99,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     [Tags("Assets")]
     [Description("Creates a new asset. Requires admin privileges.")]
     [Authorize]
-    public override async Task<ActionResult<Asset>> Create([FromBody] CreateAssetDto createDto)
+    public override async Task<ActionResult<Asset>> Create([FromForm] CreateAssetDto createDto)
     {
         try
         {
