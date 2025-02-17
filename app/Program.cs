@@ -18,21 +18,20 @@ try
     }
     else
     {
-        builder.Host.UseSystemd();
-        builder.Host.UseSerilog((context, services, configuration) => configuration
-            .ReadFrom.Configuration(context.Configuration)
-            .ReadFrom.Services(services)
-            .WriteTo.Console());
+        builder.Host.UseSystemd()
+            .UseSerilog((context, services, configuration) => configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .WriteTo.Console());
         Console.WriteLine("Writing logs in production mode.");
     }
 
-    builder.Services.AddCustomServices(builder.Configuration);
+    builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());
     WebApplication app = builder.Build();
 
     IEnvironmentManagerService environmentManager =
         app.Services.GetRequiredService<IEnvironmentManagerService>();
 
-    Console.WriteLine("Running in {0} mode.", environmentManager.CurrentEnvironment);
     Log.Information("Running in {0} mode.", environmentManager.CurrentEnvironment);
 
     await app.ConfigureApplication(environmentManager).RunAsync();

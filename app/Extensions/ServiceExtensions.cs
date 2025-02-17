@@ -22,7 +22,7 @@ namespace zora.Extensions;
 
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddCustomServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddCustomServices(this IServiceCollection services, IConfiguration configuration, bool isDevelopment)
     {
         return services.AddCache()
             .AddConfigureMapper()
@@ -32,7 +32,7 @@ public static class ServiceExtensions
             .AddZoraCors()
             .AddZoraAuthenticationAndAuthorisation(configuration)
             .AddZoraLogging()
-            .AddZoraDbContext(configuration)
+            .AddZoraDbContext(configuration, isDevelopment)
             .AddZoraServices();
     }
 
@@ -192,6 +192,7 @@ public static class ServiceExtensions
                     }
                 };
             });
+        Log.Information("Adding authentication and authorisation.");
         services.AddAuthorization();
 
         return services;
@@ -204,12 +205,17 @@ public static class ServiceExtensions
             options.AddPolicy(Constants.ZORA_CORS_POLICY_NAME, builder =>
             {
                 builder.WithOrigins(
-                        "http://localhost:4200",
-                        "https://localhost:4200",
-                        "https://localhost:5001",
-                        "http://localhost:5000",
-                        "https://draucode.com",
-                        "http://draucode.com")
+                    "http://localhost:4200",
+                    "https://localhost:4200",
+                    "https://localhost:5001",
+                    "http://localhost:5000",
+                    "https://draucode.com",
+                    "http://draucode.com",
+                    "https://0.0.0.0:5001",
+                    "https://0.0.0.0:5000",
+                    "http://0.0.0.0",
+                    "https://0.0.0.0"
+                )
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials()
@@ -219,27 +225,29 @@ public static class ServiceExtensions
             });
         }
 
+        Log.Information("Adding CORS.");
         services.AddCors(corsOptions);
         return services;
     }
 
     private static IServiceCollection AddZoraLogging(this IServiceCollection services)
     {
+        Log.Information("Adding HTTP logging.");
         services.AddHttpLogging(logging => logging.LoggingFields = HttpLoggingFields.All);
         return services;
     }
 
-    private static IServiceCollection AddZoraDbContext(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddZoraDbContext(this IServiceCollection services, IConfiguration configuration, bool isDevelopment)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
         {
             string? connectionString = configuration[Constants.CONNECTION_STRING_KEY];
             if (string.IsNullOrEmpty(connectionString))
             {
-                Log.Error("{KeyName} not found in configuration. Use dotnet user-secrets.",
+                Log.Error("{KeyName} not found in configuration. Use dotnet user-secrets or environment variables.",
                     Constants.CONNECTION_STRING_KEY);
                 throw new InvalidOperationException(
-                    $"Database connection string {Constants.CONNECTION_STRING_KEY} not found in configuration. Use dotnet user-secrets.");
+                    $"Database connection string {Constants.CONNECTION_STRING_KEY} not found in configuration. Use dotnet user-secrets or environment variables.");
             }
 
             options.UseLazyLoadingProxies();
@@ -253,8 +261,13 @@ public static class ServiceExtensions
                 Log.Information, [DbLoggerCategory.Database.Command.Name],
                 LogLevel.Information);
 
-            options.EnableSensitiveDataLogging();
-            options.EnableDetailedErrors();
+            if (isDevelopment)
+            {
+                Log.Information("Enabling sensitive data logging and detailed errors for development environment.");
+                options.EnableSensitiveDataLogging();
+                options.EnableDetailedErrors();    
+            }            
+            
         });
 
         services.AddScoped<IDbContext>(provider =>
@@ -265,12 +278,14 @@ public static class ServiceExtensions
 
     private static IServiceCollection AddCache(this IServiceCollection services)
     {
+        Log.Information("Adding memory cache.");
         services.AddMemoryCache();
         return services;
     }
 
     private static IServiceCollection AddConfigureMapper(this IServiceCollection services)
     {
+        Log.Information("Adding AutoMapper.");
         services.AddAutoMapper(typeof(Program).Assembly);
         return services;
     }
