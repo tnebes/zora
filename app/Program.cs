@@ -25,15 +25,15 @@ catch (Exception ex)
 {
     Log.Fatal(ex,
         "Application terminated unexpectedly due to an unhandled exception.\nPlease read the logs for more information.");
-    writeToCrashLog(ex);
+    WriteToCrashLog(ex);
 
-    async void writeToCrashLog(Exception exception)
+    async void WriteToCrashLog(Exception exception)
     {
-        string logName = "crash.log";
+        const string logName = "crash.log";
         string logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
         string fullPath = Path.Combine(logDirectory, logName);
         Directory.CreateDirectory(logDirectory);
-        await File.WriteAllTextAsync(fullPath, ex.ToString());
+        await File.WriteAllTextAsync(fullPath, exception.ToString());
     }
 }
 finally

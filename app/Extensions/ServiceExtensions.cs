@@ -253,10 +253,8 @@ public static class ServiceExtensions
                 Log.Information, [DbLoggerCategory.Database.Command.Name],
                 LogLevel.Information);
 
-#if DEBUG
             options.EnableSensitiveDataLogging();
             options.EnableDetailedErrors();
-#endif
         });
 
         services.AddScoped<IDbContext>(provider =>
