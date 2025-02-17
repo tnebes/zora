@@ -9,9 +9,22 @@ using zora.Extensions;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 try
 {
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services));
+    if (builder.Environment.IsDevelopment())
+    {
+        builder.Host.UseSerilog((context, services, configuration) => configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services));
+        Console.WriteLine("Writing logs in development mode.");
+    }
+    else
+    {
+        builder.Host.UseSystemd();
+        builder.Host.UseSerilog((context, services, configuration) => configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .WriteTo.Console());
+        Console.WriteLine("Writing logs in production mode.");
+    }
 
     builder.Services.AddCustomServices(builder.Configuration);
     WebApplication app = builder.Build();
