@@ -19,6 +19,9 @@ try
     IEnvironmentManagerService environmentManager =
         app.Services.GetRequiredService<IEnvironmentManagerService>();
 
+    Console.WriteLine("Running in {0} mode.", environmentManager.CurrentEnvironment);
+    Log.Information("Running in {0} mode.", environmentManager.CurrentEnvironment);
+
     await app.ConfigureApplication(environmentManager).RunAsync();
 }
 catch (Exception ex)
