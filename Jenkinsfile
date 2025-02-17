@@ -39,7 +39,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh 'cp -r publish/* /var/www/zora/'
-                sh 'systemctl restart zora.service'
+                sh 'sudo systemctl restart zora.service'
             }
         }
     }
