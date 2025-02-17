@@ -12,6 +12,12 @@ pipeline {
             }
         }
 
+        stage('Install Frontend Dependencies') {
+            steps {
+                sh 'cd app/ClientApp && npm install --legacy-peer-deps'
+            }
+        }
+
         stage('Restore Dependencies') {
             steps {
                 sh 'cd app && dotnet restore'
