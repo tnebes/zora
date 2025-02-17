@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOTNET_ROOT = "/usr/bin/dotnet"
+        ASPNETCORE_ENVIRONMENT = "Production"
     }
 
     stages {

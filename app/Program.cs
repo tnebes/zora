@@ -32,11 +32,7 @@ catch (Exception ex)
         string logName = "crash.log";
         string logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
         string fullPath = Path.Combine(logDirectory, logName);
-        if (!File.Exists(fullPath))
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(logDirectory));
-        }
-
+        Directory.CreateDirectory(logDirectory);
         await File.WriteAllTextAsync(fullPath, ex.ToString());
     }
 }
