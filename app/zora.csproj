@@ -65,8 +65,9 @@
     </Target>
 
     <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
-        <Exec WorkingDirectory="$(SpaRoot)" Command="npm install --force 2>&1 | tee npm-install.log"/>
-        <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build -- --prod 2>&1 | tee npm-build.log"/>
+        <Exec WorkingDirectory="$(SpaRoot)" Command="npm install --force"/>
+        <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build -- --configuration production"/>
+        <Exec WorkingDirectory="$(SpaRoot)" Command="cat npm-debug.log 2> /dev/null || true" IgnoreExitCode="true"/>
 
         <!-- Include the newly-built files in the publish output -->
         <ItemGroup>
