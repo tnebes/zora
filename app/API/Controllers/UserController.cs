@@ -231,7 +231,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
             if (!isAdmin && !isSameUser)
             {
                 this.Logger.LogWarning("User {Username} is not authorized to update user with ID {UserId}",
-                    this.User.Identity?.Name);
+                    this.User.Identity?.Name, id);
                 return this.Unauthorized();
             }
 

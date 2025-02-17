@@ -19,19 +19,25 @@ pipeline {
             }
         }
 
-        stage('Restore Dependencies') {
+        stage('Build Frontend') {
+            steps {
+                sh 'cd app/ClientApp && npm run build -- --configuration=production'
+            }
+        }
+
+        stage('Restore Backend Dependencies') {
             steps {
                 sh 'cd app && dotnet restore'
             }
         }
 
-        stage('Build') {
+        stage('Build Backend') {
             steps {
                 sh 'cd app && dotnet build --configuration Release'
             }
         }
 
-        stage('Publish') {
+        stage('Publish Backend') {
             steps {
                 sh 'cd app && dotnet publish -c Release -o ../publish'
             }
