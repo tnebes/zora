@@ -131,7 +131,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
 
     [HttpPost("test")]
     [Consumes("multipart/form-data")]
-    public ActionResult<Asset> Test(Object createDto)
+    public ActionResult<Asset> Test(object createDto)
     {
         this.Logger.LogInformation(createDto.ToString());
         return this.Ok();
