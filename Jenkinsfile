@@ -14,26 +14,26 @@ pipeline {
 
         stage('Restore Dependencies') {
             steps {
-                sh 'dotnet restore'
+                sh 'cd app && dotnet restore'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'dotnet build --configuration Release'
+                sh 'cd app && dotnet build --configuration Release'
             }
         }
 
         stage('Publish') {
             steps {
-                sh 'dotnet publish -c Release -o ./publish'
+                sh 'cd app && dotnet publish -c Release -o ../publish'
             }
         }
 
         stage('Deploy') {
             steps {
-                sh 'scp -r ./publish/* user@your-server:/var/www/your-app'
-                sh 'ssh user@your-server "systemctl restart your-app.service"'
+                sh 'cp -r publish/* /var/www/zora/'
+                sh 'systemctl restart zora.service'
             }
         }
     }
