@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/tnebes/zora.git'
+                git branch: 'master', url: 'https://github.com/tnebes/zora.git'
             }
         }
 
