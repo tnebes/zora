@@ -206,7 +206,11 @@ public static class ServiceExtensions
             {
                 builder.WithOrigins(
                     "http://localhost:4200",
+                    "http://localhost:80",
+                    "http://127.0.0.1:4200",
+                    "http://127.0.0.1:80",
                     "https://localhost:4200",
+                    "https://localhost:80",
                     "https://localhost:5001",
                     "http://localhost:5000",
                     "https://draucode.com",
