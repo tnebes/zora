@@ -15,8 +15,8 @@ using Constants = zora.Core.Constants;
 namespace zora.API.Controllers;
 
 /// <summary>
-/// Controller for managing system users.
-/// Provides CRUD operations for users with appropriate authorization checks.
+///     Controller for managing system users.
+///     Provides CRUD operations for users with appropriate authorization checks.
 /// </summary>
 [ApiController]
 [Route("api/v1/users")]
@@ -37,7 +37,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
         this._userService = userService;
 
     /// <summary>
-    /// Retrieves a paginated list of users with support for filtering, sorting, and searching.
+    ///     Retrieves a paginated list of users with support for filtering, sorting, and searching.
     /// </summary>
     /// <param name="queryParams">Query parameters including page number, page size, and search term</param>
     /// <returns>Paginated list of users wrapped in UserResponseDto</returns>
@@ -111,7 +111,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
     }
 
     /// <summary>
-    /// Deletes a user by ID. Requires admin privileges or ownership of the account.
+    ///     Deletes a user by ID. Requires admin privileges or ownership of the account.
     /// </summary>
     /// <param name="id">ID of the user to delete</param>
     /// <returns>Boolean indicating success of the deletion operation</returns>
@@ -155,7 +155,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
     }
 
     /// <summary>
-    /// Creates a new user in the system. Requires admin privileges.
+    ///     Creates a new user in the system. Requires admin privileges.
     /// </summary>
     /// <param name="createMinimumUserDto">Data transfer object containing user details</param>
     /// <returns>Created user object</returns>
@@ -206,7 +206,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
     }
 
     /// <summary>
-    /// Updates an existing user by ID. Requires admin privileges or ownership of the account.
+    ///     Updates an existing user by ID. Requires admin privileges or ownership of the account.
     /// </summary>
     /// <param name="id">ID of the user to update</param>
     /// <param name="updateUserDto">Data transfer object containing updated user details</param>

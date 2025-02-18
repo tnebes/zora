@@ -9,8 +9,8 @@ using zora.Infrastructure.DataSeed;
 namespace zora.API.Controllers;
 
 /// <summary>
-/// Controller for database seeding operations.
-/// Provides endpoint for initializing database with seed data.
+///     Controller for database seeding operations.
+///     Provides endpoint for initializing database with seed data.
 /// </summary>
 [ApiController]
 [Route("api/v1/seed")]
@@ -29,7 +29,7 @@ public sealed class SeedingController : ControllerBase
     }
 
     /// <summary>
-    /// Initializes the database with seed data. Should only be used in development environments.
+    ///     Initializes the database with seed data. Should only be used in development environments.
     /// </summary>
     /// <returns>Boolean indicating success of the seeding operation</returns>
     [HttpGet]

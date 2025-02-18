@@ -14,8 +14,8 @@ using zora.Core.Interfaces.Services;
 namespace zora.API.Controllers;
 
 /// <summary>
-/// Controller for managing assets in the system.
-/// Provides CRUD operations for assets with authorization checks.
+///     Controller for managing assets in the system.
+///     Provides CRUD operations for assets with authorization checks.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -47,7 +47,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         this._assetService = assetService;
 
     /// <summary>
-    /// Retrieves a paginated list of assets with support for filtering, sorting, and searching.
+    ///     Retrieves a paginated list of assets with support for filtering, sorting, and searching.
     /// </summary>
     /// <param name="queryParams">Query parameters including page number, page size, and search term</param>
     /// <returns>Paginated list of assets wrapped in AssetResponseDto</returns>
@@ -87,7 +87,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     }
 
     /// <summary>
-    /// Creates a new asset in the system. Requires admin privileges.
+    ///     Creates a new asset in the system. Requires admin privileges.
     /// </summary>
     /// <param name="createDto">Data transfer object containing asset creation details</param>
     /// <returns>Created asset object</returns>
@@ -138,7 +138,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     }
 
     /// <summary>
-    /// Updates an existing asset by ID. Requires admin privileges.
+    ///     Updates an existing asset by ID. Requires admin privileges.
     /// </summary>
     /// <param name="id">ID of the asset to update</param>
     /// <param name="updateDto">Data transfer object containing updated asset details</param>
@@ -200,7 +200,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     }
 
     /// <summary>
-    /// Deletes an asset by ID. Requires admin privileges.
+    ///     Deletes an asset by ID. Requires admin privileges.
     /// </summary>
     /// <param name="id">ID of the asset to delete</param>
     /// <returns>Boolean indicating success of the deletion operation</returns>

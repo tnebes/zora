@@ -20,7 +20,7 @@ namespace zora.Infrastructure.Services;
 [ServiceLifetime(ServiceLifetime.Scoped)]
 public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisationService, IZoraService
 {
-    private const string CacheKeyPrefix = "auth_";
+    private const string CACHE_KEY_PREFIX = "auth_";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
     private readonly IMemoryCache _cache;
     private readonly ILogger<AuthorisationService> _logger;
@@ -153,7 +153,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
     }
 
     private static string GetCacheKey(PermissionRequestDto request) =>
-        $"{AuthorisationService.CacheKeyPrefix}{request.UserId}_{request.ResourceId}_{request.RequestedPermission}";
+        $"{AuthorisationService.CACHE_KEY_PREFIX}{request.UserId}_{request.ResourceId}_{request.RequestedPermission}";
 
     private async Task<bool> CheckAuthorizationAsync(PermissionRequestDto request) =>
         await this._permissionService.HasDirectPermissionAsync(request) ||

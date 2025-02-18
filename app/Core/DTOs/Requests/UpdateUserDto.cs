@@ -1,6 +1,7 @@
 #region
 
 using System.ComponentModel.DataAnnotations;
+using zora.Core.DTOs.Responses;
 
 #endregion
 

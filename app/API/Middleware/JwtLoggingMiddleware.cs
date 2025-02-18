@@ -20,7 +20,7 @@ public sealed class JwtLoggingMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         DateTime startTime = DateTime.UtcNow;
-        string? authHeader = context.Request.Headers.Authorization.ToString();
+        string authHeader = context.Request.Headers.Authorization.ToString();
 
         if (!string.IsNullOrEmpty(authHeader))
         {

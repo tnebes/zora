@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core;
 using zora.Core.Domain;
-using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
 using zora.Core.Interfaces.Services;
@@ -16,8 +15,8 @@ using zora.Core.Interfaces.Services;
 namespace zora.API.Controllers;
 
 /// <summary>
-/// Controller for managing system roles.
-/// Provides CRUD operations for roles with admin authorization checks.
+///     Controller for managing system roles.
+///     Provides CRUD operations for roles with admin authorization checks.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -38,7 +37,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         this._roleService = roleService;
 
     /// <summary>
-    /// Retrieves a paginated list of roles with support for filtering, sorting, and searching.
+    ///     Retrieves a paginated list of roles with support for filtering, sorting, and searching.
     /// </summary>
     /// <param name="queryParams">Query parameters including page number, page size, and search term</param>
     /// <returns>Paginated list of roles wrapped in RoleResponseDto</returns>
@@ -78,7 +77,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
     }
 
     /// <summary>
-    /// Creates a new role in the system. Requires admin privileges.
+    ///     Creates a new role in the system. Requires admin privileges.
     /// </summary>
     /// <param name="roleDto">Data transfer object containing role details</param>
     /// <returns>Created role object</returns>
@@ -117,7 +116,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
     }
 
     /// <summary>
-    /// Updates an existing role by ID. Requires admin privileges.
+    ///     Updates an existing role by ID. Requires admin privileges.
     /// </summary>
     /// <param name="id">ID of the role to update</param>
     /// <param name="roleDto">Data transfer object containing updated role details</param>
@@ -157,7 +156,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
     }
 
     /// <summary>
-    /// Deletes a role by ID. Requires admin privileges.
+    ///     Deletes a role by ID. Requires admin privileges.
     /// </summary>
     /// <param name="id">ID of the role to delete</param>
     /// <returns>Boolean indicating success of the deletion operation</returns>

@@ -74,7 +74,7 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
         }
     }
 
-    public new async Task<Result<Role>> GetByIdAsync(long id, bool includeProperties = false)
+    public async Task<Result<Role>> GetByIdAsync(long id, bool includeProperties = false)
     {
         try
         {

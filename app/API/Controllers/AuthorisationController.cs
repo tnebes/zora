@@ -12,8 +12,8 @@ using zora.Core.Interfaces.Services;
 namespace zora.API.Controllers;
 
 /// <summary>
-/// Controller for handling authorization checks.
-/// Provides endpoints to verify user permissions and admin status.
+///     Controller for handling authorization checks.
+///     Provides endpoints to verify user permissions and admin status.
 /// </summary>
 [ApiController]
 [Route("api/v1/authorisation")]
@@ -27,8 +27,6 @@ public sealed class AuthorisationController : ControllerBase, IZoraService
     private readonly IRoleService _roleService;
 
     public AuthorisationController(IAuthorisationService authorisationService,
-        IPermissionService permissionService,
-        IUserRoleService userRoleService,
         IRoleService roleService,
         ILogger<AuthorisationController> logger)
     {
@@ -38,7 +36,7 @@ public sealed class AuthorisationController : ControllerBase, IZoraService
     }
 
     /// <summary>
-    /// Checks if the authenticated user is authorized to perform a specific action on a resource.
+    ///     Checks if the authenticated user is authorized to perform a specific action on a resource.
     /// </summary>
     /// <param name="permissionRequest">Details of the permission being requested</param>
     /// <returns>Boolean indicating whether the user is authorized</returns>

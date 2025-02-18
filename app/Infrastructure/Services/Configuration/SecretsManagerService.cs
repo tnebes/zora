@@ -26,7 +26,7 @@ public sealed class SecretsManagerService : ISecretsManagerService, IZoraService
 
         if (string.IsNullOrEmpty(value))
         {
-            string? errorMessage = $"Secret with key '{key}' not found. Use dotnet user-secrets.";
+            string errorMessage = $"Secret with key '{key}' not found. Use dotnet user-secrets.";
             Log.Error(errorMessage);
             throw new KeyNotFoundException(errorMessage);
         }

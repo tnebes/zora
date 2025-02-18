@@ -23,7 +23,7 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
     {
     }
 
-    public new async Task<Result<User>> GetByIdAsync(long id, bool includeProperties = false)
+    public async Task<Result<User>> GetByIdAsync(long id, bool includeProperties = false)
     {
         await UserRepository.Semaphore.WaitAsync();
         try

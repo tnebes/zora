@@ -65,7 +65,7 @@ public sealed class ApplicationDbContext : DbContext, IDbContext, IZoraService
     {
         if (!optionsBuilder.IsConfigured)
         {
-            string? connectionString = this._secretsManagerService.GetSecret(Constants.CONNECTION_STRING_KEY);
+            string connectionString = this._secretsManagerService.GetSecret(Constants.CONNECTION_STRING_KEY);
 
             if (string.IsNullOrEmpty(connectionString))
             {
