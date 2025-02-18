@@ -29,6 +29,7 @@ try
                 }
             );
         });
+        Console.WriteLine("Writing logs in production mode.");
     }
 
     builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());

@@ -1,8 +1,9 @@
+import { environment } from "src/environments/environment";
 import {QueryParams} from "./models/query-params.interface";
 
 export class Constants {
     // Base URL
-    static readonly BASE_URL: string = "https://localhost:5001/api/v1"; // TODO: move to environment
+    static readonly BASE_URL: string = `https://localhost:${environment.backendPort}/api/v1`;
 
     // Authentication & Authorization
     static readonly AUTHENTICATION: string = `${Constants.BASE_URL}/authentication`;
