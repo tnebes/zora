@@ -5,6 +5,7 @@ using Serilog;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using zora.API.Middleware;
 using zora.Core;
+using zora.Core.Enums;
 using zora.Core.Interfaces.Services;
 
 #endregion
@@ -20,7 +21,12 @@ public static class AppExtensions
         app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseMiddleware<JwtLoggingMiddleware>();
-        app.UseHttpsRedirection();
+
+        if (environmentManager.CurrentEnvironment.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+
         app.UseRouting();
         app.UseMiddleware<CorsLoggingMiddleware>();
         app.UseCors(Constants.ZORA_CORS_POLICY_NAME);
