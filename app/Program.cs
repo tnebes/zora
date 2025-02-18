@@ -18,8 +18,17 @@ try
     }
     else
     {
-        builder.Host.UseSystemd();
-        Console.WriteLine("Writing logs in production mode.");
+        builder.Host.UseSystemd().ConfigureLogging((context, logging) =>
+        {
+            logging.ClearProviders();
+            logging.AddSimpleConsole(
+                options =>
+                {
+                    options.IncludeScopes = true;
+                    options.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
+                }
+            );
+        });
     }
 
     builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());
