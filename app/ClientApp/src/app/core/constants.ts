@@ -3,7 +3,7 @@ import {QueryParams} from "./models/query-params.interface";
 
 export class Constants {
     // Base URL
-    static readonly BASE_URL: string = `https://localhost:${environment.backendPort}/api/v1`;
+    static readonly BASE_URL: string = `${environment.url}:${environment.backendPort}/api/v1`;
 
     // Authentication & Authorization
     static readonly AUTHENTICATION: string = `${Constants.BASE_URL}/authentication`;
