@@ -21,6 +21,7 @@ try
         builder.Host.UseSystemd().ConfigureLogging((context, logging) =>
         {
             logging.ClearProviders();
+            logging.SetMinimumLevel(LogLevel.Information);
             logging.AddSimpleConsole(
                 options =>
                 {
