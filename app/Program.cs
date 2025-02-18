@@ -18,18 +18,10 @@ try
     }
     else
     {
-        builder.Host.UseSystemd().ConfigureLogging((context, logging) =>
-        {
-            logging.ClearProviders();
-            logging.SetMinimumLevel(LogLevel.Information);
-            logging.AddSimpleConsole(
-                options =>
-                {
-                    options.IncludeScopes = true;
-                    options.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ";
-                }
-            );
-        });
+        builder.Host.UseSystemd()
+            .UseSerilog((context, services, configuration) => configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services));
         Console.WriteLine("Writing logs in production mode.");
     }
 
