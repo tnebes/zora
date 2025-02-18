@@ -174,12 +174,14 @@ public static class ServiceExtensions
                     [
                         Constants.ZORA_URL,
                         Constants.ZORA_SUBDOMAIN_URL,
+                        Constants.ZORA_URL_WITH_PORT,
                         "https://localhost:4200",
                     ],
                     ValidIssuers =
                     [
                         Constants.ZORA_URL,
                         Constants.ZORA_SUBDOMAIN_URL,
+                        Constants.ZORA_URL_WITH_PORT,
                         "https://localhost:5001"
                     ],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(issuerSigningKey)),
