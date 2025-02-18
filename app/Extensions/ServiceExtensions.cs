@@ -87,7 +87,7 @@ public static class ServiceExtensions
                 Contact = new OpenApiContact
                 {
                     Name = "Tomislav Nebes",
-                    Email = "tnebes@draucode.com",
+                    Email = $"tnebes@{Constants.DRAUCODE_COM}",
                     Url = new Uri(Constants.ZORA_URL)
                 },
                 License = new OpenApiLicense
@@ -234,7 +234,7 @@ public static class ServiceExtensions
             {
                 options.AddPolicy(Constants.ZORA_CORS_POLICY_NAME, builder =>
                 {
-                    builder.WithOrigins(Constants.ZORA_SUBDOMAIN_URL, Constants.ZORA_URL)
+                    builder.WithOrigins(Constants.ZORA_SUBDOMAIN_URL, Constants.ZORA_URL, Constants.ZORA_URL_WITH_PORT)
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials()
