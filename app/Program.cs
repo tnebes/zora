@@ -18,11 +18,7 @@ try
     }
     else
     {
-        builder.Host.UseSystemd()
-            .UseSerilog((context, services, configuration) => configuration
-                .ReadFrom.Configuration(context.Configuration)
-                .ReadFrom.Services(services)
-                .WriteTo.Console());
+        builder.Host.UseSystemd();
         Console.WriteLine("Writing logs in production mode.");
     }
 
