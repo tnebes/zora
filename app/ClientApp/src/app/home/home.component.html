@@ -1,28 +1,42 @@
-<h1>Hello, world!</h1>
-<p>Welcome to your new single-page application, built with:</p>
-<ul>
-    <li><a href='https://get.asp.net/'>ASP.NET Core</a> and <a
-        href='https://msdn.microsoft.com/en-us/library/67ef8sbd.aspx'>C#</a> for cross-platform server-side code
-    </li>
-    <li><a href='https://angular.io/'>Angular</a> and <a href='http://www.typescriptlang.org/'>TypeScript</a> for
-        client-side code
-    </li>
-    <li><a href='http://getbootstrap.com/'>Bootstrap</a> for layout and styling</li>
-</ul>
-<p>To help you get started, we've also set up:</p>
-<ul>
-    <li><strong>Client-side navigation</strong>. For example, click <em>Counter</em> then <em>Back</em> to return here.
-    </li>
-    <li><strong>Angular CLI integration</strong>. In development mode, there's no need to run <code>ng serve</code>. It
-        runs in the background automatically, so your client-side resources are dynamically built on demand and the page
-        refreshes when you modify any file.
-    </li>
-    <li><strong>Efficient production builds</strong>. In production mode, development-time features are disabled, and
-        your
-        <code>dotnet publish</code> configuration automatically invokes <code>ng build</code> to produce minified,
-        ahead-of-time compiled JavaScript files.
-    </li>
-</ul>
-<p>The <code>ClientApp</code> subdirectory is a standard Angular CLI application. If you open a command prompt in that
-    directory, you can run any <code>ng</code> command (e.g., <code>ng test</code>), or use <code>npm</code> to install
-    extra packages into it.</p>
+<div class="container mt-5">
+    <div *ngIf="isAuthenticated$ | async; else notLoggedIn">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <h2 class="mb-4 greeting">{{greeting}}, {{currentUsername$ | async}}!</h2>
+                <div class="card mb-4 task-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Task 1</h5>
+                        <p class="card-text">Complete project setup</p>
+                        <span class="badge high-priority">High Priority</span>
+                    </div>
+                </div>
+                <div class="card mb-4 task-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Task 2</h5>
+                        <p class="card-text">Review documentation</p>
+                        <span class="badge medium-priority">Medium Priority</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ng-template #notLoggedIn>
+        <div class="row">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h1 class="mb-4">Welcome to Zora</h1>
+                <p class="lead mb-4">
+                    Zora is a platform for work organization. It helps users create and manage tasks, projects, and teams, 
+                    making it easier to organize work and collaborate with others.
+                </p>
+                <a routerLink="/login" class="btn btn-primary btn-lg mb-4">
+                    Login
+                </a>
+                <p class="text-muted">
+                    Registration is currently by invitation only. If you'd like to use Zora, please ask someone in your 
+                    organization to invite you.
+                </p>
+            </div>
+        </div>
+    </ng-template>
+</div>

@@ -27,3 +27,114 @@ body {
     margin: 0;
     font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+.greeting {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+}
+
+.task-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    transition: all 0.2s ease-in-out;
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-color: #007bff;
+    }
+}
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.high-priority {
+    background-color: #dc3545;
+    color: white;
+}
+
+.medium-priority {
+    background-color: #ffc107;
+    color: black;
+}
+
+.low-priority {
+    background-color: #28a745;
+    color: white;
+}
+
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+
+    .task-card {
+        background-color: #2a2a2a;
+        border-color: #404040;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .navbar {
+        background-color: #1e1e1e;
+        border-bottom-color: #333333;
+    }
+
+    .nav-link {
+        color: #ffffff !important;
+        
+        &:hover {
+            color: #1a73e8 !important;
+        }
+    }
+}
+
+.navbar-collapse {
+    .nav-item {
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+            
+            &:hover {
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                transform: translateY(-1px);
+            }
+        }
+    }
+}
+
+.mat-elevation-z8 {
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 16px;
+}
+
+.mat-paginator {
+    background-color: transparent;
+    border-top: 1px solid #e0e0e0;
+}
+
+body.dark-mode {
+    .mat-row {
+        background-color: #2a2a2a;
+        
+        &:nth-child(odd) {
+            background-color: #333333;
+        }
+    }
+    
+    .mat-header-cell {
+        background-color: #1e1e1e;
+    }
+    
+    button[mat-button] {
+        color: #64b5f6;
+        
+        &:hover {
+            color: #42a5f5;
+        }
+    }
+}
