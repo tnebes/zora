@@ -22,14 +22,15 @@ namespace zora.Extensions;
 
 public static class ServiceExtensions
 {
-    public static IServiceCollection AddCustomServices(this IServiceCollection services, IConfiguration configuration, bool isDevelopment)
+    public static IServiceCollection AddCustomServices(this IServiceCollection services, IConfiguration configuration,
+        bool isDevelopment)
     {
         return services.AddCache()
             .AddConfigureMapper()
             .AddZoraControllers()
             .AddEndpointsApiExplorer()
             .AddSwaggerServices()
-            .AddZoraCors()
+            .AddZoraCors(isDevelopment)
             .AddZoraAuthenticationAndAuthorisation(configuration)
             .AddZoraLogging()
             .AddZoraDbContext(configuration, isDevelopment)
@@ -164,14 +165,26 @@ public static class ServiceExtensions
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = true;
 
-                options.TokenValidationParameters.ValidateIssuer = true;
-                options.TokenValidationParameters.ValidateAudience = true;
-                options.TokenValidationParameters.ValidateLifetime = true;
-                options.TokenValidationParameters.ValidAudiences = [Constants.ZORA_URL, "https://localhost:4200"];
-                options.TokenValidationParameters.ValidIssuers = [Constants.ZORA_URL, "https://localhost:5001"];
-                options.TokenValidationParameters.IssuerSigningKey =
-                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(issuerSigningKey));
-                options.TokenValidationParameters.ValidateIssuerSigningKey = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidAudiences =
+                    [
+                        Constants.ZORA_URL,
+                        Constants.ZORA_SUBDOMAIN_URL,
+                        "https://localhost:4200",
+                    ],
+                    ValidIssuers =
+                    [
+                        Constants.ZORA_URL,
+                        Constants.ZORA_SUBDOMAIN_URL,
+                        "https://localhost:5001"
+                    ],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(issuerSigningKey)),
+                    ValidateIssuerSigningKey = true
+                };
 
                 options.Events = new JwtBearerEvents
                 {
@@ -192,45 +205,46 @@ public static class ServiceExtensions
                     }
                 };
             });
+
         Log.Information("Adding authentication and authorisation.");
         services.AddAuthorization();
-
         return services;
     }
 
-    private static IServiceCollection AddZoraCors(this IServiceCollection services)
+    private static IServiceCollection AddZoraCors(this IServiceCollection services, bool isDevelopment)
     {
-        static void corsOptions(CorsOptions options)
+        void CorsOptions(CorsOptions options)
         {
-            options.AddPolicy(Constants.ZORA_CORS_POLICY_NAME, builder =>
+            if (isDevelopment)
             {
-                builder.WithOrigins(
-                    "http://localhost:4200",
-                    "http://localhost:80",
-                    "http://127.0.0.1:4200",
-                    "http://127.0.0.1:80",
-                    "https://localhost:4200",
-                    "https://localhost:80",
-                    "https://localhost:5001",
-                    "http://localhost:5000",
-                    "https://draucode.com",
-                    "http://draucode.com",
-                    "https://0.0.0.0:5001",
-                    "https://0.0.0.0:5000",
-                    "http://0.0.0.0",
-                    "https://0.0.0.0"
-                )
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials()
-                    .WithExposedHeaders("WWW-Authenticate")
-                    .SetPreflightMaxAge(TimeSpan.FromMinutes(10))
-                    .SetIsOriginAllowedToAllowWildcardSubdomains();
-            });
+                options.AddPolicy(Constants.ZORA_CORS_POLICY_NAME, builder =>
+                {
+                    builder.SetIsOriginAllowed(origin => true)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        .WithExposedHeaders("WWW-Authenticate")
+                        .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+                });
+                Log.Information("Development environment detected. Allowing all origins.");
+            }
+            else
+            {
+                options.AddPolicy(Constants.ZORA_CORS_POLICY_NAME, builder =>
+                {
+                    builder.WithOrigins(Constants.ZORA_SUBDOMAIN_URL, Constants.ZORA_URL)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        .WithExposedHeaders("WWW-Authenticate")
+                        .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+                });
+                Log.Information("Production environment detected. Allowing specific origins.");
+            }
         }
 
         Log.Information("Adding CORS.");
-        services.AddCors(corsOptions);
+        services.AddCors(CorsOptions);
         return services;
     }
 
@@ -241,7 +255,8 @@ public static class ServiceExtensions
         return services;
     }
 
-    private static IServiceCollection AddZoraDbContext(this IServiceCollection services, IConfiguration configuration, bool isDevelopment)
+    private static IServiceCollection AddZoraDbContext(this IServiceCollection services, IConfiguration configuration,
+        bool isDevelopment)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
         {
@@ -269,9 +284,8 @@ public static class ServiceExtensions
             {
                 Log.Information("Enabling sensitive data logging and detailed errors for development environment.");
                 options.EnableSensitiveDataLogging();
-                options.EnableDetailedErrors();    
-            }            
-            
+                options.EnableDetailedErrors();
+            }
         });
 
         services.AddScoped<IDbContext>(provider =>
