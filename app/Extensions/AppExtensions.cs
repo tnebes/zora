@@ -22,6 +22,7 @@ public static class AppExtensions
         app.UseMiddleware<JwtLoggingMiddleware>();
         app.UseHttpsRedirection();
         app.UseRouting();
+        app.UseMiddleware<CorsLoggingMiddleware>();
         app.UseCors(Constants.ZORA_CORS_POLICY_NAME);
         app.UseAuthentication();
         app.UseAuthorization();
