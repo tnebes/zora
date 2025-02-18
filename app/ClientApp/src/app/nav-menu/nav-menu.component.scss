@@ -39,21 +39,67 @@ header {
 
 .navbar-collapse {
     .nav-item {
-        margin-left: 1rem;
+        margin-left: 1.2rem;
+
+        &.profile-item {
+            margin-left: 0.8rem;
+
+            .nav-link {
+                display: flex;
+                align-items: center;
+
+                i {
+                    margin-right: 0.5rem;
+                }
+            }
+        }
 
         .nav-link {
             color: #333;
             font-weight: 500;
-            transition: color 0.3s;
+            transition: all 0.2s ease-in-out;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
 
             &:hover {
                 color: #007bff;
+                background-color: #f8f9fa;
+                transform: translateY(-2px);
             }
         }
 
         &.link-active .nav-link {
-            color: #007bff;
+            color: #ffffff;
+            background-color: #007bff;
             font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    .nav-item.control-panel .nav-link {
+        color: #ffffff;
+        background-color: #1a73e8;
+
+        &:hover {
+            background-color: #1557b0;
+        }
+    }
+
+    .nav-item.logout .nav-link {
+        color: #ffffff;
+        background-color: #dc3545;
+
+        &:hover {
+            background-color: #c82333;
+        }
+    }
+
+    .nav-item.login .nav-link {
+        color: #ffffff;
+        background-color: #17a2b8;
+
+        &:hover {
+            background-color: #138496;
         }
     }
 }

@@ -1,6 +1,8 @@
 import {Component} from '@angular/core';
 import {AuthenticationService, LoginResponse} from '../core/services/authentication.service';
 import {Router} from '@angular/router';
+import {environment} from '../../environments/environment';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
     selector: 'app-login',
@@ -10,6 +12,7 @@ import {Router} from '@angular/router';
 export class LoginComponent {
     username: string = '';
     password: string = '';
+    errorMessage: string | null = null;
 
     constructor(
         private readonly authenticationService: AuthenticationService,
@@ -17,7 +20,16 @@ export class LoginComponent {
     ) {
     }
 
+    private getErrorMessage(error: HttpErrorResponse): string {
+        return error.status === 500
+            ? error.message
+            : environment.production
+                ? 'Invalid username or password'
+                : error.message;
+    }
+
     public onLogin(): void {
+        this.errorMessage = null;
         const token: string = this.authenticationService.getToken();
         this.authenticationService.login(this.username, this.password, token)
             .subscribe({
@@ -25,8 +37,8 @@ export class LoginComponent {
                     this.authenticationService.saveToken(response.token);
                     this.router.navigate(['/'], {replaceUrl: true}).then(() => window.location.reload());
                 },
-                error: (error: Error) => {
-                    console.error('Login failed:', error);
+                error: (error: HttpErrorResponse) => {
+                    this.errorMessage = this.getErrorMessage(error);
                 }
             });
     }

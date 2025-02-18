@@ -13,8 +13,8 @@
                         <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
                     </li>
 
-                    <li *ngIf="!(isAuthenticated$ | async)" class="nav-item" [routerLinkActive]="['link-active']">
-                        <a class="nav-link text-dark primary" [routerLink]="['/login']">Login</a>
+                    <li *ngIf="!(isAuthenticated$ | async)" class="nav-item login" [routerLinkActive]="['link-active']">
+                        <a class="nav-link" [routerLink]="['/login']">Login</a>
                     </li>
 
                     <ng-container *ngIf="isAuthenticated$ | async">
@@ -30,18 +30,18 @@
                             <a class="nav-link text-dark" [routerLink]="['/tasks']">Tasks</a>
                         </li>
 
-                        <li *ngIf="isAdmin$ | async" class="nav-item" [routerLinkActive]="['link-active']">
-                            <a class="nav-link text-dark" [routerLink]="['/control-panel']">Control Panel</a>
+                        <li *ngIf="isAdmin$ | async" class="nav-item control-panel"
+                            [routerLinkActive]="['link-active']">
+                            <a class="nav-link" [routerLink]="['/control-panel']">Control Panel</a>
                         </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" href="#"
-                               (click)="$event.preventDefault(); logout()">Logout</a>
+                        <li class="nav-item logout">
+                            <a class="nav-link" href="#" (click)="$event.preventDefault(); logout()">Logout</a>
                         </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               [routerLink]="['/user', currentUserId$ | async]">
+                        <li class="nav-item profile-item">
+                            <a class="nav-link text-dark" [routerLink]="['/user', currentUserId$ | async]">
+                                <i class="fas fa-user-circle"></i>
                                 Profile
                             </a>
                         </li>

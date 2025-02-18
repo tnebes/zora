@@ -1,5 +1,9 @@
 <div class="login-container">
     <form (ngSubmit)="onLogin()">
+        <div *ngIf="errorMessage" class="error-message">
+            {{ errorMessage }}
+        </div>
+
         <div>
             <label for="username">Username:</label>
             <input

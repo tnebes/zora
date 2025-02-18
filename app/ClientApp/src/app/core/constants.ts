@@ -1,4 +1,4 @@
-import { environment } from "src/environments/environment";
+import {environment} from "src/environments/environment";
 import {QueryParams} from "./models/query-params.interface";
 
 export class Constants {
