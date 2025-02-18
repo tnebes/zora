@@ -1,6 +1,4 @@
 export const environment = {
     production: true,
-    url: "https://draucode.com",
-    frontendPort: 80,
-    backendPort: 5000
+    apiUrl: "https://draucode.com/api"
 };

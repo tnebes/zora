@@ -3,35 +3,34 @@ import {QueryParams} from "./models/query-params.interface";
 
 export class Constants {
     // Base URL
-    static readonly BASE_URL: string = `${environment.url}:${environment.backendPort}/api/v1`;
-
+    static readonly BASE_API_URL: string = `${environment.apiUrl}/v1`
     // Authentication & Authorization
-    static readonly AUTHENTICATION: string = `${Constants.BASE_URL}/authentication`;
-    static readonly AUTHORISATION: string = `${Constants.BASE_URL}/authorisation`;
+    static readonly AUTHENTICATION: string = `${Constants.BASE_API_URL}/authentication`;
+    static readonly AUTHORISATION: string = `${Constants.BASE_API_URL}/authorisation`;
     static readonly TOKEN: string = `${Constants.AUTHENTICATION}/token`;
     static readonly CURRENT_USER: string = `${Constants.AUTHENTICATION}/current-user`;
     static readonly AUTHENTICATION_CHECK: string = `${Constants.AUTHENTICATION}/check`;
     static readonly IS_ADMIN: string = `${Constants.AUTHORISATION}/is-admin`;
     static readonly JWT_TOKEN_KEY: string = "zora_jwt_token";
-    static readonly REGISTRATION: string = `${Constants.BASE_URL}/registration`;
+    static readonly REGISTRATION: string = `${Constants.BASE_API_URL}/registration`;
 
     // Users endpoints
-    static readonly USERS: string = `${Constants.BASE_URL}/users`;
+    static readonly USERS: string = `${Constants.BASE_API_URL}/users`;
     static readonly USERS_FIND: string = `${Constants.USERS}/find`;
     static readonly USERS_SEARCH: string = `${Constants.USERS}/search`;
 
     // Roles endpoints
-    static readonly ROLES: string = `${Constants.BASE_URL}/roles`;
+    static readonly ROLES: string = `${Constants.BASE_API_URL}/roles`;
     static readonly ROLES_FIND: string = `${Constants.ROLES}/find`;
     static readonly ROLES_SEARCH: string = `${Constants.ROLES}/search`;
 
     // Permissions endpoints
-    static readonly PERMISSIONS: string = `${Constants.BASE_URL}/permissions`;
+    static readonly PERMISSIONS: string = `${Constants.BASE_API_URL}/permissions`;
     static readonly PERMISSIONS_FIND: string = `${Constants.PERMISSIONS}/find`;
     static readonly PERMISSIONS_SEARCH: string = `${Constants.PERMISSIONS}/search`;
 
     // Assets endpoints
-    static readonly ASSETS: string = `${Constants.BASE_URL}/assets`;
+    static readonly ASSETS: string = `${Constants.BASE_API_URL}/assets`;
     static readonly ASSETS_FIND: string = `${Constants.ASSETS}/find`;
     static readonly ASSETS_SEARCH: string = `${Constants.ASSETS}/search`;
 

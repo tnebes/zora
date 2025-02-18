@@ -6,7 +6,8 @@ export const environment = {
     production: false,
     url: "https://localhost",
     frontendPort: 4200,
-    backendPort: 5001
+    backendPort: 5001,
+    apiUrl: "https://localhost:5001/api"
 };
 
 /*
