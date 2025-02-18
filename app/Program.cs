@@ -38,9 +38,9 @@ try
 }
 catch (Exception ex)
 {
+    WriteToCrashLog(ex);
     Log.Fatal(ex,
         "Application terminated unexpectedly due to an unhandled exception.\nPlease read the logs for more information.");
-    WriteToCrashLog(ex);
 
     async void WriteToCrashLog(Exception exception)
     {
@@ -50,6 +50,8 @@ catch (Exception ex)
         Directory.CreateDirectory(logDirectory);
         await File.WriteAllTextAsync(fullPath, exception.ToString());
     }
+
+    throw;
 }
 finally
 {
