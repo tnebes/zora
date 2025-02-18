@@ -40,7 +40,7 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     padding: 1.5rem;
     transition: all 0.2s ease-in-out;
-    
+
     &:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -86,7 +86,7 @@ body.dark-mode {
 
     .nav-link {
         color: #ffffff !important;
-        
+
         &:hover {
             color: #1a73e8 !important;
         }
@@ -97,7 +97,7 @@ body.dark-mode {
     .nav-item {
         .nav-link {
             transition: all 0.2s ease-in-out;
-            
+
             &:hover {
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 transform: translateY(-1px);
@@ -120,19 +120,19 @@ body.dark-mode {
 body.dark-mode {
     .mat-row {
         background-color: #2a2a2a;
-        
+
         &:nth-child(odd) {
             background-color: #333333;
         }
     }
-    
+
     .mat-header-cell {
         background-color: #1e1e1e;
     }
-    
+
     button[mat-button] {
         color: #64b5f6;
-        
+
         &:hover {
             color: #42a5f5;
         }

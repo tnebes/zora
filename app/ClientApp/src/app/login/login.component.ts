@@ -1,8 +1,8 @@
 import {Component} from '@angular/core';
 import {AuthenticationService, LoginResponse} from '../core/services/authentication.service';
 import {Router} from '@angular/router';
-import { environment } from '../../environments/environment';
-import { HttpErrorResponse } from '@angular/common/http';
+import {environment} from '../../environments/environment';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
     selector: 'app-login',
@@ -21,10 +21,10 @@ export class LoginComponent {
     }
 
     private getErrorMessage(error: HttpErrorResponse): string {
-        return error.status === 500 
-            ? error.message 
-            : environment.production 
-                ? 'Invalid username or password' 
+        return error.status === 500
+            ? error.message
+            : environment.production
+                ? 'Invalid username or password'
                 : error.message;
     }
 

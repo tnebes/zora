@@ -2,7 +2,7 @@
     <div *ngIf="isAuthenticated$ | async; else notLoggedIn">
         <div class="row">
             <div class="col-md-8 offset-md-2">
-                <h2 class="mb-4 greeting">{{greeting}}, {{currentUsername$ | async}}!</h2>
+                <h2 class="mb-4 greeting">{{ greeting }}, {{ currentUsername$ | async }}!</h2>
                 <div class="card mb-4 task-card">
                     <div class="card-body">
                         <h5 class="card-title">Task 1</h5>
@@ -26,14 +26,15 @@
             <div class="col-md-8 offset-md-2 text-center">
                 <h1 class="mb-4">Welcome to Zora</h1>
                 <p class="lead mb-4">
-                    Zora is a platform for work organization. It helps users create and manage tasks, projects, and teams, 
+                    Zora is a platform for work organization. It helps users create and manage tasks, projects, and
+                    teams,
                     making it easier to organize work and collaborate with others.
                 </p>
                 <a routerLink="/login" class="btn btn-primary btn-lg mb-4">
                     Login
                 </a>
                 <p class="text-muted">
-                    Registration is currently by invitation only. If you'd like to use Zora, please ask someone in your 
+                    Registration is currently by invitation only. If you'd like to use Zora, please ask someone in your
                     organization to invite you.
                 </p>
             </div>

@@ -175,7 +175,7 @@ public static class ServiceExtensions
                         Constants.ZORA_URL,
                         Constants.ZORA_SUBDOMAIN_URL,
                         Constants.ZORA_URL_WITH_PORT,
-                        "https://localhost:4200",
+                        "https://localhost:4200"
                     ],
                     ValidIssuers =
                     [

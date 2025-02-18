@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { AuthenticationService } from '../core/services/authentication.service';
+import {Component} from '@angular/core';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {AuthenticationService} from '../core/services/authentication.service';
 
 @Component({
     selector: 'app-home',

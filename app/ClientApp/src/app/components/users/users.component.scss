@@ -25,7 +25,7 @@
     background-color: #ffffff;
     transition: all 0.2s ease-in-out;
     cursor: pointer;
-    
+
     &:hover {
         background-color: #f5f5f5;
         transform: translateY(-1px);
@@ -47,7 +47,7 @@
 
 button[mat-raised-button] {
     margin-right: 8px;
-    
+
     &.add-user {
         background-color: #1a73e8;
         color: white;
@@ -56,18 +56,18 @@ button[mat-raised-button] {
 
 button[mat-icon-button] {
     transition: all 0.2s ease-in-out;
-    
+
     &.edit {
         color: #1a73e8;
-        
+
         &:hover {
             background-color: rgba(26, 115, 232, 0.1);
         }
     }
-    
+
     &.delete {
         color: #dc3545;
-        
+
         &:hover {
             background-color: rgba(220, 53, 69, 0.1);
         }
