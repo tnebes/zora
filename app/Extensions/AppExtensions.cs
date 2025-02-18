@@ -25,6 +25,13 @@ public static class AppExtensions
         if (environmentManager.CurrentEnvironment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
+            Log.Information("Developer exception page is enabled.");
+            app.UseHttpsRedirection();
+            Log.Information("HTTPS redirection is enabled.");
+        }
+        else
+        {
+            Log.Information("HTTPS redirection is disabled.");
         }
 
         app.UseRouting();
