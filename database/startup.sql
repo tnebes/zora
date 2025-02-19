@@ -1,7 +1,7 @@
 USE [master]
 GO
 
-IF EXISTS (SELECT * FROM sys.server_principals WHERE name = 'zora_service')
+IF EXISTS (SELECT name FROM sys.server_principals WHERE name = 'zora_service')
 BEGIN
     DROP LOGIN [zora_service]
 END
@@ -17,7 +17,7 @@ GO
 USE [zora]
 GO
 
-IF EXISTS (SELECT * FROM sys.database_principals WHERE name = 'zora_service')
+IF EXISTS (SELECT name FROM sys.database_principals WHERE name = 'zora_service')
 BEGIN
     DROP USER [zora_service]
 END
@@ -26,8 +26,12 @@ GO
 CREATE USER [zora_service] FOR LOGIN [zora_service]
 GO
 
-EXEC sp_addrolemember 'db_owner', 'zora_service'
+ALTER ROLE db_datareader ADD MEMBER [zora_service]
+GO
+ALTER ROLE db_datawriter ADD MEMBER [zora_service]
+GO
+ALTER ROLE db_ddladmin ADD MEMBER [zora_service]
 GO
 
-GRANT CONNECT TO [zora_service]
+GRANT EXECUTE TO [zora_service]
 GO

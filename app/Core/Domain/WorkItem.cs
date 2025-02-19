@@ -22,7 +22,7 @@ public abstract class WorkItem : BaseEntity
 
     public decimal? ActualHours { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public long? CreatedById { get; set; }
 

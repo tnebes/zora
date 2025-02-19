@@ -8,7 +8,7 @@ public class User : BaseEntity
 
     public string Email { get; set; } = string.Empty;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
