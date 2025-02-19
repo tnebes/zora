@@ -11,21 +11,26 @@ namespace zora.Infrastructure.DataSeed;
 
 public sealed class DataSeeder : IZoraService, IDataSeeder
 {
-    private const int NUM_USERS = 1500;
+    private const int NUM_USERS = 1000;
     private const int NUM_PROGRAMS = 10;
     private const int NUM_PROJECTS_PER_PROGRAM = 10;
     private const int NUM_TASKS_PER_PROJECT = 20;
     private const int NUM_ROLES = 150;
     private const int NUM_PERMISSIONS = 150;
-    private const int NUM_ASSETS = 500;
+    private const int NUM_ASSETS = 50;
     private const int MIN_PERMISSIONS_PER_ROLE = 2;
     private const int MAX_PERMISSIONS_PER_ROLE = 10;
     private const int MIN_ROLES_PER_USER = 1;
     private const int MAX_ROLES_PER_USER = 5;
+    private readonly Faker<Asset> _assetFaker;
+
     private readonly ApplicationDbContext _context;
+    private readonly Faker _faker;
     private readonly ILogger<DataSeeder> _logger;
+    private readonly Faker<Permission> _permissionFaker;
     private readonly Faker<ZoraProgram> _programFaker;
     private readonly Faker<Project> _projectFaker;
+    private readonly Faker<Role> _roleFaker;
     private readonly Faker<ZoraTask> _taskFaker;
     private readonly Faker<User> _userFaker;
 
@@ -33,6 +38,7 @@ public sealed class DataSeeder : IZoraService, IDataSeeder
     {
         this._context = context;
         this._logger = logger;
+        this._faker = new Faker();
 
         this._userFaker = new Faker<User>()
             .RuleFor(u => u.Username, f => $"{f.Commerce.Color()}{f.Internet.UserName()}")
@@ -72,6 +78,20 @@ public sealed class DataSeeder : IZoraService, IDataSeeder
             .RuleFor(w => w.ActualHours, f => f.Random.Decimal(1, 100))
             .RuleFor(w => w.Type, _ => "Task")
             .RuleFor(w => w.Priority, f => f.PickRandom("Low", "Medium", "High"));
+
+        this._roleFaker = new Faker<Role>()
+            .RuleFor(r => r.Name, f => $"{f.Commerce.Department()} {f.Lorem.Word()} {f.Lorem.Word()}");
+
+        this._permissionFaker = new Faker<Permission>()
+            .RuleFor(p => p.Name, f => $"{f.Lorem.Word()} {f.Lorem.Word()} {f.Lorem.Word()}")
+            .RuleFor(p => p.PermissionString, _ => DataSeeder.GeneratePermissionString());
+
+        this._assetFaker = new Faker<Asset>()
+            .RuleFor(a => a.Name, f => f.Commerce.ProductName())
+            .RuleFor(a => a.Description, f => f.Lorem.Sentence())
+            .RuleFor(a => a.AssetPath, f => f.System.DirectoryPath())
+            .RuleFor(a => a.CreatedAt, f => f.Date.Past(2))
+            .RuleFor(a => a.UpdatedAt, f => f.Date.Recent(90));
     }
 
     public async Task SeedAsync()
@@ -93,16 +113,16 @@ public sealed class DataSeeder : IZoraService, IDataSeeder
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Error occurred during database seeding");
+            this._logger.LogCritical(ex, "Error occurred during database seeding");
             throw;
         }
     }
 
     private async Task<List<User>> SeedUsers()
     {
+        this._logger.LogInformation("Seeding {Count} users", DataSeeder.NUM_USERS);
         List<User>? users = this._userFaker.Generate(DataSeeder.NUM_USERS);
         await this._context.Users.AddRangeAsync(users);
-        this._logger.LogInformation("Seeding {Count} users", DataSeeder.NUM_USERS);
         await this._context.SaveChangesAsync();
         return users;
     }
@@ -131,9 +151,9 @@ public sealed class DataSeeder : IZoraService, IDataSeeder
                 .RuleFor(p => p.ProjectManagerId, f => f.PickRandom(users).Id)
                 .Generate(DataSeeder.NUM_PROJECTS_PER_PROGRAM);
 
-            await this._context.Projects.AddRangeAsync(projects);
             this._logger.LogInformation("Seeding {Count} projects for program {ProgramId}",
                 DataSeeder.NUM_PROJECTS_PER_PROGRAM, program.Id);
+            await this._context.Projects.AddRangeAsync(projects);
             await this._context.SaveChangesAsync();
 
             foreach (Project project in projects)
@@ -144,9 +164,9 @@ public sealed class DataSeeder : IZoraService, IDataSeeder
                     .RuleFor(t => t.ProjectId, _ => project.Id)
                     .Generate(DataSeeder.NUM_TASKS_PER_PROJECT);
 
-                await this._context.Tasks.AddRangeAsync(tasks);
                 this._logger.LogInformation("Seeding {Count} tasks for project {ProjectId}",
                     DataSeeder.NUM_TASKS_PER_PROJECT, project.Id);
+                await this._context.Tasks.AddRangeAsync(tasks);
                 await this._context.SaveChangesAsync();
             }
         }
@@ -154,31 +174,25 @@ public sealed class DataSeeder : IZoraService, IDataSeeder
 
     private async Task<List<Role>> SeedRoles()
     {
-        List<Role>? roles = new Faker<Role>()
-            .RuleFor(r => r.Name, f => f.Lorem.Word())
-            .Generate(DataSeeder.NUM_ROLES);
-
-        await this._context.Roles.AddRangeAsync(roles);
+        List<Role> roles = this._roleFaker.Generate(DataSeeder.NUM_ROLES);
         this._logger.LogInformation("Seeding {Count} roles", DataSeeder.NUM_ROLES);
+        await this._context.Roles.AddRangeAsync(roles);
         await this._context.SaveChangesAsync();
         return roles;
     }
 
     private async Task<List<Permission>> SeedPermissions()
     {
-        List<Permission>? permissions = new Faker<Permission>()
-            .RuleFor(p => p.Name, f => f.Lorem.Word())
-            .RuleFor(p => p.PermissionString, _ => DataSeeder.GeneratePermissionString())
-            .Generate(DataSeeder.NUM_PERMISSIONS);
-
-        await this._context.Permissions.AddRangeAsync(permissions);
+        List<Permission> permissions = this._permissionFaker.Generate(DataSeeder.NUM_PERMISSIONS);
         this._logger.LogInformation("Seeding {Count} permissions", DataSeeder.NUM_PERMISSIONS);
+        await this._context.Permissions.AddRangeAsync(permissions);
         await this._context.SaveChangesAsync();
         return permissions;
     }
 
     private async Task SeedRolePermissions(List<Role> roles, List<Permission> permissions)
     {
+        this._logger.LogInformation("Seeding role permissions");
         Faker faker = new Faker();
         foreach (Role role in roles)
         {
@@ -190,12 +204,12 @@ public sealed class DataSeeder : IZoraService, IDataSeeder
             await this._context.RolePermissions.AddRangeAsync(rolePermissions);
         }
 
-        this._logger.LogInformation("Seeding role permissions");
         await this._context.SaveChangesAsync();
     }
 
     private async Task SeedUserRoles(List<User> users, List<Role> roles)
     {
+        this._logger.LogInformation("Seeding user roles");
         Faker faker = new Faker();
         foreach (User user in users)
         {
@@ -206,24 +220,18 @@ public sealed class DataSeeder : IZoraService, IDataSeeder
             await this._context.UserRoles.AddRangeAsync(userRoles);
         }
 
-        this._logger.LogInformation("Seeding user roles");
         await this._context.SaveChangesAsync();
     }
 
     private async Task SeedAssets(List<User> users)
     {
-        List<Asset>? assets = new Faker<Asset>()
-            .RuleFor(a => a.Name, f => f.Commerce.ProductName())
-            .RuleFor(a => a.Description, f => f.Lorem.Sentence())
-            .RuleFor(a => a.AssetPath, f => f.System.DirectoryPath())
-            .RuleFor(a => a.CreatedAt, f => f.Date.Past(2))
+        List<Asset> assets = this._assetFaker
             .RuleFor(a => a.CreatedById, f => f.PickRandom(users).Id)
-            .RuleFor(a => a.UpdatedAt, f => f.Date.Recent(90))
             .RuleFor(a => a.UpdatedById, f => f.PickRandom(users).Id)
             .Generate(DataSeeder.NUM_ASSETS);
 
-        await this._context.Assets.AddRangeAsync(assets);
         this._logger.LogInformation("Seeding {Count} assets", DataSeeder.NUM_ASSETS);
+        await this._context.Assets.AddRangeAsync(assets);
         await this._context.SaveChangesAsync();
     }
 
