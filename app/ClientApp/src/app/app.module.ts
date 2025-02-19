@@ -10,7 +10,8 @@ import {HomeComponent} from './home/home.component';
 import {LoginComponent} from './login/login.component';
 import {AuthInterceptor} from './core/services/authentication.interceptor';
 import {LoginModule} from './login/login.module';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AuthenticatedGuard } from './core/guards/authenticated.guard';
 
 @NgModule({
     declarations: [
@@ -38,7 +39,8 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
             provide: HTTP_INTERCEPTORS,
             useClass: AuthInterceptor,
             multi: true
-        }
+        },
+        AuthenticatedGuard
     ],
     bootstrap: [AppComponent]
 })

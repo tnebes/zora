@@ -1,8 +1,8 @@
 #region
 
-using Serilog;
 using zora.Core.Attributes;
 using zora.Core.Interfaces.Services;
+using Microsoft.Extensions.Logging;
 
 #endregion
 
@@ -12,8 +12,13 @@ namespace zora.Infrastructure.Services.Configuration;
 public sealed class SecretsManagerService : ISecretsManagerService, IZoraService
 {
     private readonly IConfiguration _configuration;
+    private readonly ILogger<SecretsManagerService> _logger;
 
-    public SecretsManagerService(IConfiguration configuration) => this._configuration = configuration;
+    public SecretsManagerService(IConfiguration configuration, ILogger<SecretsManagerService> logger)
+    {
+        this._configuration = configuration;
+        this._logger = logger;
+    }
 
     public string GetSecret(string key)
     {
@@ -27,7 +32,7 @@ public sealed class SecretsManagerService : ISecretsManagerService, IZoraService
         if (string.IsNullOrEmpty(value))
         {
             string errorMessage = $"Secret with key '{key}' not found. Use dotnet user-secrets.";
-            Log.Error(errorMessage);
+            this._logger.LogError(errorMessage);
             throw new KeyNotFoundException(errorMessage);
         }
 

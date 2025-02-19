@@ -80,4 +80,8 @@ export class AuthenticationService {
     private setAuthState(isAuthenticated: boolean): void {
         this.authStateSubject.next(isAuthenticated);
     }
+
+    public isAuthenticated(): boolean {
+        return this.authStateSubject.getValue();
+    }
 }

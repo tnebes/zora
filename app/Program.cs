@@ -6,10 +6,11 @@ using zora.Extensions;
 
 #endregion
 
+ConfigureLogging();
+
 try
 {
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-    ConfigureLogging(builder);
 
     builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());
     WebApplication app = builder.Build();
@@ -35,23 +36,20 @@ finally
     await Log.CloseAndFlushAsync();
 }
 
-static void ConfigureLogging(WebApplicationBuilder builder)
+static void ConfigureLogging()
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        builder.Host.UseSerilog((context, services, configuration) => configuration
-            .ReadFrom.Configuration(context.Configuration)
-            .ReadFrom.Services(services));
-        Log.Information("Configured development logging.");
-    }
-    else
-    {
-        builder.Host.UseSystemd()
-            .UseSerilog((context, services, configuration) => configuration
-                .ReadFrom.Configuration(context.Configuration)
-                .ReadFrom.Services(services));
-        Log.Information("Configured production logging.");
-    }
+    string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+    IConfigurationRoot configuration = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+        .Build();
+
+    Log.Logger = new LoggerConfiguration()
+        .ReadFrom.Configuration(configuration)
+        .CreateLogger();
+
+    Log.Information("Logging configured successfully.");
 }
 
 static async Task WriteToCrashLogAsync(Exception exception)

@@ -1,5 +1,8 @@
 USE master;
 
+SET QUOTED_IDENTIFIER ON;
+GO
+
 IF EXISTS (SELECT name FROM sys.databases WHERE name = 'zora')
 BEGIN
     ALTER DATABASE zora SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
@@ -10,8 +13,12 @@ CREATE DATABASE zora;
 GO
 
 ALTER DATABASE zora COLLATE Latin1_General_100_CI_AS_SC_UTF8;
+GO
 
 USE zora;
+GO
+
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE TABLE zora_users (
@@ -169,7 +176,7 @@ CREATE TABLE zora_work_item_assets (
     FOREIGN KEY (asset_id) REFERENCES assets(id)
 );
 
-INSERT INTO zora_users (username, password, email) VALUES ('tnebes', '$2a$12$VG2.zKWyQq0rt/MJgarft.AaFr36jlICrCzo5YEN2CWAjtCWSmw6K', 'tnebes@draucode.com');
+INSERT INTO zora_users (username, password, email) VALUES ('tnebes', '$2a$12$u8XHrlyC7Y1X96jTawebd.Li3uK9Z.PImu6Vy9KD.rtMNnmz3SKY.', 'tnebes@draucode.com');
 INSERT INTO zora_roles (name) VALUES ('Admin');
 INSERT INTO zora_user_roles (user_id, role_id)
    SELECT u.id, r.id
