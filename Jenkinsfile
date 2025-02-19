@@ -27,8 +27,8 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh 'rm -rf /var/www/zora/*'
-                sh 'cp -r publish/. /var/www/zora/'
+                sh 'rm -rf /var/www/zora/app/*'
+                sh 'cp -r publish/. /var/www/zora/app/'
                 sh 'sudo systemctl restart zora.service'
             }
         }
