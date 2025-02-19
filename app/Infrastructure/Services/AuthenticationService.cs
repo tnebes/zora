@@ -23,7 +23,7 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
     private readonly IUserService _userService;
 
     public AuthenticationService(IUserService userService, ILogger<AuthenticationService> logger,
-        IConfiguration configuration, IJwtService jwtService, ISecretsManagerService secretsManagerService)
+        ISecretsManagerService secretsManagerService)
     {
         this._userService = userService;
         this._logger = logger;

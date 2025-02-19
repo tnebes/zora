@@ -16,8 +16,8 @@ using zora.Core.Interfaces.Services;
 namespace zora.API.Controllers;
 
 /// <summary>
-/// Controller for managing system permissions.
-/// Provides CRUD operations for permissions with admin authorization checks.
+///     Controller for managing system permissions.
+///     Provides CRUD operations for permissions with admin authorization checks.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -44,7 +44,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
     }
 
     /// <summary>
-    /// Retrieves a paginated list of permissions with support for filtering, sorting, and searching.
+    ///     Retrieves a paginated list of permissions with support for filtering, sorting, and searching.
     /// </summary>
     /// <param name="queryParams">Query parameters including page number, page size, and search term</param>
     /// <returns>Paginated list of permissions wrapped in PermissionResponseDto</returns>
@@ -85,7 +85,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
     }
 
     /// <summary>
-    /// Creates a new permission in the system. Requires admin privileges.
+    ///     Creates a new permission in the system. Requires admin privileges.
     /// </summary>
     /// <param name="dto">Data transfer object containing permission details</param>
     /// <returns>Created permission object</returns>
@@ -127,7 +127,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
     }
 
     /// <summary>
-    /// Updates an existing permission by ID. Requires admin privileges.
+    ///     Updates an existing permission by ID. Requires admin privileges.
     /// </summary>
     /// <param name="id">ID of the permission to update</param>
     /// <param name="dto">Data transfer object containing updated permission details</param>
@@ -172,7 +172,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
     }
 
     /// <summary>
-    /// Deletes a permission by ID. Requires admin privileges.
+    ///     Deletes a permission by ID. Requires admin privileges.
     /// </summary>
     /// <param name="id">ID of the permission to delete</param>
     /// <returns>Boolean indicating success of the deletion operation</returns>

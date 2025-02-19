@@ -11,8 +11,8 @@ using zora.Core.Interfaces.Services;
 namespace zora.API.Controllers;
 
 /// <summary>
-/// Base controller providing common CRUD operations.
-/// Implements basic functionality for create, read, update, and delete operations.
+///     Base controller providing common CRUD operations.
+///     Implements basic functionality for create, read, update, and delete operations.
 /// </summary>
 public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto> :
     ControllerBase,

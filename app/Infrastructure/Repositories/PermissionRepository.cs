@@ -153,7 +153,7 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
         }
     }
 
-    public async Task<Result<Permission>> UpdateAsync(Permission permission)
+    public new async Task<Result<Permission>> UpdateAsync(Permission permission)
     {
         try
         {

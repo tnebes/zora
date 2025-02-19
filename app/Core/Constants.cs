@@ -18,4 +18,9 @@ public static class Constants
     public const int TOKEN_EXPIRATION_HOURS = 24;
     public const int MAX_RESULTS_PER_PAGE = 1000;
     public const int DEFAULT_PAGE_SIZE = 50;
+    public const string WWW_ROOT = "wwwroot";
+    public const string CONTENT = "content";
+    public const string ASSETS = "assets";
+    public const long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    public static readonly string[] ALLOWED_FILE_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".gif", ".pdf" };
 }

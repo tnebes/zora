@@ -2,6 +2,7 @@
 
 using AutoMapper;
 using FluentResults;
+using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs;
@@ -62,8 +63,45 @@ public sealed class AssetService : IAssetService, IZoraService
 
     public async Task<Result<Asset>> CreateAsync(CreateAssetDto createDto)
     {
-        Asset asset = this._mapper.Map<Asset>(createDto);
-        return await this._assetRepository.AddAsync(asset);
+        try
+        {
+            if (createDto.Asset == null || createDto.Asset.Length == 0)
+            {
+                return Result.Fail<Asset>("Asset file is required and cannot be empty");
+            }
+
+            if (createDto.Asset.Length > Constants.MAX_FILE_SIZE)
+            {
+                return Result.Fail<Asset>(
+                    $"File size exceeds maximum limit of {Constants.MAX_FILE_SIZE / 1024 / 1024}MB");
+            }
+
+            string fileName = $"{Guid.NewGuid()}_{Path.GetFileName(createDto.Asset.FileName)}";
+            string uploadDirectory = Path.Combine(Constants.WWW_ROOT, Constants.CONTENT, Constants.ASSETS);
+            Directory.CreateDirectory(uploadDirectory);
+
+            string filePath = Path.Combine(uploadDirectory, fileName);
+
+            await using FileStream stream = new FileStream(filePath, FileMode.Create);
+            await createDto.Asset.CopyToAsync(stream);
+            this._logger.LogDebug("Asset file saved to {FilePath}", filePath);
+
+            createDto.AssetPath = Path.Combine(Constants.CONTENT, Constants.ASSETS, fileName);
+            Asset asset = this._mapper.Map<Asset>(createDto);
+            asset.CreatedAt = DateTime.UtcNow;
+
+            return await this._assetRepository.AddAsync(asset);
+        }
+        catch (IOException ex)
+        {
+            this._logger.LogError(ex, "File system error creating asset: {Message}", ex.Message);
+            return Result.Fail<Asset>("File system error while saving asset");
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Unexpected error creating asset: {Message}", ex.Message);
+            return Result.Fail<Asset>("Unexpected error while creating asset");
+        }
     }
 
     public async Task<Result<Asset>> UpdateAsync(long id, UpdateAssetDto updateDto)
@@ -164,17 +202,12 @@ public sealed class AssetService : IAssetService, IZoraService
                 return Result.Fail<TRequestDto>("Name is required");
             }
 
-            if (string.IsNullOrEmpty(createAssetDto.AssetPath))
-            {
-                return Result.Fail<TRequestDto>("Asset path is required");
-            }
-
             if (createAssetDto.Asset == null)
             {
                 return Result.Fail<TRequestDto>("Asset is required");
             }
 
-            if (createAssetDto.WorkAssetId <= 0)
+            if (createAssetDto.WorkAssetId.HasValue && createAssetDto.WorkAssetId.Value <= 0)
             {
                 return Result.Fail<TRequestDto>("Work asset ID must be greater than 0");
             }

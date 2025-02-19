@@ -19,8 +19,8 @@ using zora.Core.Interfaces.Services;
 namespace zora.API.Controllers;
 
 /// <summary>
-/// Controller for handling user authentication.
-/// Provides endpoints for token generation and authentication status checks.
+///     Controller for handling user authentication.
+///     Provides endpoints for token generation and authentication status checks.
 /// </summary>
 [ApiController]
 [Route("api/v1/authentication")]
@@ -50,7 +50,7 @@ public sealed class AuthenticationController : ControllerBase
     }
 
     /// <summary>
-    /// Authenticates a user and returns a JWT token if successful.
+    ///     Authenticates a user and returns a JWT token if successful.
     /// </summary>
     /// <param name="login">Login credentials including username and password</param>
     /// <returns>TokenResponseDto containing JWT token and user information</returns>

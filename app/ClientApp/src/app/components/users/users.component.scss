@@ -45,13 +45,9 @@
     color: #333;
 }
 
-button[mat-raised-button] {
-    margin-right: 8px;
-
-    &.add-user {
-        background-color: #1a73e8;
-        color: white;
-    }
+button[mat-raised-button].add-user {
+    background-color: #1a73e8;
+    color: white;
 }
 
 button[mat-icon-button] {

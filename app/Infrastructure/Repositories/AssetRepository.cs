@@ -128,7 +128,7 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
         try
         {
-            Asset asset = await this.FilteredDbSet.FirstOrDefaultAsync(a => a.Id == id);
+            Asset? asset = await this.FilteredDbSet.FirstOrDefaultAsync(a => a.Id == id);
             if (asset == null)
             {
                 this.Logger.LogWarning("Asset with id {Id} not found", id);

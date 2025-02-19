@@ -68,7 +68,22 @@ export class BaseDialogComponent<T> {
 
     public onSubmit(): void {
         if (this.form.valid) {
-            this.dialogRef.close(this.form.value);
+            const hasFileField = this.data.fields.some(field => field.type === 'file');
+            
+            if (hasFileField) {
+                const formData = new FormData();
+                Object.keys(this.form.controls).forEach(key => {
+                    const control = this.form.get(key);
+                    if (control?.value instanceof File) {
+                        formData.append(key, control.value);
+                    } else {
+                        formData.append(key, control?.value);
+                    }
+                });
+                this.dialogRef.close(formData);
+            } else {
+                this.dialogRef.close(this.form.value);
+            }
         }
     }
 

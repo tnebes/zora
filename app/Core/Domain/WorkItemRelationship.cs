@@ -2,8 +2,6 @@ namespace zora.Core.Domain;
 
 public class WorkItemRelationship : BaseEntity
 {
-    public long Id { get; set; }
-
     public long SourceItemId { get; set; }
 
     public long TargetItemId { get; set; }

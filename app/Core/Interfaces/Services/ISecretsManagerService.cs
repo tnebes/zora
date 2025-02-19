@@ -3,7 +3,7 @@ namespace zora.Core.Interfaces.Services;
 public interface ISecretsManagerService
 {
     /// <summary>
-    /// Gets a secret value by its key.
+    ///     Gets a secret value by its key.
     /// </summary>
     /// <param name="key">The configuration key of the secret.</param>
     /// <returns>The secret value.</returns>

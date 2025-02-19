@@ -6,24 +6,10 @@ using zora.Extensions;
 
 #endregion
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 try
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        builder.Host.UseSerilog((context, services, configuration) => configuration
-            .ReadFrom.Configuration(context.Configuration)
-            .ReadFrom.Services(services));
-        Console.WriteLine("Writing logs in development mode.");
-    }
-    else
-    {
-        builder.Host.UseSystemd()
-            .UseSerilog((context, services, configuration) => configuration
-                .ReadFrom.Configuration(context.Configuration)
-                .ReadFrom.Services(services));
-        Console.WriteLine("Writing logs in production mode.");
-    }
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+    ConfigureLogging(builder);
 
     builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());
     WebApplication app = builder.Build();
@@ -37,23 +23,50 @@ try
 }
 catch (Exception ex)
 {
-    WriteToCrashLog(ex);
+    await WriteToCrashLogAsync(ex);
     Log.Fatal(ex,
         "Application terminated unexpectedly due to an unhandled exception.\nPlease read the logs for more information.");
-
-    async void WriteToCrashLog(Exception exception)
-    {
-        const string logName = "crash.log";
-        string logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
-        string fullPath = Path.Combine(logDirectory, logName);
-        Directory.CreateDirectory(logDirectory);
-        await File.WriteAllTextAsync(fullPath, exception.ToString());
-    }
 
     throw;
 }
 finally
 {
-    Log.Information("Committing seppuku.");
+    Log.Information("Shutting down.");
     await Log.CloseAndFlushAsync();
+}
+
+static void ConfigureLogging(WebApplicationBuilder builder)
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        builder.Host.UseSerilog((context, services, configuration) => configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services));
+        Log.Information("Configured development logging.");
+    }
+    else
+    {
+        builder.Host.UseSystemd()
+            .UseSerilog((context, services, configuration) => configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services));
+        Log.Information("Configured production logging.");
+    }
+}
+
+static async Task WriteToCrashLogAsync(Exception exception)
+{
+    const string logName = "crash.log";
+    string logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "logs");
+    string fullPath = Path.Combine(logDirectory, logName);
+
+    try
+    {
+        Directory.CreateDirectory(logDirectory);
+        await File.WriteAllTextAsync(fullPath, exception.ToString());
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Failed to write crash log");
+    }
 }

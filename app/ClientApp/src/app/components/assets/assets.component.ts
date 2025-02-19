@@ -45,16 +45,11 @@ export class AssetsComponent implements OnInit, AfterViewInit {
             required: false
         },
         {
-            name: 'assetPath',
-            type: 'text',
-            label: 'Asset Path',
-            required: true
-        },
-        {
             name: 'asset',
             type: 'file',
             label: 'File',
             required: true,
+            accept: '*'
         }
     ];
 
@@ -98,7 +93,7 @@ export class AssetsComponent implements OnInit, AfterViewInit {
         dialogRef.afterClosed()
             .pipe(
                 filter(result => !!result),
-                switchMap(result => this.assetService.create(result))
+                switchMap(result => this.assetService.create(result as CreateAsset))
             )
             .subscribe({
                 next: () => {

@@ -230,5 +230,8 @@ _Pvt_Extensions
 # FAKE - F# Make
 .fake/
 
+# Assets
+wwwroot/content/
+
 # Angular trash files
 **/.angular/cache
