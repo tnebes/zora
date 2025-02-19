@@ -67,7 +67,7 @@ public sealed class AuthenticationController : ControllerBase
         {
             if (!this._authenticationService.IsValidLoginRequest(login))
             {
-                return this.BadRequest();
+                return this.BadRequest(new { Message = "Invalid login request format" });
             }
 
             Result<User> userResult = await this._authenticationService.AuthenticateUser(login);
@@ -77,7 +77,21 @@ public sealed class AuthenticationController : ControllerBase
                 string? ipAddress = this.HttpContext.Connection.RemoteIpAddress?.ToString();
                 this._logger.LogInformation("User {Username} ({IpAddress}) failed to authenticate.",
                     login.Username, ipAddress);
-                return this.Unauthorized();
+
+                IError error = userResult.Errors[0];
+                AuthenticationErrorType errorType = error.Metadata.TryGetValue(Constants.ERROR_TYPE, out object? value)
+                    ? (AuthenticationErrorType)(value ?? AuthenticationErrorType.AuthenticationError)
+                    : AuthenticationErrorType.AuthenticationError;
+
+                return errorType switch
+                {
+                    AuthenticationErrorType.UserAlreadyAuthenticated => 
+                        this.BadRequest(new { Message = error.Message }),
+                    AuthenticationErrorType.InvalidCredentials => 
+                        this.Unauthorized(new { Message = error.Message }),
+                    _ => this.StatusCode(StatusCodes.Status500InternalServerError, 
+                        new { Message = Constants.ERROR_500_MESSAGE })
+                };
             }
 
             string jwt = this._jwtService.GenerateToken(userResult.Value);
@@ -93,7 +107,8 @@ public sealed class AuthenticationController : ControllerBase
         catch (Exception e)
         {
             this._logger.LogError(e, "Error authenticating user.");
-            return this.StatusCode(500, Constants.ERROR_500_MESSAGE);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, 
+                new { Message = Constants.ERROR_500_MESSAGE });
         }
     }
 

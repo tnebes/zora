@@ -228,7 +228,6 @@ public static class ServiceExtensions
                         .WithExposedHeaders("WWW-Authenticate")
                         .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
                 });
-                Log.Information("Development environment detected. Allowing all origins.");
             }
             else
             {
@@ -241,18 +240,15 @@ public static class ServiceExtensions
                         .WithExposedHeaders("WWW-Authenticate")
                         .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
                 });
-                Log.Information("Production environment detected. Allowing specific origins.");
             }
         }
 
-        Log.Information("Adding CORS.");
         services.AddCors(CorsOptions);
         return services;
     }
 
     private static IServiceCollection AddZoraLogging(this IServiceCollection services)
     {
-        Log.Information("Adding HTTP logging.");
         services.AddHttpLogging(logging => logging.LoggingFields = HttpLoggingFields.All);
         return services;
     }
@@ -265,8 +261,6 @@ public static class ServiceExtensions
             string? connectionString = configuration[Constants.CONNECTION_STRING_KEY];
             if (string.IsNullOrEmpty(connectionString))
             {
-                Log.Error("{KeyName} not found in configuration. Use dotnet user-secrets or environment variables.",
-                    Constants.CONNECTION_STRING_KEY);
                 throw new InvalidOperationException(
                     $"Database connection string {Constants.CONNECTION_STRING_KEY} not found in configuration. Use dotnet user-secrets or environment variables.");
             }
@@ -279,12 +273,12 @@ public static class ServiceExtensions
                     TimeSpan.FromSeconds(3),
                     null);
             }).LogTo(
-                Log.Information, [DbLoggerCategory.Database.Command.Name],
-                LogLevel.Information);
+                message => Log.Information(message),
+                new[] { DbLoggerCategory.Database.Command.Name },
+                isDevelopment ? LogLevel.Debug : LogLevel.Information);
 
             if (isDevelopment)
             {
-                Log.Information("Enabling sensitive data logging and detailed errors for development environment.");
                 options.EnableSensitiveDataLogging();
                 options.EnableDetailedErrors();
             }
@@ -298,14 +292,12 @@ public static class ServiceExtensions
 
     private static IServiceCollection AddCache(this IServiceCollection services)
     {
-        Log.Information("Adding memory cache.");
         services.AddMemoryCache();
         return services;
     }
 
     private static IServiceCollection AddConfigureMapper(this IServiceCollection services)
     {
-        Log.Information("Adding AutoMapper.");
         services.AddAutoMapper(typeof(Program).Assembly);
         return services;
     }

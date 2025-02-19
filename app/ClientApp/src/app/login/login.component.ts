@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AuthenticationService, LoginResponse} from '../core/services/authentication.service';
 import {Router} from '@angular/router';
 import {environment} from '../../environments/environment';
@@ -21,11 +21,19 @@ export class LoginComponent {
     }
 
     private getErrorMessage(error: HttpErrorResponse): string {
-        return error.status === 500
-            ? error.message
-            : environment.production
-                ? 'Invalid username or password'
-                : error.message;
+        if (error.status === 400 && error.error?.message?.includes('already authenticated')) {
+            return error.error.message;
+        }
+        
+        if (environment.production) {
+            return 'Invalid username or password';
+        }
+        
+        if (error.status === 400 && error.error?.message) {
+            return error.error.message;
+        }
+        
+        return error.message || 'An error occurred';
     }
 
     public onLogin(): void {
