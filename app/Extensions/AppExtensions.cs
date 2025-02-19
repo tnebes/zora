@@ -34,6 +34,7 @@ public static class AppExtensions
             Log.Information("HTTPS redirection is disabled.");
         }
 
+        app.UseStaticFiles();
         app.UseRouting();
         app.UseMiddleware<CorsLoggingMiddleware>();
         app.UseCors(Constants.ZORA_CORS_POLICY_NAME);

@@ -23,18 +23,26 @@ export class AssetService {
         return this.http.get<AssetResponseDto>(this.apiUrl, {params});
     }
 
-    public create(asset: CreateAsset): Observable<AssetResponse> {
-        const formData = new FormData();
-        formData.append('file', asset.asset, asset.asset.name);
-        formData.append('name', asset.name);
-        formData.append('description', asset.description ?? '');
-        formData.append('assetPath', asset.assetPath);
+    public create(asset: CreateAsset | FormData): Observable<AssetResponse> {
+        if (asset instanceof FormData) {
+            return this.http.post<AssetResponse>(this.apiUrl, asset);
+        }
 
+        if (!asset?.name || !asset?.asset) {
+            throw new Error('Invalid asset data: name and file are required');
+        }
+
+        const formData = new FormData();
+        formData.append('name', asset.name);
+        if (asset.description) {
+            formData.append('description', asset.description);
+        }
         if (asset.workAssetId) {
             formData.append('workAssetId', asset.workAssetId.toString());
         }
-
-        return this.http.post<AssetResponse>(`${this.apiUrl}`, formData);
+        formData.append('asset', asset.asset, asset.asset.name);
+        
+        return this.http.post<AssetResponse>(this.apiUrl, formData);
     }
 
     public update(asset: UpdateAsset): Observable<AssetResponse> {

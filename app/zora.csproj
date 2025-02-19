@@ -54,6 +54,7 @@
 
     <ItemGroup>
         <Folder Include="logs\"/>
+        <Folder Include="wwwroot\assets\" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

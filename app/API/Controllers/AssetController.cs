@@ -21,7 +21,6 @@ namespace zora.API.Controllers;
 [Authorize]
 [Route("api/v1/assets")]
 [Produces("application/json")]
-[Consumes("application/json")]
 [Description("Assets API")]
 public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, UpdateAssetDto, AssetResponseDto,
     DynamicQueryAssetParamsDto>, IZoraService
@@ -127,14 +126,6 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             this.Logger.LogError(ex, "Error creating asset");
             return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
-    }
-
-    [HttpPost("test")]
-    [Consumes("multipart/form-data")]
-    public ActionResult<Asset> Test(object createDto)
-    {
-        this.Logger.LogInformation(createDto.ToString());
-        return this.Ok();
     }
 
     /// <summary>

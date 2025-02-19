@@ -62,8 +62,41 @@ public sealed class AssetService : IAssetService, IZoraService
 
     public async Task<Result<Asset>> CreateAsync(CreateAssetDto createDto)
     {
-        Asset asset = this._mapper.Map<Asset>(createDto);
-        return await this._assetRepository.AddAsync(asset);
+        try
+        {
+            if (createDto.Asset == null || createDto.Asset.Length == 0)
+            {
+                return Result.Fail<Asset>("Asset file is required and cannot be empty");
+            }
+
+            string fileName = $"{Guid.NewGuid()}_{createDto.Asset.FileName}";
+            
+            string uploadDirectory = Path.Combine("wwwroot", "assets");
+            
+            if (!Directory.Exists(uploadDirectory))
+            {
+                Directory.CreateDirectory(uploadDirectory);
+            }
+
+            string filePath = Path.Combine(uploadDirectory, fileName);
+            
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await createDto.Asset.CopyToAsync(stream);
+            }
+
+            createDto.AssetPath = $"/assets/{fileName}";
+
+            Asset asset = this._mapper.Map<Asset>(createDto);
+            asset.CreatedAt = DateTime.UtcNow;
+            
+            return await this._assetRepository.AddAsync(asset);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error creating asset: {Message}", ex.Message);
+            return Result.Fail<Asset>($"Error creating asset: {ex.Message}");
+        }
     }
 
     public async Task<Result<Asset>> UpdateAsync(long id, UpdateAssetDto updateDto)
@@ -164,17 +197,12 @@ public sealed class AssetService : IAssetService, IZoraService
                 return Result.Fail<TRequestDto>("Name is required");
             }
 
-            if (string.IsNullOrEmpty(createAssetDto.AssetPath))
-            {
-                return Result.Fail<TRequestDto>("Asset path is required");
-            }
-
             if (createAssetDto.Asset == null)
             {
                 return Result.Fail<TRequestDto>("Asset is required");
             }
 
-            if (createAssetDto.WorkAssetId <= 0)
+            if (createAssetDto.WorkAssetId.HasValue && createAssetDto.WorkAssetId.Value <= 0)
             {
                 return Result.Fail<TRequestDto>("Work asset ID must be greater than 0");
             }
