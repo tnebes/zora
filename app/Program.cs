@@ -40,7 +40,7 @@ static void ConfigureLogging()
 {
     string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
     IConfigurationRoot configuration = new ConfigurationBuilder()
-        .SetBasePath(Directory.GetCurrentDirectory())
+        .SetBasePath(environment == "Development" ? Directory.GetCurrentDirectory() : Path.Combine(Directory.GetCurrentDirectory(), "app"))
         .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
         .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
         .Build();

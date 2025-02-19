@@ -11,7 +11,6 @@ import {LoginComponent} from './login/login.component';
 import {AuthInterceptor} from './core/services/authentication.interceptor';
 import {LoginModule} from './login/login.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { AuthenticatedGuard } from './core/guards/authenticated.guard';
 
 @NgModule({
     declarations: [
@@ -40,7 +39,6 @@ import { AuthenticatedGuard } from './core/guards/authenticated.guard';
             useClass: AuthInterceptor,
             multi: true
         },
-        AuthenticatedGuard
     ],
     bootstrap: [AppComponent]
 })
