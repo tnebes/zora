@@ -18,15 +18,21 @@ namespace zora.Infrastructure.Services;
 [ServiceLifetime(ServiceLifetime.Scoped)]
 public sealed class AssetService : IAssetService, IZoraService
 {
+    private readonly IAssetPathService _assetPathService;
     private readonly IAssetRepository _assetRepository;
     private readonly ILogger<AssetService> _logger;
     private readonly IMapper _mapper;
 
-    public AssetService(IAssetRepository assetRepository, ILogger<AssetService> logger, IMapper mapper)
+    public AssetService(
+        IAssetRepository assetRepository,
+        ILogger<AssetService> logger,
+        IMapper mapper,
+        IAssetPathService assetPathService)
     {
         this._assetRepository = assetRepository;
         this._logger = logger;
         this._mapper = mapper;
+        this._assetPathService = assetPathService;
     }
 
     public async Task<Result<(IEnumerable<Asset>, int total)>> GetAsync(QueryParamsDto queryParams)
@@ -77,7 +83,7 @@ public sealed class AssetService : IAssetService, IZoraService
             }
 
             string fileName = $"{Guid.NewGuid()}_{Path.GetFileName(createDto.Asset.FileName)}";
-            string uploadDirectory = Path.Combine(Constants.WWW_ROOT, Constants.CONTENT, Constants.ASSETS);
+            string uploadDirectory = this._assetPathService.GetAssetsBasePath();
             Directory.CreateDirectory(uploadDirectory);
 
             string filePath = Path.Combine(uploadDirectory, fileName);
@@ -86,7 +92,7 @@ public sealed class AssetService : IAssetService, IZoraService
             await createDto.Asset.CopyToAsync(stream);
             this._logger.LogDebug("Asset file saved to {FilePath}", filePath);
 
-            createDto.AssetPath = Path.Combine(Constants.CONTENT, Constants.ASSETS, fileName);
+            createDto.AssetPath = this._assetPathService.GetAssetWebPath(fileName);
             Asset asset = this._mapper.Map<Asset>(createDto);
             asset.CreatedAt = DateTime.UtcNow;
 
