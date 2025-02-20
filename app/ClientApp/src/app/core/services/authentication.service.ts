@@ -22,7 +22,6 @@ export interface User {
     providedIn: 'root'
 })
 export class AuthenticationService {
-
     private readonly authStateSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     public readonly authState$: Observable<boolean> = this.authStateSubject.asObservable();
     private readonly currentUserSubject: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
