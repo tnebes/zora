@@ -2,6 +2,9 @@ import {environment} from "src/environments/environment";
 import {QueryParams} from "./models/query-params.interface";
 
 export class Constants {
+    // Website
+    static readonly WEBSITE_NAME: string = "Zora";
+    static readonly COMPANY_NAME: string = "Draucode";
     // Base URL
     static readonly BASE_API_URL: string = `${environment.apiUrl}/v1`
     // Authentication & Authorization
