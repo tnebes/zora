@@ -1,7 +1,6 @@
 #region
 
 using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 using FluentResults;
 using Microsoft.IdentityModel.Tokens;
 using zora.Core;
@@ -10,6 +9,7 @@ using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Services;
+using zora.Extensions;
 
 #endregion
 
@@ -54,7 +54,7 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
                     .WithMetadata(Constants.ERROR_TYPE, AuthenticationErrorType.InvalidCredentials));
             }
 
-            return userResult;
+            return userResult.Value;
         }
         catch (Exception ex)
         {
@@ -73,14 +73,8 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
 
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
         string? issuerSigningKey = this._secretsManagerService.GetSecret(Constants.ISSUER_SIGNING_KEY);
-        byte[] key = Encoding.UTF8.GetBytes(issuerSigningKey);
-        TokenValidationParameters tokenValidationParameters = new()
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = true,
-            ValidateAudience = true
-        };
+        TokenValidationParameters tokenValidationParameters =
+            TokenValidationExtensions.CreateTokenValidationParameters(issuerSigningKey);
 
         try
         {

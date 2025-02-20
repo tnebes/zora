@@ -85,11 +85,11 @@ public sealed class AuthenticationController : ControllerBase
 
                 return errorType switch
                 {
-                    AuthenticationErrorType.UserAlreadyAuthenticated => 
-                        this.BadRequest(new { Message = error.Message }),
-                    AuthenticationErrorType.InvalidCredentials => 
-                        this.Unauthorized(new { Message = error.Message }),
-                    _ => this.StatusCode(StatusCodes.Status500InternalServerError, 
+                    AuthenticationErrorType.UserAlreadyAuthenticated =>
+                        this.BadRequest(new { error.Message }),
+                    AuthenticationErrorType.InvalidCredentials =>
+                        this.Unauthorized(new { error.Message }),
+                    _ => this.StatusCode(StatusCodes.Status500InternalServerError,
                         new { Message = Constants.ERROR_500_MESSAGE })
                 };
             }
@@ -107,7 +107,7 @@ public sealed class AuthenticationController : ControllerBase
         catch (Exception e)
         {
             this._logger.LogError(e, "Error authenticating user.");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, 
+            return this.StatusCode(StatusCodes.Status500InternalServerError,
                 new { Message = Constants.ERROR_500_MESSAGE });
         }
     }

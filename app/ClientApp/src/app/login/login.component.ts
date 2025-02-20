@@ -24,15 +24,15 @@ export class LoginComponent {
         if (error.status === 400 && error.error?.message?.includes('already authenticated')) {
             return error.error.message;
         }
-        
+
         if (environment.production) {
             return 'Invalid username or password';
         }
-        
+
         if (error.status === 400 && error.error?.message) {
             return error.error.message;
         }
-        
+
         return error.message || 'An error occurred';
     }
 

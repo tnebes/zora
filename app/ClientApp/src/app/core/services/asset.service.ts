@@ -41,7 +41,7 @@ export class AssetService {
             formData.append('workAssetId', asset.workAssetId.toString());
         }
         formData.append('asset', asset.asset, asset.asset.name);
-        
+
         return this.http.post<AssetResponse>(this.apiUrl, formData);
     }
 
