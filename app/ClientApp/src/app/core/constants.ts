@@ -8,6 +8,7 @@ export class Constants {
     static readonly AUTHENTICATION: string = `${Constants.BASE_API_URL}/authentication`;
     static readonly AUTHORISATION: string = `${Constants.BASE_API_URL}/authorisation`;
     static readonly TOKEN: string = `${Constants.AUTHENTICATION}/token`;
+    static readonly TOKEN_REFRESH: string = `${Constants.AUTHENTICATION}/token/refresh`;
     static readonly CURRENT_USER: string = `${Constants.AUTHENTICATION}/current-user`;
     static readonly AUTHENTICATION_CHECK: string = `${Constants.AUTHENTICATION}/check`;
     static readonly IS_ADMIN: string = `${Constants.AUTHORISATION}/is-admin`;

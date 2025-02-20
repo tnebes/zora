@@ -39,6 +39,10 @@ public sealed class JwtService : IJwtService, IZoraService
         string signingKey = this._secretsManagerService.GetSecret(Constants.ISSUER_SIGNING_KEY);
         byte[] key = Encoding.UTF8.GetBytes(signingKey);
 
+        this._logger.LogInformation("Generating token with Issuer: {Issuer}, Audience: {Audience}",
+            TokenValidationExtensions.GetIssuer(this._environment),
+            TokenValidationExtensions.GetAudience(this._environment));
+
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),

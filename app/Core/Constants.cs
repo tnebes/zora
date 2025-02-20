@@ -23,7 +23,7 @@ public static class Constants
     public const long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     public const string PRODUCTION_BASE_PATH = "/var/www/zora";
     public const string WWW_ROOT = "wwwroot";
-    public static readonly string[] ALLOWED_FILE_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".gif", ".pdf" };
     public const string LOCAL_API_URL = "https://localhost:5001";
     public const string LOCAL_CLIENT_URL = "https://localhost:4200";
+    public static readonly string[] ALLOWED_FILE_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".gif", ".pdf" };
 }
