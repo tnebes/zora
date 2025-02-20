@@ -1,13 +1,11 @@
 #region
 
 using System.Reflection;
-using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using zora.Core;
@@ -165,28 +163,8 @@ public static class ServiceExtensions
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = true;
 
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidAudiences =
-                    [
-                        Constants.ZORA_URL,
-                        Constants.ZORA_SUBDOMAIN_URL,
-                        Constants.ZORA_URL_WITH_PORT,
-                        "https://localhost:4200"
-                    ],
-                    ValidIssuers =
-                    [
-                        Constants.ZORA_URL,
-                        Constants.ZORA_SUBDOMAIN_URL,
-                        Constants.ZORA_URL_WITH_PORT,
-                        "https://localhost:5001"
-                    ],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(issuerSigningKey)),
-                    ValidateIssuerSigningKey = true
-                };
+                options.TokenValidationParameters =
+                    TokenValidationExtensions.CreateTokenValidationParameters(issuerSigningKey);
 
                 options.Events = new JwtBearerEvents
                 {

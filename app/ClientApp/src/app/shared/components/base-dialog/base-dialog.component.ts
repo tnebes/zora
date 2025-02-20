@@ -69,7 +69,7 @@ export class BaseDialogComponent<T> {
     public onSubmit(): void {
         if (this.form.valid) {
             const hasFileField = this.data.fields.some(field => field.type === 'file');
-            
+
             if (hasFileField) {
                 const formData = new FormData();
                 Object.keys(this.form.controls).forEach(key => {
