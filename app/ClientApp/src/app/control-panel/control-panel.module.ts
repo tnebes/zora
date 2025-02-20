@@ -20,6 +20,7 @@ import {PermissionsComponent} from '../components/permissions/permissions.compon
 
 import {AuthAndAdminGuard} from '../core/guards/auth-and-admin.guard';
 import {AdminGuard} from '../core/guards/admin.guard';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
     declarations: [
@@ -41,6 +42,7 @@ import {AdminGuard} from '../core/guards/admin.guard';
         MatFormFieldModule,
         MatDialogModule,
         SharedModule,
+        MatTooltipModule,
         RouterModule.forChild([
             {
                 path: '',

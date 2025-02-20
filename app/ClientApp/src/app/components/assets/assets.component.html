@@ -16,7 +16,13 @@
     <mat-table [dataSource]="dataSource" matSort>
         <ng-container matColumnDef="name">
             <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
-            <mat-cell *matCellDef="let asset">{{ asset.name }}</mat-cell>
+            <mat-cell *matCellDef="let asset">
+                <span matTooltip="Created by: TODO Updated by: TODO"
+                 matTooltipPosition="above">
+                    <mat-icon class="info-icon">info</mat-icon>
+                </span>
+                {{ asset.name }}
+            </mat-cell>
         </ng-container>
 
         <ng-container matColumnDef="description">
