@@ -8,6 +8,7 @@ using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.Interfaces.Services;
+using zora.Extensions;
 
 #endregion
 
@@ -16,16 +17,18 @@ namespace zora.Infrastructure.Services.Configuration;
 [ServiceLifetime(ServiceLifetime.Scoped)]
 public sealed class JwtService : IJwtService, IZoraService
 {
-    private readonly IConfiguration _configuration;
+    private readonly IWebHostEnvironment _environment;
     private readonly ILogger<JwtService> _logger;
     private readonly ISecretsManagerService _secretsManagerService;
 
-    public JwtService(ISecretsManagerService secretsManagerService, ILogger<JwtService> logger,
-        IConfiguration configuration)
+    public JwtService(
+        ISecretsManagerService secretsManagerService,
+        ILogger<JwtService> logger,
+        IWebHostEnvironment environment)
     {
         this._secretsManagerService = secretsManagerService;
         this._logger = logger;
-        this._configuration = configuration;
+        this._environment = environment;
     }
 
     public string GenerateToken(User user)
@@ -40,8 +43,8 @@ public sealed class JwtService : IJwtService, IZoraService
         {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddHours(Constants.TOKEN_EXPIRATION_HOURS),
-            Issuer = this._configuration["Jwt:Issuer"],
-            Audience = this._configuration["Jwt:Audience"],
+            Issuer = TokenValidationExtensions.GetIssuer(this._environment),
+            Audience = TokenValidationExtensions.GetAudience(this._environment),
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),
                 SecurityAlgorithms.HmacSha256Signature)
