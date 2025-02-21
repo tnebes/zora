@@ -65,7 +65,8 @@ public sealed class AssetService : IAssetService, IZoraService
         return Result.Ok(assetResponseDto);
     }
 
-    public async Task<Result<Asset>> GetByIdAsync(long id) => await this._assetRepository.GetByIdAsync(id);
+    public async Task<Result<Asset>> GetByIdAsync(long id, bool includeProperties = false) =>
+        await this._assetRepository.GetByIdAsync(id, includeProperties);
 
     public async Task<Result<Asset>> CreateAsync(CreateAssetDto createDto)
     {

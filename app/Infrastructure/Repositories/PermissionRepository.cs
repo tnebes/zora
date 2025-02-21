@@ -212,9 +212,7 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
     private IQueryable<Permission> IncludeProperties(IQueryable<Permission> query)
     {
         return query.Include(p => p.RolePermissions)
-            .ThenInclude(rp => rp.Role)
-            .Include(p => p.PermissionWorkItems)
-            .ThenInclude(pw => pw.WorkItem);
+            .ThenInclude(rp => rp.Role);
     }
 
     private IQueryable<Permission> GetQueryablePermission(DynamicQueryPermissionParamsDto queryParams,

@@ -58,7 +58,7 @@ public sealed class PermissionService : IPermissionService, IZoraService
         try
         {
             Result<(IEnumerable<Permission> permissions, int total)> result =
-                await this._permissionRepository.GetPagedAsync(queryParams);
+                await this._permissionRepository.GetPagedAsync(queryParams, includeProperties: true);
 
             if (result.IsFailed)
             {
@@ -84,11 +84,11 @@ public sealed class PermissionService : IPermissionService, IZoraService
         }
     }
 
-    public async Task<Result<Permission>> GetByIdAsync(long id)
+    public async Task<Result<Permission>> GetByIdAsync(long id, bool includeProperties = false)
     {
         try
         {
-            return await this._permissionRepository.GetByIdAsync(id);
+            return await this._permissionRepository.GetByIdAsync(id, includeProperties);
         }
         catch (Exception ex)
         {

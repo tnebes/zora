@@ -14,7 +14,7 @@ public interface IBaseService<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDy
 {
     Task<Result<(IEnumerable<TEntity>, int total)>> GetAsync(QueryParamsDto queryParams);
     Task<Result<TResponseDto>> GetDtoAsync(QueryParamsDto queryParams);
-    Task<Result<TEntity>> GetByIdAsync(long id);
+    Task<Result<TEntity>> GetByIdAsync(long id, bool includeProperties = false);
     Task<Result<TEntity>> CreateAsync(TCreateDto createDto);
     Task<Result<TEntity>> UpdateAsync(long id, TUpdateDto updateDto);
     Task<bool> DeleteAsync(long id);

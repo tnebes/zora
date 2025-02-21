@@ -114,11 +114,11 @@ public sealed class UserService : IUserService, IZoraService
         }
     }
 
-    public async Task<Result<User>> GetByIdAsync(long id)
+    public async Task<Result<User>> GetByIdAsync(long id, bool includeProperties = false)
     {
         try
         {
-            Result<User> userResult = await this._userRepository.GetByIdAsync(id);
+            Result<User> userResult = await this._userRepository.GetByIdAsync(id, includeProperties);
 
             if (userResult.IsFailed)
             {

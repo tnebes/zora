@@ -125,7 +125,7 @@ public sealed class AuthenticationController : ControllerBase
         try
         {
             long userId = this.HttpContext.User.GetUserId();
-            Result<User> user = await this._userService.GetByIdAsync(userId);
+            Result<User> user = await this._userService.GetByIdAsync(userId, true);
 
             // TODO ugly as sin
             if (user.IsFailed)
