@@ -6,11 +6,12 @@ using zora.Extensions;
 
 #endregion
 
-ConfigureLogging();
-
 try
 {
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration));
 
     builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());
     WebApplication app = builder.Build();
@@ -34,24 +35,6 @@ finally
 {
     Log.Information("Shutting down.");
     await Log.CloseAndFlushAsync();
-}
-
-static void ConfigureLogging()
-{
-    string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-    IConfigurationRoot configuration = new ConfigurationBuilder()
-        .SetBasePath(environment == "Development"
-            ? Directory.GetCurrentDirectory()
-            : Path.Combine(Directory.GetCurrentDirectory(), "app"))
-        .AddJsonFile("appsettings.json", false, true)
-        .AddJsonFile($"appsettings.{environment}.json", true, true)
-        .Build();
-
-    Log.Logger = new LoggerConfiguration()
-        .ReadFrom.Configuration(configuration)
-        .CreateLogger();
-
-    Log.Information("Logging configured successfully.");
 }
 
 static async Task WriteToCrashLogAsync(Exception exception)
