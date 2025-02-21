@@ -25,7 +25,7 @@ public sealed class JwtLoggingMiddleware
         if (!string.IsNullOrEmpty(authHeader))
         {
             string authType = authHeader.Split(' ')[0];
-            this._logger.LogInformation(
+            this._logger.LogTrace(
                 "Request received - Path: {Path}, Method: {Method}, AuthType: {AuthType}, CorrelationId: {CorrelationId}",
                 context.Request.Path,
                 context.Request.Method,
@@ -60,9 +60,15 @@ public sealed class JwtLoggingMiddleware
             if (handler.CanReadToken(token))
             {
                 JwtSecurityToken? jwtToken = handler.ReadJwtToken(token);
-                this._logger.LogDebug("JWT Details - Issuer: {Issuer}, Subject: {Subject}, ValidTo: {ValidTo}",
+                this._logger.LogInformation("JWT Details - Issuer: {Issuer}, Subject: {Subject}, ValidTo: {ValidTo}, Token: {Token}",
                     jwtToken.Issuer,
                     jwtToken.Subject,
+                    jwtToken.ValidTo,
+                    token);
+
+                this._logger.LogInformation("JWT Details - Issuer: {Issuer}, Audience: {Audience}, ValidTo: {ValidTo}",
+                    jwtToken.Issuer,
+                    jwtToken.Audiences.FirstOrDefault(),
                     jwtToken.ValidTo);
             }
         }

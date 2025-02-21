@@ -23,7 +23,7 @@ public sealed class RequestLoggingMiddleware
         {
             TimeSpan elapsed = DateTime.UtcNow - startTime;
 
-            this._logger.LogDebug(
+            this._logger.LogTrace(
                 "Request {Method} {Url} => {StatusCode} in {Elapsed}ms",
                 context.Request.Method,
                 context.Request.Path,
@@ -32,12 +32,12 @@ public sealed class RequestLoggingMiddleware
 
             if (context.Request.Headers.Authorization.Count > 0)
             {
-                this._logger.LogDebug(
+                this._logger.LogTrace(
                     "Authorization header present: {Type}",
                     context.Request.Headers.Authorization.ToString().Split(' ')[0]);
             }
 
-            this._logger.LogDebug("Correlation ID: {CorrelationId}", context.TraceIdentifier);
+            this._logger.LogTrace("Correlation ID: {CorrelationId}", context.TraceIdentifier);
         }
     }
 }
