@@ -101,15 +101,20 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
     {
         try
         {
-            IQueryable<Permission> query = this.FindAll();
-            if (includeProperties)
-            {
-                query = this.IncludeProperties(query);
-            }
+            IQueryable<Permission> query = this.FilteredDbSet;
 
             int totalCount = await query.CountAsync();
 
+            if (includeProperties)
+            {
+                query = query
+                    .Include(p => p.RolePermissions)
+                    .ThenInclude(rp => rp.Role)
+                    .AsSplitQuery();
+            }
+
             List<Permission> permissions = await query
+                .OrderBy(p => p.Id)
                 .Skip((queryParams.Page - 1) * queryParams.PageSize)
                 .Take(queryParams.PageSize)
                 .ToListAsync();

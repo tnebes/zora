@@ -1,6 +1,6 @@
 import {Component, OnInit, OnDestroy} from '@angular/core';
 import {Router} from '@angular/router';
-import {Subject, takeUntil, Observable, map} from 'rxjs';
+import {Subject, takeUntil, Observable, map, switchMap, of, filter} from 'rxjs';
 import {AuthenticationService} from '../core/services/authentication.service';
 import {AuthorisationService} from '../core/services/authorisation.service';
 
@@ -31,12 +31,10 @@ export class NavMenuComponent implements OnInit, OnDestroy {
 
     public ngOnInit(): void {
         this.authenticationService.authState$.pipe(
-            takeUntil(this.destroy$)
-        ).subscribe((isAuthenticated: boolean) => {
-            if (isAuthenticated) {
-                this.authorisationService.checkAdminStatus().subscribe();
-            }
-        });
+            takeUntil(this.destroy$),
+            filter(isAuthenticated => isAuthenticated),
+            switchMap(() => this.authorisationService.checkAdminStatus())
+        ).subscribe();
 
         this.authenticationService.checkAuthStatus().pipe(
             takeUntil(this.destroy$)
@@ -45,10 +43,6 @@ export class NavMenuComponent implements OnInit, OnDestroy {
                 console.error('Auth check failed:', error);
             }
         });
-
-        this.authenticationService.currentUser().pipe(
-            takeUntil(this.destroy$)
-        ).subscribe();
     }
 
     public ngOnDestroy(): void {

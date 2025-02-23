@@ -21,19 +21,22 @@ export class LoginComponent {
     }
 
     private getErrorMessage(error: HttpErrorResponse): string {
+
+        let errorMessage: string = '';
+
         if (error.status === 400 && error.error?.message?.includes('already authenticated')) {
-            return error.error.message;
+            errorMessage += `\n${error.error.message}`;
         }
 
         if (environment.production) {
-            return 'Invalid username or password';
+            return errorMessage + '\nInvalid username or password';
         }
 
         if (error.status === 400 && error.error?.message) {
-            return error.error.message;
+            errorMessage += `\n${error.error.message}`;
         }
 
-        return error.message || 'An error occurred';
+        return errorMessage || 'An error occurred';
     }
 
     public onLogin(): void {
@@ -43,7 +46,7 @@ export class LoginComponent {
             .subscribe({
                 next: (response: LoginResponse) => {
                     this.authenticationService.saveToken(response.token);
-                    this.router.navigate(['/'], {replaceUrl: true}).then(() => window.location.reload());
+                    setTimeout(() => this.router.navigate(['/'], {replaceUrl: true}), 100);
                 },
                 error: (error: HttpErrorResponse) => {
                     this.errorMessage = this.getErrorMessage(error);

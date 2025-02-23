@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders, HttpErrorResponse} from '@angular/common/http';
-import {Observable, BehaviorSubject, catchError, tap, of} from 'rxjs';
+import {Observable, BehaviorSubject, catchError, tap, of, switchMap, map} from 'rxjs';
 import {Constants} from '../constants';
 
 export interface LoginRequest {
@@ -16,6 +16,7 @@ export interface LoginResponse {
 export interface User {
     id: string;
     username: string;
+    email: string;
 }
 
 @Injectable({
@@ -40,7 +41,13 @@ export class AuthenticationService {
             loginRequest,
             {headers}
         ).pipe(
-            tap(() => this.setAuthState(true))
+            tap((response: LoginResponse) => {
+                this.saveToken(response.token);
+                this.setAuthState(true);
+            }),
+            switchMap((response: LoginResponse) => this.currentUser().pipe(
+                map(() => response)
+            ))
         );
     }
 
@@ -49,17 +56,23 @@ export class AuthenticationService {
             .pipe(
                 tap(() => this.setAuthState(true)),
                 catchError((error: HttpErrorResponse) => {
-                    console.error('Authentication check failed:', error)
+                    console.error('Authentication check failed:', error);
                     this.setAuthState(false);
+                    this.currentUserSubject.next(null);
                     return of({isAuthenticated: false});
                 })
             );
     }
 
-    public currentUser = (): Observable<User> => {
+    public currentUser(): Observable<User | null> {
         return this.http.get<User>(`${Constants.CURRENT_USER}`)
             .pipe(
-                tap((user: User) => this.currentUserSubject.next(user))
+                tap((user: User) => this.currentUserSubject.next(user)),
+                catchError((error: HttpErrorResponse) => {
+                    console.error('Current user fetch failed:', error);
+                    this.currentUserSubject.next(null);
+                    return of(null);
+                })
             );
     }
 
@@ -74,6 +87,7 @@ export class AuthenticationService {
     public logout(): void {
         localStorage.removeItem(Constants.JWT_TOKEN_KEY);
         this.setAuthState(false);
+        this.currentUserSubject.next(null);
     }
 
     private setAuthState(isAuthenticated: boolean): void {
