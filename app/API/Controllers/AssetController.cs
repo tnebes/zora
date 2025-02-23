@@ -86,7 +86,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     }
 
     /// <summary>
-    ///     Creates a new asset in the system. Requires admin privileges.
+    ///     Creates a new asset in the system.
     /// </summary>
     /// <param name="createDto">Data transfer object containing asset creation details</param>
     /// <returns>Created asset object</returns>
@@ -96,7 +96,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
-    [Description("Creates a new asset. Requires admin privileges.")]
+    [Description("Creates a new asset.")]
     [Authorize]
     public override async Task<ActionResult<Asset>> Create([FromForm] CreateAssetDto createDto)
     {
@@ -129,7 +129,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     }
 
     /// <summary>
-    ///     Updates an existing asset by ID. Requires admin privileges.
+    ///     Updates an existing asset by ID.
     /// </summary>
     /// <param name="id">ID of the asset to update</param>
     /// <param name="updateDto">Data transfer object containing updated asset details</param>
@@ -141,7 +141,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
-    [Description("Updates an existing asset by ID. Requires admin privileges.")]
+    [Description("Updates an existing asset by ID.")]
     public override async Task<ActionResult<Asset>> Update(long id, [FromBody] UpdateAssetDto updateDto)
     {
         try
@@ -191,7 +191,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     }
 
     /// <summary>
-    ///     Deletes an asset by ID. Requires admin privileges.
+    ///     Deletes an asset by ID.
     /// </summary>
     /// <param name="id">ID of the asset to delete</param>
     /// <returns>Boolean indicating success of the deletion operation</returns>
@@ -202,7 +202,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
-    [Description("Deletes an asset by ID. Requires admin privileges.")]
+    [Description("Deletes an asset by ID.")]
     public override async Task<ActionResult<bool>> Delete(long id)
     {
         try
