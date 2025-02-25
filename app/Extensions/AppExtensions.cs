@@ -17,6 +17,7 @@ public static class AppExtensions
     public static WebApplication ConfigureApplication(this WebApplication app,
         IEnvironmentManagerService environmentManager)
     {
+        Log.Information("Starting application configuration");
         app.ConfigureAdvancedLogging();
         app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.UseMiddleware<RequestLoggingMiddleware>();
@@ -31,9 +32,11 @@ public static class AppExtensions
         }
         else
         {
+            Log.Information("Configuring for production environment");
             Log.Information("HTTPS redirection is disabled.");
         }
 
+        Log.Information("Configuring static files, routing, and authentication pipeline");
         app.UseStaticFiles();
         app.UseRouting();
         app.UseMiddleware<CorsLoggingMiddleware>();
@@ -43,12 +46,14 @@ public static class AppExtensions
         app.MapControllers();
 
         app.ConfigureSwagger();
+        Log.Information("Application configuration completed");
 
         return app;
     }
 
     private static WebApplication ConfigureSwagger(this WebApplication app)
     {
+        Log.Information("Configuring Swagger documentation");
         app.ConfigureSwaggerOptions();
         Console.WriteLine("Swagger UI is available at /swagger");
         return app;
@@ -56,6 +61,7 @@ public static class AppExtensions
 
     private static WebApplication ConfigureSwaggerOptions(this WebApplication app)
     {
+        Log.Information("Setting up Swagger UI options");
         app.UseSwagger();
         app.UseSwaggerUI(options =>
         {
@@ -69,11 +75,13 @@ public static class AppExtensions
             options.ShowExtensions();
             options.EnableTryItOutByDefault();
         });
+        Log.Debug("Swagger UI configured with expanded lists and try-it-out enabled");
         return app;
     }
 
     private static WebApplication ConfigureAdvancedLogging(this WebApplication app)
     {
+        Log.Information("Setting up request performance tracking middleware");
         app.Use(async (context, next) =>
         {
             Log.Information("Request {Method} {Path} started", context.Request.Method, context.Request.Path);

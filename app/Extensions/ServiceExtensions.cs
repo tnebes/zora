@@ -24,6 +24,7 @@ public static class ServiceExtensions
     public static IServiceCollection AddCustomServices(this IServiceCollection services, IConfiguration configuration,
         bool isDevelopment)
     {
+        Log.Information("Configuring all Zora services");
         return services.AddCache()
             .AddConfigureMapper()
             .AddZoraControllers(isDevelopment)
@@ -38,6 +39,7 @@ public static class ServiceExtensions
 
     private static IServiceCollection AddZoraServices(this IServiceCollection services)
     {
+        Log.Information("Registering Zora service implementations");
         services.Scan(scan => scan
             .FromAssemblyOf<IZoraService>()
             .AddClasses(classes => classes
@@ -69,12 +71,14 @@ public static class ServiceExtensions
 
     private static IServiceCollection AddZoraControllers(this IServiceCollection services, bool isDevelopment)
     {
+        Log.Information("Configuring controllers with JSON options");
         services.AddControllers()
             .AddJsonOptions(options =>
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
         if (isDevelopment)
         {
+            Log.Debug("Configuring development-specific API behavior options");
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = context =>
@@ -97,6 +101,7 @@ public static class ServiceExtensions
 
     private static IServiceCollection AddSwaggerServices(this IServiceCollection services)
     {
+        Log.Information("Configuring Swagger documentation");
         services.AddSwaggerGen(options =>
         {
             OpenApiInfo info = new()
@@ -165,6 +170,7 @@ public static class ServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        Log.Information("Configuring JWT authentication");
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -209,15 +215,17 @@ public static class ServiceExtensions
                 };
             });
 
-        Log.Information("Adding authentication and authorisation.");
+        Log.Information("Adding authorization services");
         services.AddAuthorization();
         return services;
     }
 
     private static IServiceCollection AddZoraCors(this IServiceCollection services, bool isDevelopment)
     {
+        Log.Information("Configuring CORS policies for {Environment}", isDevelopment ? "development" : "production");
         void CorsOptions(CorsOptions options)
         {
+            Log.Information("Adding CORS options");
             if (isDevelopment)
             {
                 options.AddPolicy(Constants.ZORA_CORS_POLICY_NAME, builder =>
@@ -244,12 +252,14 @@ public static class ServiceExtensions
             }
         }
 
+        Log.Information("Adding CORS services");
         services.AddCors(CorsOptions);
         return services;
     }
 
     private static IServiceCollection AddZoraLogging(this IServiceCollection services)
     {
+        Log.Information("Configuring HTTP request/response logging");
         services.AddHttpLogging(logging => logging.LoggingFields = HttpLoggingFields.All);
         return services;
     }
@@ -257,6 +267,7 @@ public static class ServiceExtensions
     private static IServiceCollection AddZoraDbContext(this IServiceCollection services, IConfiguration configuration,
         bool isDevelopment)
     {
+        Log.Information("Configuring database context for {Environment}", isDevelopment ? "development" : "production");
         services.AddDbContext<ApplicationDbContext>(options =>
         {
             string? connectionString = configuration[Constants.CONNECTION_STRING_KEY];
@@ -266,6 +277,7 @@ public static class ServiceExtensions
                     $"Database connection string {Constants.CONNECTION_STRING_KEY} not found in configuration. Use dotnet user-secrets or environment variables.");
             }
 
+            Log.Information("Adding database context");
             options.UseLazyLoadingProxies();
             options.UseSqlServer(connectionString, sqlOptions =>
             {
@@ -286,11 +298,13 @@ public static class ServiceExtensions
 
             if (isDevelopment)
             {
+                Log.Information("Enabling sensitive data logging");
                 options.EnableSensitiveDataLogging();
                 options.EnableDetailedErrors();
             }
         });
 
+        Log.Information("Registering IDbContext implementation");
         services.AddScoped<IDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
 
@@ -299,12 +313,14 @@ public static class ServiceExtensions
 
     private static IServiceCollection AddCache(this IServiceCollection services)
     {
+        Log.Information("Configuring in-memory caching");
         services.AddMemoryCache();
         return services;
     }
 
     private static IServiceCollection AddConfigureMapper(this IServiceCollection services)
     {
+        Log.Information("Configuring AutoMapper with assembly scanning");
         services.AddAutoMapper(typeof(Program).Assembly);
         return services;
     }
