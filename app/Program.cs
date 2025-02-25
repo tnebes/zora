@@ -9,22 +9,25 @@ using zora.Extensions;
 try
 {
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-
-    if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
-    {
-        builder.Host.UseSystemd();
-    }
-
+    
+    builder.Host.UseSystemd();
     builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration));
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext());
 
     builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());
+    
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.AddServerHeader = false;
+    });
+
     WebApplication app = builder.Build();
 
     IEnvironmentManagerService environmentManager =
         app.Services.GetRequiredService<IEnvironmentManagerService>();
 
-    Log.Information("Running in {0} mode.", environmentManager.CurrentEnvironment);
+    Log.Information("Starting application in {Environment} mode", environmentManager.CurrentEnvironment);
 
     await app.ConfigureApplication(environmentManager).RunAsync();
 }
@@ -32,13 +35,13 @@ catch (Exception ex)
 {
     await WriteToCrashLogAsync(ex);
     Log.Fatal(ex,
-        "Application terminated unexpectedly due to an unhandled exception.\nPlease read the logs for more information.");
+        "Application terminated unexpectedly due to an unhandled exception. See crash log for details.");
 
     throw;
 }
 finally
 {
-    Log.Information("Shutting down.");
+    Log.Information("Shutting down application");
     await Log.CloseAndFlushAsync();
 }
 
@@ -51,10 +54,13 @@ static async Task WriteToCrashLogAsync(Exception exception)
     try
     {
         Directory.CreateDirectory(logDirectory);
-        await File.WriteAllTextAsync(fullPath, exception.ToString());
+        string timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+        string logContent = $"[{timestamp} UTC]\n{exception}\n\n";
+        
+        await File.AppendAllTextAsync(fullPath, logContent);
     }
     catch (Exception ex)
     {
-        Log.Error(ex, "Failed to write crash log");
+        Log.Error(ex, "Failed to write crash log to {LogPath}", fullPath);
     }
 }
