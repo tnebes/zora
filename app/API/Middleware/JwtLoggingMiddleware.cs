@@ -60,7 +60,8 @@ public sealed class JwtLoggingMiddleware
             if (handler.CanReadToken(token))
             {
                 JwtSecurityToken? jwtToken = handler.ReadJwtToken(token);
-                this._logger.LogInformation("JWT Details - Issuer: {Issuer}, Subject: {Subject}, ValidTo: {ValidTo}, Token: {Token}",
+                this._logger.LogInformation(
+                    "JWT Details - Issuer: {Issuer}, Subject: {Subject}, ValidTo: {ValidTo}, Token: {Token}",
                     jwtToken.Issuer,
                     jwtToken.Subject,
                     jwtToken.ValidTo,

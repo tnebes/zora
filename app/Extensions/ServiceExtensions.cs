@@ -83,7 +83,7 @@ public static class ServiceExtensions
                         .Where(e => e.Value?.Errors.Count > 0)
                         .Select(x => new
                         {
-                            Key = x.Key,
+                            x.Key,
                             Errors = x.Value?.Errors.Select(e => e.ErrorMessage).ToList()
                         });
 
@@ -91,6 +91,7 @@ public static class ServiceExtensions
                 };
             });
         }
+
         return services;
     }
 

@@ -3,7 +3,7 @@ import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
 
 import {AppModule} from './app/app.module';
 import {environment} from './environments/environment';
-import { Constants } from './app/core/constants';
+import {Constants} from './app/core/constants';
 
 export function getBaseUrl() {
     return document.getElementsByTagName('base')[0].href;
