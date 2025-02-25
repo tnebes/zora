@@ -7,12 +7,14 @@ using zora.Extensions;
 
 #endregion
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
-
 try
 {
+    Log.Logger = new LoggerConfiguration()
+        .WriteTo.Console()
+        .CreateBootstrapLogger();
+
+    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "logs"));
+
     Log.Information("Starting up application");
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -26,8 +28,10 @@ try
 
     builder.WebHost.ConfigureKestrel(options => { options.AddServerHeader = false; });
 
+    Log.Information("All services registered, building application");
     WebApplication app = builder.Build();
 
+    Log.Information("Application built successfully");
     IEnvironmentManagerService environmentManager =
         app.Services.GetRequiredService<IEnvironmentManagerService>();
 

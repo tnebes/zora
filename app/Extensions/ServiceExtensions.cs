@@ -40,31 +40,41 @@ public static class ServiceExtensions
     private static IServiceCollection AddZoraServices(this IServiceCollection services)
     {
         Log.Information("Registering Zora service implementations");
-        services.Scan(scan => scan
-            .FromAssemblyOf<IZoraService>()
-            .AddClasses(classes => classes
-                .AssignableTo<IZoraService>()
-                .Where(type =>
-                    type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
-                    == ServiceLifetime.Singleton))
-            .AsImplementedInterfaces()
-            .WithSingletonLifetime()
-            .AddClasses(classes => classes
-                .AssignableTo<IZoraService>()
-                .Where(type =>
-                    type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
-                    == ServiceLifetime.Transient))
-            .AsImplementedInterfaces()
-            .WithTransientLifetime()
-            .AddClasses(classes => classes
-                .AssignableTo<IZoraService>()
-                .Where(type =>
-                    type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
-                    != ServiceLifetime.Singleton &&
-                    type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
-                    != ServiceLifetime.Transient))
-            .AsImplementedInterfaces()
-            .WithScopedLifetime());
+        try
+        {
+            services.Scan(scan => scan
+                .FromAssemblyOf<IZoraService>()
+                .AddClasses(classes => classes
+                    .AssignableTo<IZoraService>()
+                    .Where(type =>
+                        type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
+                        == ServiceLifetime.Singleton))
+                .AsImplementedInterfaces()
+                .WithSingletonLifetime()
+                .AddClasses(classes => classes
+                    .AssignableTo<IZoraService>()
+                    .Where(type =>
+                        type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
+                        == ServiceLifetime.Transient))
+                .AsImplementedInterfaces()
+                .WithTransientLifetime()
+                .AddClasses(classes => classes
+                    .AssignableTo<IZoraService>()
+                    .Where(type =>
+                        type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
+                        != ServiceLifetime.Singleton &&
+                        type.GetCustomAttribute<ServiceLifetimeAttribute>()?.Lifetime
+                        != ServiceLifetime.Transient))
+                .AsImplementedInterfaces()
+                .WithScopedLifetime());
+            
+            Log.Information("Zora service implementations registered successfully");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error registering Zora service implementations");
+            throw;
+        }
 
         return services;
     }
@@ -261,6 +271,14 @@ public static class ServiceExtensions
     {
         Log.Information("Configuring HTTP request/response logging");
         services.AddHttpLogging(logging => logging.LoggingFields = HttpLoggingFields.All);
+        
+        services.AddLogging(loggingBuilder =>
+        {
+            loggingBuilder.ClearProviders();
+            loggingBuilder.AddSerilog(dispose: false);
+        });
+        
+        Log.Information("HTTP logging and Serilog provider configured");
         return services;
     }
 

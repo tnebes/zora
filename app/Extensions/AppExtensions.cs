@@ -55,7 +55,7 @@ public static class AppExtensions
     {
         Log.Information("Configuring Swagger documentation");
         app.ConfigureSwaggerOptions();
-        Console.WriteLine("Swagger UI is available at /swagger");
+        Log.Information("Swagger UI is available at /swagger");
         return app;
     }
 
