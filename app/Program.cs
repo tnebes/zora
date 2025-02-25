@@ -10,7 +10,7 @@ using zora.Extensions;
 try
 {
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-    
+
     builder.Host.UseSystemd();
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
@@ -18,11 +18,8 @@ try
         .Enrich.WithExceptionDetails());
 
     builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());
-    
-    builder.WebHost.ConfigureKestrel(options =>
-    {
-        options.AddServerHeader = false;
-    });
+
+    builder.WebHost.ConfigureKestrel(options => { options.AddServerHeader = false; });
 
     WebApplication app = builder.Build();
 
@@ -58,7 +55,7 @@ static async Task WriteToCrashLogAsync(Exception exception)
         Directory.CreateDirectory(logDirectory);
         string timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
         string logContent = $"[{timestamp} UTC]\n{exception}\n\n";
-        
+
         await File.AppendAllTextAsync(fullPath, logContent);
     }
     catch (Exception ex)
