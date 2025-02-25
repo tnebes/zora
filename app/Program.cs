@@ -11,10 +11,13 @@ try
 {
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .Enrich.FromLogContext()
-        .Enrich.WithExceptionDetails());
+    Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Information()
+        .Enrich.WithExceptionDetails()
+        .WriteTo.Console()
+        .CreateLogger();
+
+    builder.Host.UseSerilog();
 
     builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());
 
