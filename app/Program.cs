@@ -1,9 +1,11 @@
 #region
 
 using Serilog;
+using Serilog.Events;
 using Serilog.Exceptions;
 using zora.Core.Interfaces.Services;
 using zora.Extensions;
+using Microsoft.Extensions.Configuration;
 
 #endregion
 
@@ -18,11 +20,20 @@ try
     Log.Information("Starting up application");
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
+    Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .MinimumLevel.Override("System", LogEventLevel.Warning)
         .Enrich.FromLogContext()
-        .Enrich.WithExceptionDetails());
+        .Enrich.WithExceptionDetails()
+        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+        .WriteTo.File(
+            Path.Combine("logs", "log-.txt"),
+            rollingInterval: RollingInterval.Day,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+        .CreateLogger();
+
+    builder.Host.UseSerilog();
 
     builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());
 
@@ -31,12 +42,19 @@ try
     Log.Information("All services registered, building application");
     WebApplication app = builder.Build();
 
-    Log.Logger = new LoggerConfiguration()
-        .ReadFrom.Configuration(builder.Configuration)
-        .ReadFrom.Services(app.Services)
-        .Enrich.FromLogContext()
-        .Enrich.WithExceptionDetails()
-        .CreateLogger();
+    try
+    {
+        Log.Information("Performing Serilog diagnostic check");
+        Log.Debug("Debug level message - if you see this, debug logging is enabled");
+        Log.Information("Information level message - if you see this, information logging is enabled");
+        Log.Warning("Warning level message - if you see this, warning logging is enabled");
+        Log.Error("Error level message - if you see this, error logging is enabled");
+        Log.Information("Serilog diagnostic check completed");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error during Serilog diagnostic check: {ex.Message}");
+    }
 
     Log.Information("Application built successfully");
     IEnvironmentManagerService environmentManager =

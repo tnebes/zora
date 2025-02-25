@@ -272,13 +272,9 @@ public static class ServiceExtensions
         Log.Information("Configuring HTTP request/response logging");
         services.AddHttpLogging(logging => logging.LoggingFields = HttpLoggingFields.All);
         
-        services.AddLogging(loggingBuilder =>
-        {
-            loggingBuilder.ClearProviders();
-            loggingBuilder.AddSerilog(dispose: false);
-        });
+        services.AddSerilog();
         
-        Log.Information("HTTP logging and Serilog provider configured");
+        Log.Information("HTTP logging configured");
         return services;
     }
 
