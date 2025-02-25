@@ -1,6 +1,7 @@
 #region
 
 using Serilog;
+using Serilog.Exceptions;
 using zora.Core.Interfaces.Services;
 using zora.Extensions;
 
@@ -13,7 +14,8 @@ try
     builder.Host.UseSystemd();
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
-        .Enrich.FromLogContext());
+        .Enrich.FromLogContext()
+        .Enrich.WithExceptionDetails());
 
     builder.Services.AddCustomServices(builder.Configuration, builder.Environment.IsDevelopment());
     
