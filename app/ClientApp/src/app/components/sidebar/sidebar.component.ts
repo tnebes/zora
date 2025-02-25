@@ -16,7 +16,7 @@ interface MenuItem {
           <a class="nav-link"
              [routerLink]="[item.path]"
              routerLinkActive="active">
-            <i class="bi" [class]="item.icon"></i>
+            <mat-icon>{{ item.icon }}</mat-icon>
             {{ item.label }}
           </a>
         </li>
@@ -26,9 +26,9 @@ interface MenuItem {
 })
 export class SidebarComponent {
     public readonly menuItems: MenuItem[] = [
-        {path: './users', label: 'Users', icon: 'bi-people'},
-        {path: './roles', label: 'Roles', icon: 'bi-person-badge'},
-        {path: './permissions', label: 'Permissions', icon: 'bi-shield-lock'},
-        {path: './assets', label: 'Assets', icon: 'bi-box'}
+        {path: './users', label: 'Users', icon: 'people'},
+        {path: './roles', label: 'Roles', icon: 'admin_panel_settings'},
+        {path: './permissions', label: 'Permissions', icon: 'lock'},
+        {path: './assets', label: 'Assets', icon: 'inventory'}
     ];
 }

@@ -13,6 +13,7 @@ import {Constants} from 'src/app/core/constants';
 import {ConfirmDialogComponent} from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
 import {NotificationUtils} from '../../core/utils/notification.utils';
 import {QueryParams} from '../../core/models/query-params.interface';
+import {AssetDialogComponent} from './asset-dialog/asset-dialog.component';
 
 @Component({
     selector: 'app-assets',
@@ -69,6 +70,13 @@ export class AssetsComponent implements OnInit, AfterViewInit {
 
     public loadAssets(): void {
         this.setupSearchAndSort();
+    }
+
+    public onView(asset: AssetResponse): void {
+        this.dialog.open(AssetDialogComponent, {
+            width: '800px',
+            data: asset
+        });
     }
 
     public onSearch(event: Event): void {

@@ -13,29 +13,25 @@ public sealed class CorsLoggingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        this._logger.LogDebug("CORS Request Details:");
-        this._logger.LogDebug("Origin: {Origin}", context.Request.Headers.Origin);
-        this._logger.LogDebug("Access-Control-Request-Method: {Method}",
-            context.Request.Headers.AccessControlRequestMethod);
-        this._logger.LogDebug("Access-Control-Request-Headers: {Headers}",
+        this._logger.LogDebug(
+            "CORS Request Details - Origin: {Origin}, Method: {Method}, Headers: {Headers}",
+            context.Request.Headers.Origin,
+            context.Request.Headers.AccessControlRequestMethod,
             context.Request.Headers.AccessControlRequestHeaders);
 
         if (context.Request.Method == "OPTIONS")
         {
-            this._logger.LogInformation("CORS Preflight request received from Origin: {Origin}",
+            this._logger.LogDebug("CORS Preflight request received from Origin: {Origin}",
                 context.Request.Headers.Origin);
         }
 
         context.Response.OnStarting(() =>
         {
-            this._logger.LogDebug("CORS Response Headers:");
-            this._logger.LogDebug("Access-Control-Allow-Origin: {Origin}",
-                context.Response.Headers.AccessControlAllowOrigin);
-            this._logger.LogDebug("Access-Control-Allow-Methods: {Methods}",
-                context.Response.Headers.AccessControlAllowMethods);
-            this._logger.LogDebug("Access-Control-Allow-Headers: {Headers}",
-                context.Response.Headers.AccessControlAllowHeaders);
-            this._logger.LogDebug("Access-Control-Allow-Credentials: {Credentials}",
+            this._logger.LogDebug(
+                "CORS Response Headers - Origin: {Origin}, Methods: {Methods}, Headers: {Headers}, Credentials: {Credentials}",
+                context.Response.Headers.AccessControlAllowOrigin,
+                context.Response.Headers.AccessControlAllowMethods,
+                context.Response.Headers.AccessControlAllowHeaders,
                 context.Response.Headers.AccessControlAllowCredentials);
 
             if (!context.Response.Headers.AccessControlAllowOrigin.Any())

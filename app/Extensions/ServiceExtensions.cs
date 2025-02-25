@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -25,7 +26,7 @@ public static class ServiceExtensions
     {
         return services.AddCache()
             .AddConfigureMapper()
-            .AddZoraControllers()
+            .AddZoraControllers(isDevelopment)
             .AddEndpointsApiExplorer()
             .AddSwaggerServices()
             .AddZoraCors(isDevelopment)
@@ -66,10 +67,30 @@ public static class ServiceExtensions
         return services;
     }
 
-    private static IServiceCollection AddZoraControllers(this IServiceCollection services)
+    private static IServiceCollection AddZoraControllers(this IServiceCollection services, bool isDevelopment)
     {
         services.AddControllers()
-            .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+            .AddJsonOptions(options =>
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
+        if (isDevelopment)
+        {
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = context =>
+                {
+                    var errors = context.ModelState
+                        .Where(e => e.Value?.Errors.Count > 0)
+                        .Select(x => new
+                        {
+                            Key = x.Key,
+                            Errors = x.Value?.Errors.Select(e => e.ErrorMessage).ToList()
+                        });
+
+                    return new BadRequestObjectResult(new { Message = "Validation errors", Errors = errors });
+                };
+            });
+        }
         return services;
     }
 
@@ -104,7 +125,8 @@ public static class ServiceExtensions
                 Name = "Authorization",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer"
+                Scheme = "Bearer",
+                BearerFormat = "JWT"
             };
 
             options.AddSecurityDefinition("Bearer", securityScheme);
@@ -119,7 +141,7 @@ public static class ServiceExtensions
                             Type = ReferenceType.SecurityScheme,
                             Id = "Bearer"
                         },
-                        Scheme = "oauth2",
+                        Scheme = "Bearer",
                         Name = "Bearer",
                         In = ParameterLocation.Header
                     },
@@ -252,7 +274,13 @@ public static class ServiceExtensions
                     null);
             }).LogTo(
                 message => Log.Information(message),
-                new[] { DbLoggerCategory.Database.Command.Name },
+                [
+                    DbLoggerCategory.Database.Command.Name,
+                    DbLoggerCategory.Database.Connection.Name,
+                    DbLoggerCategory.Query.Name,
+                    DbLoggerCategory.Update.Name,
+                    DbLoggerCategory.Infrastructure.Name
+                ],
                 isDevelopment ? LogLevel.Debug : LogLevel.Information);
 
             if (isDevelopment)

@@ -2,12 +2,16 @@ import {environment} from "src/environments/environment";
 import {QueryParams} from "./models/query-params.interface";
 
 export class Constants {
+    // Website
+    static readonly WEBSITE_NAME: string = "Zora";
+    static readonly COMPANY_NAME: string = "Draucode";
     // Base URL
     static readonly BASE_API_URL: string = `${environment.apiUrl}/v1`
     // Authentication & Authorization
     static readonly AUTHENTICATION: string = `${Constants.BASE_API_URL}/authentication`;
     static readonly AUTHORISATION: string = `${Constants.BASE_API_URL}/authorisation`;
     static readonly TOKEN: string = `${Constants.AUTHENTICATION}/token`;
+    static readonly TOKEN_REFRESH: string = `${Constants.AUTHENTICATION}/token/refresh`;
     static readonly CURRENT_USER: string = `${Constants.AUTHENTICATION}/current-user`;
     static readonly AUTHENTICATION_CHECK: string = `${Constants.AUTHENTICATION}/check`;
     static readonly IS_ADMIN: string = `${Constants.AUTHORISATION}/is-admin`;

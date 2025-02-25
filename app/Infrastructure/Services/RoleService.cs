@@ -106,11 +106,11 @@ public sealed class RoleService : IRoleService, IZoraService
         return Result.Ok(roles.ToRoleResponseDto(total, queryParams.Page, queryParams.PageSize, this._mapper));
     }
 
-    public async Task<Result<Role>> GetByIdAsync(long id)
+    public async Task<Result<Role>> GetByIdAsync(long id, bool includeProperties = false)
     {
         try
         {
-            return await this._roleRepository.GetByIdAsync(id);
+            return await this._roleRepository.GetByIdAsync(id, includeProperties);
         }
         catch (Exception ex)
         {

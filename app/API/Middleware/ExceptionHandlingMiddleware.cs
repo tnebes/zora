@@ -62,7 +62,7 @@ public sealed class ExceptionHandlingMiddleware
             _ => (int)HttpStatusCode.InternalServerError
         };
 
-        Dictionary<string, object> extensions = new()
+        Dictionary<string, object?> extensions = new()
         {
             ["correlationId"] = context.TraceIdentifier
         };

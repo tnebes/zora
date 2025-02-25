@@ -1,9 +1,10 @@
 #region
 
 using System.ComponentModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Infrastructure.DataSeed;
-
+using zora.Core;
 #endregion
 
 namespace zora.API.Controllers;
@@ -17,6 +18,7 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [ProducesResponseType<int>(StatusCodes.Status200OK)]
+[Authorize(Roles = Constants.ADMIN)]
 public sealed class SeedingController : ControllerBase
 {
     private readonly IDataSeeder _dataSeeder;

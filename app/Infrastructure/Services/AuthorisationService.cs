@@ -225,7 +225,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
             WorkItemType.Task => await this.GetAncestorResult<Project>(resourceId),
             WorkItemType.Project => await this.GetAncestorResult<ZoraProgram>(resourceId),
             WorkItemType.Program => null,
-            _ => null
+            var _ => null
         };
     }
 

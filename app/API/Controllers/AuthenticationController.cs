@@ -49,7 +49,7 @@ public sealed class AuthenticationController : ControllerBase
         this._mapper = mapper;
     }
 
-    /// <summary>
+    /// <summary>\
     ///     Authenticates a user and returns a JWT token if successful.
     /// </summary>
     /// <param name="login">Login credentials including username and password</param>
@@ -125,7 +125,7 @@ public sealed class AuthenticationController : ControllerBase
         try
         {
             long userId = this.HttpContext.User.GetUserId();
-            Result<User> user = await this._userService.GetByIdAsync(userId);
+            Result<User> user = await this._userService.GetByIdAsync(userId, true);
 
             // TODO ugly as sin
             if (user.IsFailed)

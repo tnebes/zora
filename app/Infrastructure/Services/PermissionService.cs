@@ -58,7 +58,7 @@ public sealed class PermissionService : IPermissionService, IZoraService
         try
         {
             Result<(IEnumerable<Permission> permissions, int total)> result =
-                await this._permissionRepository.GetPagedAsync(queryParams);
+                await this._permissionRepository.GetPagedAsync(queryParams, includeProperties: true);
 
             if (result.IsFailed)
             {
@@ -84,11 +84,11 @@ public sealed class PermissionService : IPermissionService, IZoraService
         }
     }
 
-    public async Task<Result<Permission>> GetByIdAsync(long id)
+    public async Task<Result<Permission>> GetByIdAsync(long id, bool includeProperties = false)
     {
         try
         {
-            return await this._permissionRepository.GetByIdAsync(id);
+            return await this._permissionRepository.GetByIdAsync(id, includeProperties);
         }
         catch (Exception ex)
         {
@@ -233,72 +233,57 @@ public sealed class PermissionService : IPermissionService, IZoraService
 
             if (await this._userRoleService.IsAdminAsync(userRoles))
             {
-                this._logger.LogInformation("User {UserId} is an administrator and has all permissions",
-                    request.UserId);
+                this._logger.LogInformation("User {UserId} is an administrator and has all permissions", request.UserId);
                 return true;
             }
 
             foreach (UserRole userRole in userRoles)
             {
-                Result<IEnumerable<RolePermission>> result =
-                    await this._rolePermissionRepository.GetByRoleIdAsync(userRole.RoleId);
-
-                if (result.IsFailed)
+                if (await this.CheckRolePermissionsAsync(userRole, request))
                 {
-                    this._logger.LogWarning("Warning: Could not get role permissions for role {RoleId}",
-                        userRole.RoleId);
-                    continue;
-                }
-
-                IEnumerable<RolePermission> rolePermissions = result.Value;
-
-                foreach (RolePermission rolePermission in rolePermissions)
-                {
-                    Result<Permission> permissionResult =
-                        await this._permissionRepository.GetByIdAsync(rolePermission.PermissionId);
-
-                    if (permissionResult.IsFailed)
-                    {
-                        continue;
-                    }
-
-                    Permission permission = permissionResult.Value;
-
-                    Result<PermissionWorkItem> permissionWorkItemResult =
-                        await this._permissionWorkItemRepository.GetByCompositeKeyAsync(permission.Id,
-                            request.ResourceId);
-
-                    if (permissionWorkItemResult.IsFailed)
-                    {
-                        continue;
-                    }
-
-                    PermissionWorkItem resourcePermission = permissionWorkItemResult.Value;
-
-                    if (resourcePermission != null &&
-                        PermissionService.DoesPermissionGrantAccess(permission.PermissionString,
-                            request.RequestedPermission))
-                    {
-                        this._logger.LogInformation(
-                            "Direct permission found for user {UserId} on resource {ResourceId}",
-                            request.UserId, request.ResourceId);
-                        return true;
-                    }
+                    return true;
                 }
             }
 
-            this._logger.LogInformation(
-                "No direct permission found for user {UserId} on resource {ResourceId}",
-                request.UserId, request.ResourceId);
+            this._logger.LogInformation("No direct permission found for user {UserId} on resource {ResourceId}", request.UserId, request.ResourceId);
             return false;
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex,
-                "Error checking direct permissions for user {UserId} on resource {ResourceId}",
-                request.UserId, request.ResourceId);
+            this._logger.LogError(ex, "Error checking direct permissions for user {UserId} on resource {ResourceId}", request.UserId, request.ResourceId);
             return false;
         }
+    }
+
+    private async Task<bool> CheckRolePermissionsAsync(UserRole userRole, PermissionRequestDto request)
+    {
+        Result<IEnumerable<RolePermission>> result = await this._rolePermissionRepository.GetByRoleIdAsync(userRole.RoleId);
+
+        if (result.IsFailed)
+        {
+            this._logger.LogWarning("Warning: Could not get role permissions for role {RoleId}", userRole.RoleId);
+            return false;
+        }
+
+        foreach (RolePermission rolePermission in result.Value)
+        {
+            Result<Permission> permissionResult = await this._permissionRepository.GetByIdAsync(rolePermission.PermissionId);
+
+            if (permissionResult.IsSuccess && await this.CheckResourcePermissionAsync(permissionResult.Value, request))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async Task<bool> CheckResourcePermissionAsync(Permission permission, PermissionRequestDto request)
+    {
+        Result<PermissionWorkItem> permissionWorkItemResult = await this._permissionWorkItemRepository.GetByCompositeKeyAsync(permission.Id, request.ResourceId);
+
+        return permissionWorkItemResult is { IsSuccess: true, Value: not null } &&
+               PermissionService.DoesPermissionGrantAccess(permission.PermissionString, request.RequestedPermission);
     }
 
     public async Task<Result<IEnumerable<Permission>>> GetAllAsync()

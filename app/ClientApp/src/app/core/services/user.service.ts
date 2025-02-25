@@ -16,6 +16,10 @@ export class UserService {
     constructor(private readonly http: HttpClient, private readonly queryService: QueryService) {
     }
 
+    public getUserById(id: number): Observable<UserResponse> {
+        return this.http.get<UserResponse>(`${this.apiUrl}/${id}`);
+    }
+
     public getUsers(params: QueryParams): Observable<UserResponseDto<UserResponse>> {
         let httpParams: HttpParams = this.queryService.getHttpParams(params);
         return this.http.get<UserResponseDto<UserResponse>>(this.apiUrl, {params: httpParams});
