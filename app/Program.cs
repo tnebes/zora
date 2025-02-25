@@ -11,7 +11,6 @@ try
 {
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-    builder.Host.UseSystemd();
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
         .Enrich.FromLogContext()
