@@ -31,6 +31,13 @@ try
     Log.Information("All services registered, building application");
     WebApplication app = builder.Build();
 
+    Log.Logger = new LoggerConfiguration()
+        .ReadFrom.Configuration(builder.Configuration)
+        .ReadFrom.Services(app.Services)
+        .Enrich.FromLogContext()
+        .Enrich.WithExceptionDetails()
+        .CreateLogger();
+
     Log.Information("Application built successfully");
     IEnvironmentManagerService environmentManager =
         app.Services.GetRequiredService<IEnvironmentManagerService>();
