@@ -10,6 +10,11 @@ try
 {
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+    if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
+    {
+        builder.Host.UseSystemd();
+    }
+
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration));
 

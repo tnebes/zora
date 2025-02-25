@@ -49,7 +49,8 @@ public sealed class AuthenticationController : ControllerBase
         this._mapper = mapper;
     }
 
-    /// <summary>\
+    /// <summary>
+    ///     \
     ///     Authenticates a user and returns a JWT token if successful.
     /// </summary>
     /// <param name="login">Login credentials including username and password</param>

@@ -1,17 +1,17 @@
-import { Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { AssetResponse } from '../../../core/models/asset.interface';
-import { MatTabsModule } from '@angular/material/tabs';
-import { DatePipe } from '@angular/common';
+import {Component, Inject} from '@angular/core';
+import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
+import {AssetResponse} from '../../../core/models/asset.interface';
+import {MatTabsModule} from '@angular/material/tabs';
+import {DatePipe} from '@angular/common';
 
 @Component({
-  selector: 'app-asset-dialog',
-  template: `
+    selector: 'app-asset-dialog',
+    template: `
     <h2 mat-dialog-title>{{data.name}}</h2>
     <mat-tab-group>
       <mat-tab label="Preview">
         <mat-dialog-content>
-            
+
         </mat-dialog-content>
       </mat-tab>
       <mat-tab label="Metadata">
@@ -31,9 +31,10 @@ import { DatePipe } from '@angular/common';
       <button mat-raised-button mat-dialog-close class="close-button" color="primary">Close</button>
     </mat-dialog-actions>
   `,
-  standalone: true,
-  imports: [MatTabsModule, MatDialogModule, DatePipe]
+    standalone: true,
+    imports: [MatTabsModule, MatDialogModule, DatePipe]
 })
 export class AssetDialogComponent {
-  constructor(@Inject(MAT_DIALOG_DATA) public data: AssetResponse) {}
-} 
+    constructor(@Inject(MAT_DIALOG_DATA) public data: AssetResponse) {
+    }
+}
