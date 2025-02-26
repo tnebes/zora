@@ -4,8 +4,8 @@ import {MatDialog} from '@angular/material/dialog';
 import {MatTableDataSource} from '@angular/material/table';
 import {MatSort} from "@angular/material/sort";
 import {Validators} from '@angular/forms';
-import {Subject, catchError, of, merge as observableMerge} from 'rxjs';
-import {debounceTime, distinctUntilChanged, filter, merge, startWith, switchMap} from 'rxjs/operators';
+import {Subject, catchError, of, merge} from 'rxjs';
+import {debounceTime, distinctUntilChanged, filter, startWith, switchMap} from 'rxjs/operators';
 import {PermissionResponse, CreatePermission, UpdatePermission} from '../../core/models/permission.interface';
 import {PermissionService} from '../../core/services/permission.service';
 import {BaseDialogComponent, DialogField} from '../../shared/components/base-dialog/base-dialog.component';
@@ -79,12 +79,9 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
     }
 
     public onSearch(event: Event): void {
-        const searchTerm = (event.target as HTMLInputElement).value;
-        if (searchTerm.length >= 3) {
-            this.searchPermissions(searchTerm);
-        } else {
-            this.loadPermissions();
-        }
+        const target = event.target as HTMLInputElement;
+        this.currentSearchValue = target.value;
+        this.searchTerm.next(this.currentSearchValue);
     }
 
     public onCreate(): void {
@@ -208,7 +205,7 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
     }
 
     private setupSearchAndSort(): void {
-        observableMerge([
+        merge(
             this.searchTerm.pipe(
                 debounceTime(300),
                 distinctUntilChanged(),
@@ -216,7 +213,7 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
             ),
             this.sort.sortChange,
             this.paginator.page
-        ])
+        )
             .pipe(
                 startWith({}),
                 switchMap(() => {
@@ -224,41 +221,25 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                     const params: QueryParams = {
                         page: this.paginator.pageIndex + 1,
                         pageSize: this.paginator.pageSize,
-                        searchTerm: '',
+                        searchTerm: this.currentSearchValue,
                         sortColumn: this.sort.active,
                         sortDirection: this.sort.direction as 'asc' | 'desc'
                     };
 
-                    if (!this.currentSearchValue || this.currentSearchValue.length < 3) {
-                        return this.permissionService.getPermissions(this.queryService.normaliseQueryParams(params));
-                    } else {
-                        return this.permissionService.findPermissionsByTerm(this.currentSearchValue);
-                    }
+                    return this.currentSearchValue && this.currentSearchValue.length >= 3
+                        ? this.permissionService.findPermissionsByTerm(this.currentSearchValue)
+                        : this.permissionService.getPermissions(this.queryService.normaliseQueryParams(params));
                 }),
                 catchError(error => {
                     console.error('Error fetching permissions:', error);
                     NotificationUtils.showError(this.dialog, 'Failed to fetch permissions', error);
-                    return of({items: [], total: 0});
+                    return of({items: [], total: 0, page: 1, pageSize: 50});
                 })
             )
-            .subscribe(response => {
+            .subscribe((response: any) => {
                 this.dataSource.data = response.items;
                 this.totalItems = response.total;
                 this.isLoading = false;
             });
-    }
-
-    searchPermissions(searchTerm: string): void {
-        this.permissionService.findPermissionsByTerm(searchTerm).subscribe({
-            next: (response) => {
-                this.dataSource.data = response.items;
-                this.totalItems = response.total;
-                this.isLoading = false;
-            },
-            error: (error) => {
-                this.isLoading = false;
-                this.errorMessage = error.message;
-            }
-        });
     }
 }
