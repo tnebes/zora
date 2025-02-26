@@ -5,7 +5,6 @@ using Serilog.Events;
 using Serilog.Exceptions;
 using zora.Core.Interfaces.Services;
 using zora.Extensions;
-using Microsoft.Extensions.Configuration;
 
 #endregion
 

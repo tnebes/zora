@@ -3,7 +3,7 @@ import {MatTableDataSource} from '@angular/material/table';
 import {MatDialog} from '@angular/material/dialog';
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
-import {Subject, catchError, of, merge as observableMerge} from 'rxjs';
+import {Subject, catchError, of, merge} from 'rxjs';
 import {debounceTime, distinctUntilChanged, filter, startWith, switchMap} from 'rxjs/operators';
 import {AssetResponse, CreateAsset, UpdateAsset} from "../../core/models/asset.interface";
 import {AssetService} from "../../core/services/asset.service";
@@ -80,12 +80,9 @@ export class AssetsComponent implements OnInit, AfterViewInit {
     }
 
     public onSearch(event: Event): void {
-        const searchTerm = (event.target as HTMLInputElement).value;
-        if (searchTerm.length >= 3) {
-            this.searchAssets(searchTerm);
-        } else {
-            this.loadAssets();
-        }
+        const target = event.target as HTMLInputElement;
+        this.currentSearchValue = target.value;
+        this.searchTerm.next(this.currentSearchValue);
     }
 
     public onCreate(): void {
@@ -178,7 +175,7 @@ export class AssetsComponent implements OnInit, AfterViewInit {
     }
 
     private setupSearchAndSort(): void {
-        observableMerge([
+        merge(
             this.searchTerm.pipe(
                 debounceTime(300),
                 distinctUntilChanged(),
@@ -186,7 +183,7 @@ export class AssetsComponent implements OnInit, AfterViewInit {
             ),
             this.sort.sortChange,
             this.paginator.page
-        ])
+        )
             .pipe(
                 startWith({}),
                 switchMap(() => {
@@ -199,36 +196,20 @@ export class AssetsComponent implements OnInit, AfterViewInit {
                         sortDirection: this.sort.direction as 'asc' | 'desc'
                     };
 
-                    if (!this.currentSearchValue || this.currentSearchValue.length < 3) {
-                        return this.assetService.getAssets(this.queryService.normaliseQueryParams(params));
-                    } else {
-                        return this.assetService.findAssetsByTerm(this.currentSearchValue);
-                    }
+                    return this.currentSearchValue && this.currentSearchValue.length >= 3
+                        ? this.assetService.findAssetsByTerm(this.currentSearchValue)
+                        : this.assetService.getAssets(this.queryService.normaliseQueryParams(params));
                 }),
                 catchError(error => {
                     console.error('Error fetching assets:', error);
                     NotificationUtils.showError(this.dialog, 'Failed to fetch assets', error);
-                    return of({items: [], total: 0});
+                    return of({items: [], total: 0, page: 1, pageSize: 50});
                 })
             )
-            .subscribe(response => {
+            .subscribe((response: any) => {
                 this.dataSource.data = response.items;
                 this.totalItems = response.total;
                 this.isLoading = false;
             });
-    }
-
-    public searchAssets(searchTerm: string): void {
-        this.assetService.findAssetsByTerm(searchTerm).subscribe({
-            next: (response) => {
-                this.dataSource.data = response.items;
-                this.totalItems = response.total;
-                this.isLoading = false;
-            },
-            error: (error) => {
-                this.isLoading = false;
-                this.errorMessage = error.message;
-            }
-        });
     }
 }

@@ -67,7 +67,7 @@ public static class ServiceExtensions
                         != ServiceLifetime.Transient))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());
-            
+
             Log.Information("Zora service implementations registered successfully");
         }
         catch (Exception ex)
@@ -233,6 +233,7 @@ public static class ServiceExtensions
     private static IServiceCollection AddZoraCors(this IServiceCollection services, bool isDevelopment)
     {
         Log.Information("Configuring CORS policies for {Environment}", isDevelopment ? "development" : "production");
+
         void CorsOptions(CorsOptions options)
         {
             Log.Information("Adding CORS options");
@@ -271,9 +272,9 @@ public static class ServiceExtensions
     {
         Log.Information("Configuring HTTP request/response logging");
         services.AddHttpLogging(logging => logging.LoggingFields = HttpLoggingFields.All);
-        
+
         services.AddSerilog();
-        
+
         Log.Information("HTTP logging configured");
         return services;
     }
