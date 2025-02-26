@@ -8,7 +8,6 @@ using zora.Extensions;
 
 #endregion
 
-// Make the Program class public for testing
 public class Program
 {
     public static async Task Main(string[] args)
