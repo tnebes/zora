@@ -7,7 +7,7 @@ using zora.Core.DTOs.Requests;
 
 #endregion
 
-namespace zora.Tests.TestFixtures;
+namespace zora.Tests.TestFixtures.MockBuilders;
 
 internal static class UserRepositoryMockBuilder
 {

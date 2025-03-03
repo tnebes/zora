@@ -25,7 +25,7 @@ public static class QueryParamsUtils
         return new QueryParamsDto
         {
             Page = 1,
-            PageSize = 5000,
+            PageSize = 10000,
             SearchTerm = "",
             SortColumn = "asc",
             SortDirection = "Id"

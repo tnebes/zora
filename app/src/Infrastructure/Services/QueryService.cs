@@ -20,8 +20,7 @@ public sealed class QueryService : IQueryService, IZoraService
     public void NormaliseQueryParams(IQueryParamsDto queryParams)
     {
         queryParams.Page = Math.Max(1, queryParams.Page);
-        queryParams.PageSize = Math.Clamp(queryParams.PageSize, Constants.DEFAULT_PAGE_SIZE,
-            Constants.MAX_RESULTS_PER_PAGE);
+        queryParams.PageSize = Math.Min(queryParams.PageSize, Constants.DEFAULT_PAGE_SIZE);
     }
 
     public void ValidateQueryParams(DynamicQueryParamsDto queryParams, ResourceType type)

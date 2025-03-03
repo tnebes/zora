@@ -10,8 +10,8 @@ public static class PermissionUtils
 {
     public static IEnumerable<Permission> GetValidPermissions()
     {
-        List<Permission> permissions = new List<Permission>
-        {
+        List<Permission> permissions =
+        [
             new()
             {
                 Id = 1,
@@ -20,6 +20,7 @@ public static class PermissionUtils
                 PermissionString = "10000",
                 CreatedAt = DateTime.UtcNow
             },
+
             new()
             {
                 Id = 2,
@@ -28,6 +29,7 @@ public static class PermissionUtils
                 PermissionString = "01000",
                 CreatedAt = DateTime.UtcNow
             },
+
             new()
             {
                 Id = 3,
@@ -36,6 +38,7 @@ public static class PermissionUtils
                 PermissionString = "00100",
                 CreatedAt = DateTime.UtcNow
             },
+
             new()
             {
                 Id = 4,
@@ -44,6 +47,7 @@ public static class PermissionUtils
                 PermissionString = "00010",
                 CreatedAt = DateTime.UtcNow
             },
+
             new()
             {
                 Id = 5,
@@ -52,7 +56,7 @@ public static class PermissionUtils
                 PermissionString = "11111",
                 CreatedAt = DateTime.UtcNow
             }
-        };
+        ];
 
         return permissions;
     }

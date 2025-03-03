@@ -172,11 +172,10 @@ public sealed class AuthenticationControllerTests
             Username = "testuser"
         };
 
-        ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new[]
-        {
+        ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity([
             new Claim(ClaimTypes.Name, "testuser"),
             new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-        }, "Test"));
+        ], "Test"));
 
         DefaultHttpContext httpContext = new DefaultHttpContext
         {

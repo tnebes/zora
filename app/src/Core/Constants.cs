@@ -25,5 +25,5 @@ public static class Constants
     public const string WWW_ROOT = "wwwroot";
     public const string LOCAL_API_URL = "https://localhost:5001";
     public const string LOCAL_CLIENT_URL = "https://localhost:4200";
-    public static readonly string[] ALLOWED_FILE_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".gif", ".pdf" };
+    public static readonly string[] ALLOWED_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".pdf"];
 }

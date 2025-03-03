@@ -10,8 +10,8 @@ public static class UserUtils
 {
     public static IEnumerable<User> GetValidUsers()
     {
-        List<User> users = new List<User>
-        {
+        List<User> users =
+        [
             new()
             {
                 Id = 1,
@@ -19,6 +19,7 @@ public static class UserUtils
                 Email = "john.doe@example.com",
                 Password = "password"
             },
+
             new()
             {
                 Id = 2,
@@ -26,6 +27,7 @@ public static class UserUtils
                 Email = "jane.doe@example.com",
                 Password = "password"
             },
+
             new()
             {
                 Id = 3,
@@ -33,7 +35,7 @@ public static class UserUtils
                 Email = "jim.doe@example.com",
                 Password = "password"
             }
-        };
+        ];
 
         return users;
     }

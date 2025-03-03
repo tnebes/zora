@@ -1,5 +1,6 @@
 #region
 
+using System.Security.Claims;
 using zora.Core.Domain;
 
 #endregion
@@ -13,4 +14,5 @@ public interface IFixtureBuilder
     IFixtureBuilder WithPermissions(List<Permission> permissions);
     IFixtureBuilder WithUserRepository(List<User>? users = null);
     IFixtureBuilder WithPermissionRepository(List<Permission>? permissions = null);
+    IFixtureBuilder WithAuthentication(IEnumerable<Claim> claims);
 }

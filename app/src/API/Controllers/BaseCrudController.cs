@@ -58,7 +58,7 @@ public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TRespo
         if (this.RoleService.IsAdmin(this.User))
         {
             queryParams.Page = Math.Max(1, queryParams.Page);
-            queryParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, queryParams.PageSize);
+            queryParams.PageSize = queryParams.PageSize <= 0 ? Constants.DEFAULT_PAGE_SIZE : queryParams.PageSize;
         }
         else
         {

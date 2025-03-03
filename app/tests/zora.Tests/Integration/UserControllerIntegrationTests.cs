@@ -1,10 +1,6 @@
 #region
 
-using System.Net;
-using System.Net.Http.Json;
-using AutoMapper;
 using FluentAssertions;
-using zora.API.Mapping;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
@@ -15,16 +11,11 @@ using zora.Tests.Utils;
 
 namespace zora.Tests.Integration;
 
-public sealed class UserControllerIntegrationTests : IClassFixture<MockedRepositoryFixture>
+[Collection("TestCollection")]
+public sealed class UserControllerIntegrationTests : BaseIntegrationTest
 {
-    private readonly HttpClient _client;
-    private readonly MockedRepositoryFixture _fixture;
-
-    public UserControllerIntegrationTests(MockedRepositoryFixture fixture)
+    public UserControllerIntegrationTests(MockedRepositoryFixture fixture) : base(fixture)
     {
-        this._fixture = fixture;
-        this._client = fixture.CreateClient();
-        this._fixture.SetupAuthenticationForClient(this._client);
     }
 
     [Fact(DisplayName =
@@ -32,33 +23,17 @@ public sealed class UserControllerIntegrationTests : IClassFixture<MockedReposit
     public async Task Get_WithValidQueryParamsAndAdminUser_ReturnsOkWithPaginatedUserList()
     {
         List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
-
-        this._fixture.Users = expectedUsers;
+        this.SetupAdminUser(expectedUsers);
 
         QueryParamsDto queryParams = QueryParamsUtils.GetValidQueryParams();
+        HttpResponseMessage response = await this.GetUsers(queryParams);
 
-        HttpResponseMessage response = await this._client.GetAsync($"/api/v1/users{queryParams.ToQueryString()}");
+        UserResponseDto<FullUserDto> userResponse =
+            await this.AssertSuccessfulUserListResponse<FullUserDto>(response, expectedUsers);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
-        string content = await response.Content.ReadAsStringAsync();
-        content.Should().NotBeNullOrEmpty();
-
-        UserResponseDto<FullUserDto>? userResponse =
-            await response.Content.ReadFromJsonAsync<UserResponseDto<FullUserDto>>();
-
-        List<FullUserDto> expectedUsersDto = expectedUsers.Select(user =>
-                new MapperConfiguration(cfg => cfg.AddProfile<UserMappingProfile>())
-                    .CreateMapper()
-                    .Map<FullUserDto>(user))
-            .ToList();
-
-        userResponse.Should().NotBeNull();
-        userResponse.PageSize.Should().Be(50);
-        userResponse.Page.Should().Be(1);
-        userResponse.Total.Should().Be(3);
-        userResponse.Items.Should().NotBeNullOrEmpty();
+        List<FullUserDto> expectedUsersDto = TestHelpers.MapUsersToDto<FullUserDto>(expectedUsers);
         List<FullUserDto> actualUsers = userResponse.Items.ToList();
+
         actualUsers.Should().HaveCount(3);
         actualUsers.Should().BeEquivalentTo(expectedUsersDto);
     }
@@ -70,31 +45,16 @@ public sealed class UserControllerIntegrationTests : IClassFixture<MockedReposit
         List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
         QueryParamsDto invalidQueryParams = QueryParamsUtils.GetInvalidQueryParams();
 
-        this._fixture.Users = expectedUsers;
+        this.SetupAdminUser(expectedUsers);
 
-        HttpResponseMessage response =
-            await this._client.GetAsync($"/api/v1/users{invalidQueryParams.ToQueryString()}");
+        HttpResponseMessage response = await this.GetUsers(invalidQueryParams);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
-        string content = await response.Content.ReadAsStringAsync();
-        content.Should().NotBeNullOrEmpty();
+        UserResponseDto<FullUserDto> userResponse =
+            await this.AssertSuccessfulUserListResponse<FullUserDto>(response, expectedUsers);
 
-        UserResponseDto<FullUserDto>? userResponse =
-            await response.Content.ReadFromJsonAsync<UserResponseDto<FullUserDto>>();
-
-        List<FullUserDto> expectedUsersDto = expectedUsers.Select(user =>
-                new MapperConfiguration(cfg => cfg.AddProfile<UserMappingProfile>())
-                    .CreateMapper()
-                    .Map<FullUserDto>(user))
-            .ToList();
-
-        userResponse.Should().NotBeNull();
-        userResponse.PageSize.Should().Be(50);
-        userResponse.Page.Should().Be(1);
-        userResponse.Total.Should().Be(3);
-        userResponse.Items.Should().NotBeNullOrEmpty();
+        List<FullUserDto> expectedUsersDto = TestHelpers.MapUsersToDto<FullUserDto>(expectedUsers);
         List<FullUserDto> actualUsers = userResponse.Items.ToList();
+
         actualUsers.Should().HaveCount(3);
         actualUsers.Should().BeEquivalentTo(expectedUsersDto);
     }
@@ -104,33 +64,17 @@ public sealed class UserControllerIntegrationTests : IClassFixture<MockedReposit
     public async Task Get_WithValidQueryParamsAndNonAdminUser_ReturnsOkWithPaginatedUserList()
     {
         List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
-
-        this._fixture.Users = expectedUsers;
+        this.SetupRegularUser(expectedUsers);
 
         QueryParamsDto queryParams = QueryParamsUtils.GetLargePageSizeQueryParams();
+        HttpResponseMessage response = await this.GetUsers(queryParams);
 
-        HttpResponseMessage response = await this._client.GetAsync($"/api/v1/users{queryParams.ToQueryString()}");
+        UserResponseDto<FullUserDto> userResponse =
+            await this.AssertSuccessfulUserListResponse<FullUserDto>(response, expectedUsers);
 
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
-        string content = await response.Content.ReadAsStringAsync();
-        content.Should().NotBeNullOrEmpty();
-
-        UserResponseDto<FullUserDto>? userResponse =
-            await response.Content.ReadFromJsonAsync<UserResponseDto<FullUserDto>>();
-
-        List<FullUserDto> expectedUsersDto = expectedUsers.Select(user =>
-                new MapperConfiguration(cfg => cfg.AddProfile<UserMappingProfile>())
-                    .CreateMapper()
-                    .Map<FullUserDto>(user))
-            .ToList();
-
-        userResponse.Should().NotBeNull();
-        userResponse.PageSize.Should().Be(50);
-        userResponse.Page.Should().Be(1);
-        userResponse.Total.Should().Be(3);
-        userResponse.Items.Should().NotBeNullOrEmpty();
+        List<FullUserDto> expectedUsersDto = TestHelpers.MapUsersToDto<FullUserDto>(expectedUsers);
         List<FullUserDto> actualUsers = userResponse.Items.ToList();
+
         actualUsers.Should().HaveCount(3);
         actualUsers.Should().BeEquivalentTo(expectedUsersDto);
     }

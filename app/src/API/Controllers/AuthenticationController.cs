@@ -177,30 +177,51 @@ public sealed class AuthenticationController : ControllerBase
     {
         try
         {
-            long userId = this.HttpContext.User.GetUserId();
-            Result<User> user = await this._userService.GetByIdAsync(userId);
-
-            // TODO ugly as sin
-            if (user.IsFailed)
+            if (!this.HttpContext.User.Identity.IsAuthenticated)
             {
-                IError error = user.Errors[0];
-                ErrorType errorType = error.Metadata.TryGetValue("errorType", out object? value)
-                    ? (ErrorType)(value ?? ErrorType.SystemError)
-                    : ErrorType.SystemError;
-
-                return errorType switch
-                {
-                    ErrorType.NotFound => this.NotFound(error.Message),
-                    _ => this.StatusCode(404, Constants.ERROR_404_MESSAGE)
-                };
+                return this.Unauthorized();
             }
 
-            return this.Ok(this._mapper.Map<MinimumUserDto>(user.Value));
+            long userId;
+            try
+            {
+                userId = this.HttpContext.User.GetUserId();
+
+                if (userId <= 0)
+                {
+                    return this.Unauthorized();
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return this.Unauthorized();
+            }
+
+            Result<User> userResult = await this._userService.GetByIdAsync(userId);
+
+            if (userResult == null)
+            {
+                return this.StatusCode(500, Constants.ERROR_500_MESSAGE);
+            }
+
+            if (userResult.IsFailed)
+            {
+                if (userResult.Errors.Any(e => e.Message.Contains("not found")))
+                {
+                    return this.NotFound();
+                }
+
+                return this.StatusCode(500, Constants.ERROR_500_MESSAGE);
+            }
+
+            MinimumUserDto userDto = this._mapper.Map<MinimumUserDto>(userResult.Value);
+            return this.Ok(userDto);
         }
         catch (Exception e)
         {
-            this._logger.LogError(e, "Error getting current user");
-            return this.StatusCode(500, Constants.ERROR_500_MESSAGE);
+            this._logger.LogError(e, "Error retrieving current user");
+            return this.StatusCode(StatusCodes.Status500InternalServerError,
+                new { Message = Constants.ERROR_500_MESSAGE });
         }
     }
 }
