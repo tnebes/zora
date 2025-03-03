@@ -235,3 +235,6 @@ wwwroot/content/
 
 # Angular trash files
 **/.angular/cache
+
+# Logs
+logs/

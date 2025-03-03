@@ -8,5 +8,6 @@ public enum AuthenticationErrorType
     ValidationError,
     SystemError,
     UserAlreadyAuthenticated,
-    AuthenticationError
+    AuthenticationError,
+    UserDeleted
 }

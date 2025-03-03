@@ -50,7 +50,6 @@ public sealed class AuthenticationController : ControllerBase
     }
 
     /// <summary>
-    ///     \
     ///     Authenticates a user and returns a JWT token if successful.
     /// </summary>
     /// <param name="login">Login credentials including username and password</param>
@@ -66,6 +65,11 @@ public sealed class AuthenticationController : ControllerBase
     {
         try
         {
+            if (this.HttpContext.User.Identity?.IsAuthenticated ?? false)
+            {
+                return this.BadRequest(new { Message = "User is already authenticated" });
+            }
+
             if (!this._authenticationService.IsValidLoginRequest(login))
             {
                 return this.BadRequest(new { Message = "Invalid login request format" });
@@ -90,6 +94,8 @@ public sealed class AuthenticationController : ControllerBase
                         this.BadRequest(new { error.Message }),
                     AuthenticationErrorType.InvalidCredentials =>
                         this.Unauthorized(new { error.Message }),
+                    AuthenticationErrorType.UserDeleted =>
+                        this.Unauthorized(new { error.Message }),
                     _ => this.StatusCode(StatusCodes.Status500InternalServerError,
                         new { Message = Constants.ERROR_500_MESSAGE })
                 };
@@ -113,42 +119,49 @@ public sealed class AuthenticationController : ControllerBase
         }
     }
 
+    /// <summary>
+    ///     Checks if the user is authenticated and returns authentication status.
+    /// </summary>
+    /// <returns>AuthenticationStatusDto containing authentication status</returns>
     [HttpGet("check")]
     [ProducesResponseType(typeof(AuthenticationStatusDto), StatusCodes.Status200OK)]
-    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
-    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Authentication")]
     [Description("Check if the user is authenticated")]
-    [Authorize]
     public async Task<ActionResult<AuthenticationStatusDto>> CheckAuthStatus()
     {
         try
         {
-            long userId = this.HttpContext.User.GetUserId();
-            Result<User> user = await this._userService.GetByIdAsync(userId, true);
-
-            // TODO ugly as sin
-            if (user.IsFailed)
+            if (!this.HttpContext.User.Identity?.IsAuthenticated ?? false)
             {
-                IError error = user.Errors[0];
-                ErrorType errorType = error.Metadata.TryGetValue("errorType", out object? value)
+                return this.Unauthorized(new { Message = "User is not authenticated" });
+            }
+
+            long userId = this.HttpContext.User.GetUserId();
+            Result<User> userResult = await this._userService.GetByIdAsync(userId, true);
+
+            if (userResult.IsFailed)
+            {
+                IError error = userResult.Errors[0];
+                ErrorType errorType = error.Metadata.TryGetValue(Constants.ERROR_TYPE, out object? value)
                     ? (ErrorType)(value ?? ErrorType.SystemError)
                     : ErrorType.SystemError;
 
-                return errorType switch
-                {
-                    ErrorType.NotFound => this.NotFound(error.Message),
-                    _ => this.StatusCode(500, Constants.ERROR_500_MESSAGE)
-                };
+                return errorType == ErrorType.NotFound
+                    ? this.NotFound(new { error.Message })
+                    : this.StatusCode(StatusCodes.Status500InternalServerError,
+                        new { Message = Constants.ERROR_500_MESSAGE });
             }
 
-            return this.Ok(this._mapper.Map<AuthenticationStatusDto>(user.Value));
+            return this.Ok(this._mapper.Map<AuthenticationStatusDto>(userResult.Value));
         }
         catch (Exception e)
         {
             this._logger.LogError(e, "Error checking authentication status");
-            return this.StatusCode(500, Constants.ERROR_500_MESSAGE);
+            return this.StatusCode(StatusCodes.Status500InternalServerError,
+                new { Message = Constants.ERROR_500_MESSAGE });
         }
     }
 

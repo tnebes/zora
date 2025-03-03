@@ -54,7 +54,16 @@ public sealed class AuthenticationService : IAuthenticationService, IZoraService
                     .WithMetadata(Constants.ERROR_TYPE, AuthenticationErrorType.InvalidCredentials));
             }
 
-            return userResult.Value;
+            User user = userResult.Value;
+
+            if (user.Deleted)
+            {
+                this._logger.LogInformation("Deleted user {Username} attempted to authenticate", login.Username);
+                return Result.Fail<User>(new Error("User account has been deleted")
+                    .WithMetadata(Constants.ERROR_TYPE, AuthenticationErrorType.UserDeleted));
+            }
+
+            return user;
         }
         catch (Exception ex)
         {

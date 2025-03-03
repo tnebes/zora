@@ -106,7 +106,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
 
             FullRoleDto fullRoleDto = this._roleService.MapToFullDto(roleResult.Value);
 
-            return this.CreatedAtAction(nameof(Get), new { id = fullRoleDto.Id }, fullRoleDto);
+            return this.CreatedAtAction(nameof(this.Get), new { id = fullRoleDto.Id }, fullRoleDto);
         }
         catch (Exception ex)
         {

@@ -118,7 +118,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                 return this.StatusCode(StatusCodes.Status500InternalServerError, createdAssetResult.Errors);
             }
 
-            return this.CreatedAtAction(nameof(Get), new { id = createdAssetResult.Value.Id },
+            return this.CreatedAtAction(nameof(this.Get), new { id = createdAssetResult.Value.Id },
                 createdAssetResult.Value);
         }
         catch (Exception ex)
