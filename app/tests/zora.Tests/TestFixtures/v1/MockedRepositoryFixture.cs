@@ -11,12 +11,12 @@ using Microsoft.Extensions.Options;
 using Moq;
 using zora.Core.Domain;
 using zora.Core.Interfaces.Repositories;
-using zora.Tests.TestFixtures.MockBuilders;
+using zora.Tests.TestFixtures.v1.MockBuilders;
 using zora.Tests.Utils;
 
 #endregion
 
-namespace zora.Tests.TestFixtures;
+namespace zora.Tests.TestFixtures.v1;
 
 public sealed class MockedRepositoryFixture : WebApplicationFactory<Program>
 {

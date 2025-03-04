@@ -5,7 +5,7 @@ using zora.Core.Domain;
 
 #endregion
 
-namespace zora.Tests.TestFixtures;
+namespace zora.Tests.TestFixtures.v1;
 
 public interface IFixtureBuilder
 {

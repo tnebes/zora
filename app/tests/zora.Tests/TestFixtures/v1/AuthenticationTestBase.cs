@@ -2,6 +2,8 @@
 
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using FluentAssertions;
 using FluentResults;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +17,7 @@ using zora.Core.Interfaces.Services;
 
 #endregion
 
-namespace zora.Tests.TestFixtures;
+namespace zora.Tests.TestFixtures.v1;
 
 public abstract class AuthenticationTestBase : BaseIntegrationTest
 {
@@ -101,8 +103,8 @@ public abstract class AuthenticationTestBase : BaseIntegrationTest
         };
 
         StringContent stringContent = new(
-            System.Text.Json.JsonSerializer.Serialize(loginRequest),
-            System.Text.Encoding.UTF8,
+            JsonSerializer.Serialize(loginRequest),
+            Encoding.UTF8,
             "application/json");
 
         return await this.Client.PostAsync("/api/v1/authentication/token", stringContent);

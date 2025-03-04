@@ -6,7 +6,7 @@ using Moq;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
-using zora.Tests.TestFixtures;
+using zora.Tests.TestFixtures.v1;
 using zora.Tests.Utils;
 
 #endregion
@@ -212,7 +212,6 @@ public sealed class UserControllerIntegrationTests : BaseIntegrationTest
         await this.AssertResponseStatusCode(response, HttpStatusCode.NotFound);
     }
 
-
     [Fact(DisplayName =
         "GIVEN a valid user ID that causes an exception at the repository level during deletion WHEN Delete() is invoked THEN the controller returns a 500 Internal Server Error")]
     public async Task Delete_WithRepositoryException_Returns500InternalServerError()
@@ -221,10 +220,214 @@ public sealed class UserControllerIntegrationTests : BaseIntegrationTest
         List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
         this.Fixture.Users = expectedUsers;
         long userId = 1;
-        this.Fixture.MockUserRepository.Setup(repo => repo.SoftDelete(It.IsAny<User>())).ThrowsAsync(new Exception("Something went wrong"));
+        this.Fixture.MockUserRepository.Setup(repo => repo.SoftDelete(It.IsAny<User>()))
+            .ThrowsAsync(new Exception("Something went wrong"));
         HttpResponseMessage response = await this.DeleteUser(userId);
         this.Fixture.Users.Should().HaveCount(3);
 
         await this.AssertResponseStatusCode(response, HttpStatusCode.InternalServerError);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a logged in admin user WHEN updating a user THEN the user should be updated")]
+    public async Task Update_WithAdminUser_UpdatesUser()
+    {
+        this.SetupAdminAuthentication();
+        List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
+        this.Fixture.Users = expectedUsers;
+
+        long userId = 1;
+        User userToUpdate = expectedUsers.First(u => u.Id == userId);
+
+        UpdateUserDto updateUserDto = new()
+        {
+            Id = userId,
+            Username = userToUpdate.Username,
+            Email = "updated.email@example.com",
+            RoleIds = new List<long> { 1, 2 }
+        };
+
+        HttpResponseMessage response = await this.UpdateUser(userId, updateUserDto);
+
+        await this.AssertResponseStatusCode(response, HttpStatusCode.OK);
+        FullUserDto? updatedUser = await this.ReadResponseContent<FullUserDto>(response);
+
+        updatedUser.Should().NotBeNull();
+        updatedUser!.Email.Should().Be(updateUserDto.Email);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a logged in regular user WHEN updating another user THEN the user should not be updated")]
+    public async Task Update_WithRegularUserUpdatingAnotherUser_ReturnsUnauthorized()
+    {
+        this.SetupRegularUserAuthentication();
+        List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
+        this.Fixture.Users = expectedUsers;
+
+        long userId = 3; // Different user than the authenticated one
+        User userToUpdate = expectedUsers.First(u => u.Id == userId);
+
+        UpdateUserDto updateUserDto = new()
+        {
+            Id = userId,
+            Username = userToUpdate.Username,
+            Email = "updated.email@example.com",
+            RoleIds = new List<long> { 1, 2 }
+        };
+
+        HttpResponseMessage response = await this.UpdateUser(userId, updateUserDto);
+
+        await this.AssertResponseStatusCode(response, HttpStatusCode.Unauthorized);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a logged in regular user WHEN updating itself THEN the user should be updated")]
+    public async Task Update_WithRegularUserUpdatingItself_UpdatesUser()
+    {
+        this.SetupRegularUserAuthentication();
+        List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
+        this.Fixture.Users = expectedUsers;
+
+        long userId = 2; // Same user as the authenticated one
+        User userToUpdate = expectedUsers.First(u => u.Id == userId);
+
+        UpdateUserDto updateUserDto = new()
+        {
+            Id = userId,
+            Username = userToUpdate.Username,
+            Email = "updated.email@example.com",
+            RoleIds = new List<long> { 2 }
+        };
+
+        HttpResponseMessage response = await this.UpdateUser(userId, updateUserDto);
+
+        await this.AssertResponseStatusCode(response, HttpStatusCode.OK);
+        FullUserDto? updatedUser = await this.ReadResponseContent<FullUserDto>(response);
+
+        updatedUser.Should().NotBeNull();
+        updatedUser!.Email.Should().Be(updateUserDto.Email);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a logged in admin user WHEN finding a user with some parameters THEN that user should be returned")]
+    public async Task Find_WithAdminUser_ReturnsMatchingUsers()
+    {
+        this.SetupAdminAuthentication();
+        List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
+        this.Fixture.Users = expectedUsers;
+
+        QueryParamsDto queryParams = new()
+        {
+            Page = 1,
+            PageSize = 10,
+            SearchTerm = "user"
+        };
+
+        HttpResponseMessage response = await this.FindUsers(queryParams);
+
+        await this.AssertResponseStatusCode(response, HttpStatusCode.OK);
+        UserResponseDto<FullUserDto>? userResponse =
+            await this.ReadResponseContent<UserResponseDto<FullUserDto>>(response);
+
+        userResponse.Should().NotBeNull();
+        userResponse!.Items.Should().NotBeEmpty();
+    }
+
+    /*
+    [Fact(DisplayName =
+        "GIVEN a logged in regular user WHEN finding a user with some parameters THEN that user should be returned")]
+    public async Task Find_WithRegularUser_ReturnsMatchingUsers()
+    {
+        this.SetupRegularUserAuthentication();
+        List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
+        this.Fixture.Users = expectedUsers;
+
+        QueryParamsDto queryParams = new()
+        {
+            Page = 1,
+            PageSize = 10,
+            SearchTerm = "user"
+        };
+
+        HttpResponseMessage response = await this.FindUsers(queryParams);
+
+        await this.AssertResponseStatusCode(response, HttpStatusCode.OK);
+        UserResponseDto<FullUserDto>? userResponse =
+            await this.ReadResponseContent<UserResponseDto<FullUserDto>>(response);
+
+        userResponse.Should().NotBeNull();
+        userResponse!.Items.Should().NotBeEmpty();
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a logged in admin user WHEN finding a user with query parameters that is search term that is 2 characters long THEN invalid request should be returned")]
+    public async Task Find_WithShortSearchTerm_ReturnsBadRequest()
+    {
+        this.SetupAdminAuthentication();
+        List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
+        this.Fixture.Users = expectedUsers;
+
+        QueryParamsDto queryParams = new()
+        {
+            Page = 1,
+            PageSize = 10,
+            SearchTerm = "ab" // 2 characters long
+        };
+
+        this.Fixture.MockUserRepository
+            .Setup(repo => repo.FindUsersAsync(It.IsAny<QueryParamsDto>(), It.IsAny<bool>()))
+            .ThrowsAsync(new Exception("Search term too short"));
+
+        HttpResponseMessage response = await this.FindUsers(queryParams);
+
+        await this.AssertResponseStatusCode(response, HttpStatusCode.BadRequest);
+    }
+    */
+
+    [Fact(DisplayName =
+        "GIVEN a logged in admin user WHEN creating a new user THEN that new user should be created")]
+    public async Task Create_WithAdminUser_CreatesNewUser()
+    {
+        this.SetupAdminAuthentication();
+        List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
+        this.Fixture.Users = expectedUsers;
+
+        CreateMinimumUserDto createUserDto = new()
+        {
+            Username = "newuser",
+            Email = "newuser@example.com",
+            Password = "Password123!",
+            RoleIds = new List<long> { 1 }
+        };
+
+        HttpResponseMessage response = await this.CreateUser(createUserDto);
+
+        await this.AssertResponseStatusCode(response, HttpStatusCode.Created);
+        FullUserDto? createdUser = await this.ReadResponseContent<FullUserDto>(response);
+
+        createdUser.Should().NotBeNull();
+        createdUser!.Username.Should().Be(createUserDto.Username);
+        createdUser.Email.Should().Be(createUserDto.Email);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a logged in regular user WHEN creating a new user THEN that new user should not be created")]
+    public async Task Create_WithRegularUser_ReturnsUnauthorized()
+    {
+        this.SetupRegularUserAuthentication();
+        List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
+        this.Fixture.Users = expectedUsers;
+
+        CreateMinimumUserDto createUserDto = new()
+        {
+            Username = "newuser",
+            Email = "newuser@example.com",
+            Password = "Password123!",
+            RoleIds = new List<long> { 1 }
+        };
+
+        HttpResponseMessage response = await this.CreateUser(createUserDto);
+
+        await this.AssertResponseStatusCode(response, HttpStatusCode.Unauthorized);
     }
 }

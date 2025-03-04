@@ -5,7 +5,7 @@ using FluentAssertions;
 using zora.Core.Domain;
 using zora.Core.DTOs.Responses;
 using zora.Core.Enums;
-using zora.Tests.TestFixtures;
+using zora.Tests.TestFixtures.v1;
 using zora.Tests.Utils;
 
 #endregion

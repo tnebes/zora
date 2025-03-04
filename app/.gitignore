@@ -238,3 +238,6 @@ wwwroot/content/
 
 # Logs
 logs/
+
+# Coverage Report
+coverage-report/

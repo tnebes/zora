@@ -2,12 +2,12 @@
 
 using System.Security.Claims;
 using zora.Core.Domain;
-using zora.Tests.TestFixtures.MockBuilders;
+using zora.Tests.TestFixtures.v1.MockBuilders;
 using zora.Tests.Utils;
 
 #endregion
 
-namespace zora.Tests.TestFixtures;
+namespace zora.Tests.TestFixtures.v1;
 
 public sealed class FixtureBuilder : IFixtureBuilder
 {

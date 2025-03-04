@@ -19,7 +19,7 @@ using zora.Infrastructure.Data;
 
 namespace zora.Tests.TestFixtures.v2;
 
-public abstract class BaseIntegrationV2TestFixed : IDisposable
+public abstract class BaseIntegrationTest : IDisposable
 {
     private readonly IServiceScope _serviceScope;
     protected readonly WebApplicationFactory<Program> Factory;
@@ -27,9 +27,9 @@ public abstract class BaseIntegrationV2TestFixed : IDisposable
     protected ApplicationDbContext DbContext;
     protected IMapper Mapper;
 
-    protected BaseIntegrationV2TestFixed()
+    protected BaseIntegrationTest()
     {
-        this.Factory = new ZoraWebApplicationFactoryV2();
+        this.Factory = new ZoraWebApplicationFactory();
         this.Client = this.Factory.CreateClient();
 
         this._serviceScope = this.Factory.Services.CreateScope();

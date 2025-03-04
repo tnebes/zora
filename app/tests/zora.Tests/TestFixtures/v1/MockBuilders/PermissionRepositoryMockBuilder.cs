@@ -7,7 +7,7 @@ using zora.Core.DTOs.Requests;
 
 #endregion
 
-namespace zora.Tests.TestFixtures.MockBuilders;
+namespace zora.Tests.TestFixtures.v1.MockBuilders;
 
 internal static class PermissionRepositoryMockBuilder
 {

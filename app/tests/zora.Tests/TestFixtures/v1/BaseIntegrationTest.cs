@@ -14,7 +14,7 @@ using zora.Tests.Utils;
 
 #endregion
 
-namespace zora.Tests.TestFixtures;
+namespace zora.Tests.TestFixtures.v1;
 
 public abstract class BaseIntegrationTest
 {
@@ -43,15 +43,10 @@ public abstract class BaseIntegrationTest
         this.Mapper = config.CreateMapper();
     }
 
-    protected List<TDto> MapUsersToDto<TDto>(List<User> users)
-    {
-        return users.Select(user => this.Mapper.Map<TDto>(user)).ToList();
-    }
+    protected List<TDto> MapUsersToDto<TDto>(List<User> users) =>
+        users.Select(user => this.Mapper.Map<TDto>(user)).ToList();
 
-    protected void SetupUsers(List<User> users)
-    {
-        this.Fixture.Users = users;
-    }
+    protected void SetupUsers(List<User> users) => this.Fixture.Users = users;
 
     protected void SetupAdminAuthentication()
     {
@@ -91,10 +86,8 @@ public abstract class BaseIntegrationTest
     protected async Task<HttpResponseMessage> DeleteUser(long userId) =>
         await this.Client.DeleteAsync($"/api/v1/users/{userId}");
 
-    protected async Task<HttpResponseMessage> SearchUsers(DynamicQueryParamsDto queryParamsDto)
-    {
-        return await this.Client.GetAsync($"/api/v1/users/search{queryParamsDto.ToQueryString()}");
-    }
+    protected async Task<HttpResponseMessage> SearchUsers(DynamicQueryParamsDto queryParamsDto) =>
+        await this.Client.GetAsync($"/api/v1/users/search{queryParamsDto.ToQueryString()}");
 
     protected async Task AssertResponseStatusCode(HttpResponseMessage response, HttpStatusCode expectedStatusCode) =>
         response.StatusCode.Should().Be(expectedStatusCode);

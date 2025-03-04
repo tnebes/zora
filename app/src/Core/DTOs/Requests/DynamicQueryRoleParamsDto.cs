@@ -8,8 +8,5 @@ public sealed class DynamicQueryRoleParamsDto : DynamicQueryParamsDto
     public string? Permission { get; set; }
     public string? User { get; set; }
 
-    public override string ToQueryString()
-    {
-        return string.Empty;
-    }
+    public override string ToQueryString() => string.Empty;
 }
