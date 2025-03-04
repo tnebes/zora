@@ -38,11 +38,35 @@ public static class QueryUtils
         {
             return new QueryParamsDto
             {
+                Page = -1,
+                PageSize = -50,
+                SortColumn = "Name",
+                SortDirection = "asc",
+                SearchTerm = "Admin"
+            };
+        }
+
+        public static QueryParamsDto GetSearchQueryParams(string searchTerm = "Admin")
+        {
+            return new QueryParamsDto
+            {
+                Page = 1,
+                PageSize = 10,
+                SearchTerm = searchTerm,
+                SortColumn = "Name",
+                SortDirection = "asc"
+            };
+        }
+
+        public static QueryParamsDto GetNonAdminSearchQueryParams()
+        {
+            return new QueryParamsDto
+            {
                 Page = 0,
-                PageSize = 0,
-                SearchTerm = "",
-                SortColumn = "invalid",
-                SortDirection = "invalid"
+                PageSize = 1000,
+                SearchTerm = string.Empty,
+                SortColumn = "Name",
+                SortDirection = "asc"
             };
         }
     }

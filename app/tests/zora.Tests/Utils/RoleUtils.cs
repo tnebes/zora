@@ -36,4 +36,33 @@ public static class RoleUtils
 
         return roles;
     }
+
+    public static IEnumerable<Role> GetFindTestRoles()
+    {
+        List<Role> roles =
+        [
+            new()
+            {
+                Id = 1,
+                Name = "Admin Role",
+                CreatedAt = DateTime.UtcNow
+            },
+
+            new()
+            {
+                Id = 2,
+                Name = "User Role",
+                CreatedAt = DateTime.UtcNow
+            },
+
+            new()
+            {
+                Id = 3,
+                Name = "Guest Role",
+                CreatedAt = DateTime.UtcNow
+            }
+        ];
+
+        return roles;
+    }
 }

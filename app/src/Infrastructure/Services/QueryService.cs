@@ -17,10 +17,16 @@ public sealed class QueryService : IQueryService, IZoraService
     private readonly ILogger<QueryService> _logger;
     public QueryService(ILogger<QueryService> logger) => this._logger = logger;
 
+    public void NormaliseQueryParamsForAdmin(IQueryParamsDto queryParams)
+    {
+        queryParams.Page = Math.Max(Constants.DEFAULT_PAGE_SIZE, queryParams.Page);
+        queryParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, queryParams.PageSize);
+    }
+
     public void NormaliseQueryParams(IQueryParamsDto queryParams)
     {
         queryParams.Page = Math.Max(1, queryParams.Page);
-        queryParams.PageSize = Math.Min(queryParams.PageSize, Constants.DEFAULT_PAGE_SIZE);
+        queryParams.PageSize = Math.Min(queryParams.PageSize <= 0 ? Constants.DEFAULT_PAGE_SIZE : queryParams.PageSize, Constants.DEFAULT_PAGE_SIZE);
     }
 
     public void ValidateQueryParams(DynamicQueryParamsDto queryParams, ResourceType type)

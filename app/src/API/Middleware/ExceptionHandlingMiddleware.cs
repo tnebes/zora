@@ -51,7 +51,7 @@ public sealed class ExceptionHandlingMiddleware
     private ProblemDetails CreateProblemDetails(HttpContext context, Exception exception)
     {
         int statusCode = GetStatusCodeForException(exception);
-        Dictionary<string, object?> extensions = CreateExtensions(context, exception);
+        Dictionary<string, object?> extensions = this.CreateExtensions(context, exception);
 
         return new ProblemDetails
         {

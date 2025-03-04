@@ -96,6 +96,11 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 return this.Unauthorized();
             }
 
+            if (string.IsNullOrWhiteSpace(roleDto.Name))
+            {
+                return this.BadRequest("Role name cannot be empty or whitespace.");
+            }
+
             Result<Role> roleResult = await this._roleService.CreateAsync(roleDto);
 
             if (roleResult.IsFailed)
@@ -135,6 +140,11 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
             if (!this._roleService.IsAdmin(this.HttpContext.User))
             {
                 return this.Unauthorized();
+            }
+
+            if (string.IsNullOrWhiteSpace(roleDto.Name))
+            {
+                return this.BadRequest("Role name cannot be empty or whitespace.");
             }
 
             Result<Role> roleResult = await this._roleService.UpdateAsync(id, roleDto);
@@ -204,8 +214,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         {
             if (this._roleService.IsAdmin(this.User))
             {
-                findParams.Page = Math.Max(1, findParams.Page);
-                findParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, findParams.PageSize);
+                this.QueryService.NormaliseQueryParamsForAdmin(findParams);
             }
             else
             {

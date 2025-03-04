@@ -27,13 +27,25 @@ public sealed class WorkItemService : IWorkItemService, IZoraService
 
     public async Task<Result<T>> GetNearestAncestorOf<T>(long workItemId) where T : WorkItem
     {
-        Result<WorkItem> workItemResult = await GetWorkItemWithValidation(workItemId);
+        Result<WorkItem> workItemResult = await this.GetWorkItemWithValidation(workItemId);
         if (workItemResult.IsFailed)
         {
             return Result.Fail<T>(workItemResult.Errors);
         }
 
-        return FindAncestor<T>(workItemResult.Value, workItemId);
+        return this.FindAncestor<T>(workItemResult.Value, workItemId);
+    }
+
+    public async Task<Result<WorkItemType>> GetWorkItemType(long workItemId)
+    {
+        Result<WorkItemType> result = await this._workItemRepository.GetWorkItemTypeAsync(workItemId);
+        if (result.IsFailed)
+        {
+            this._logger.LogError("Failed to retrieve work item type for ID {WorkItemId}", workItemId);
+            return Result.Fail<WorkItemType>($"Failed to retrieve work item type for ID {workItemId}");
+        }
+
+        return result.Value;
     }
 
     private async Task<Result<WorkItem>> GetWorkItemWithValidation(long workItemId)
@@ -46,7 +58,7 @@ public sealed class WorkItemService : IWorkItemService, IZoraService
                 this._logger.LogWarning("Work item {WorkItemId} not found", workItemId);
                 return Result.Fail<WorkItem>($"Work item {workItemId} not found");
             }
-            
+
             return result;
         }
         catch (Exception ex)
@@ -60,8 +72,8 @@ public sealed class WorkItemService : IWorkItemService, IZoraService
     {
         try
         {
-            T? ancestor = GetAncestorByType<T>(workItem);
-            
+            T? ancestor = this.GetAncestorByType<T>(workItem);
+
             return ancestor != null
                 ? Result.Ok(ancestor)
                 : Result.Fail<T>($"Ancestor not found for work item {workItemId}");
@@ -83,17 +95,5 @@ public sealed class WorkItemService : IWorkItemService, IZoraService
             ZoraProgram => null,
             _ => null
         };
-    }
-
-    public async Task<Result<WorkItemType>> GetWorkItemType(long workItemId)
-    {
-        Result<WorkItemType> result = await this._workItemRepository.GetWorkItemTypeAsync(workItemId);
-        if (result.IsFailed)
-        {
-            this._logger.LogError("Failed to retrieve work item type for ID {WorkItemId}", workItemId);
-            return Result.Fail<WorkItemType>($"Failed to retrieve work item type for ID {workItemId}");
-        }
-
-        return result.Value;
     }
 }

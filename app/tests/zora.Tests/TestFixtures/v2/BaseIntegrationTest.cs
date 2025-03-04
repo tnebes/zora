@@ -66,8 +66,7 @@ public abstract class BaseIntegrationTest : IDisposable
     #region API Methods
 
     protected async Task<HttpResponseMessage> GetUsers(QueryParamsDto queryParams) =>
-        await this.Client.GetAsync(
-            $"/api/v1/users?page={queryParams.Page}&pageSize={queryParams.PageSize}&sortColumn={queryParams.SortColumn}&sortDirection={queryParams.SortDirection}");
+        await this.Client.GetAsync($"/api/v1/users{queryParams.ToQueryString()}");
 
     protected async Task<UserResponseDto<TUserDto>> AssertSuccessfulUserListResponse<TUserDto>(
         HttpResponseMessage response,
@@ -102,16 +101,14 @@ public abstract class BaseIntegrationTest : IDisposable
     }
 
     protected async Task<HttpResponseMessage> FindUsers(QueryParamsDto queryParams) =>
-        await this.Client.GetAsync(
-            $"/api/v1/users/find?page={queryParams.Page}&pageSize={queryParams.PageSize}&sortColumn={queryParams.SortColumn}&sortDirection={queryParams.SortDirection}");
+        await this.Client.GetAsync($"/api/v1/users/find{queryParams.ToQueryString()}");
 
     #endregion
 
     #region Role API Methods
 
     protected async Task<HttpResponseMessage> GetRoles(QueryParamsDto queryParams) =>
-        await this.Client.GetAsync(
-            $"/api/v1/roles?page={queryParams.Page}&pageSize={queryParams.PageSize}&sortColumn={queryParams.SortColumn}&sortDirection={queryParams.SortDirection}");
+        await this.Client.GetAsync($"/api/v1/roles{queryParams.ToQueryString()}");
 
     protected async Task<HttpResponseMessage> GetRoleById(long roleId) =>
         await this.Client.GetAsync($"/api/v1/roles/{roleId}");
@@ -137,8 +134,7 @@ public abstract class BaseIntegrationTest : IDisposable
         await this.Client.GetAsync($"/api/v1/roles/search?{queryParamsDto.ToQueryString()}");
 
     protected async Task<HttpResponseMessage> FindRoles(QueryParamsDto queryParams) =>
-        await this.Client.GetAsync(
-            $"/api/v1/roles/find?page={queryParams.Page}&pageSize={queryParams.PageSize}&sortColumn={queryParams.SortColumn}&sortDirection={queryParams.SortDirection}");
+        await this.Client.GetAsync($"/api/v1/roles/find{queryParams.ToQueryString()}");
 
     protected async Task<RoleResponseDto> AssertSuccessfulRoleListResponse(
         HttpResponseMessage response,

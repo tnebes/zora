@@ -135,8 +135,12 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
                 query = this.IncludeProperties(query);
             }
 
-            query = query.Where(r =>
-                EF.Functions.Like(r.Name, $"%{findParams.SearchTerm}%"));
+            if (!string.IsNullOrWhiteSpace(findParams.SearchTerm))
+            {
+                string searchTerm = findParams.SearchTerm.ToLower();
+                query = query.Where(r =>
+                    r.Name.ToLower().Contains(searchTerm));
+            }
 
             int totalCount = await query.CountAsync();
 
