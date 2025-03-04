@@ -10,4 +10,9 @@ public sealed class DynamicQueryAssetParamsDto : DynamicQueryParamsDto
     public string? UpdatedBy { get; set; }
     public string? WorkItemId { get; set; }
     public string? WorkItemName { get; set; }
+
+    public override string ToQueryString()
+    {
+        return string.Empty;
+    }
 }

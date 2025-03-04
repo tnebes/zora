@@ -47,6 +47,15 @@ internal static class UserRepositoryMockBuilder
             });
 
         fixture.MockUserRepository
+            .Setup(repo => repo.SearchAsync(It.IsAny<DynamicQueryUserParamsDto>(), It.IsAny<bool>()))
+            .ReturnsAsync((DynamicQueryUserParamsDto searchParams, bool includeProperties) =>
+            {
+                int skip = (searchParams.Page - 1) * searchParams.PageSize;
+                IEnumerable<User> pagedUsers = fixture.Users.Skip(skip).Take(searchParams.PageSize);
+                return Result.Ok((pagedUsers, fixture.Users.Count()));
+            });
+
+        fixture.MockUserRepository
             .Setup(repo => repo.IsUsernameUniqueAsync(It.IsAny<string>()))
             .ReturnsAsync((string username) => !fixture.Users.Any(u => u.Username == username));
 

@@ -100,7 +100,12 @@ public abstract class AuthenticationTestBase : BaseIntegrationTest
             Password = password
         };
 
-        return await TestHelpers.ExecutePostRequest(this.Client, "/api/v1/authentication/token", loginRequest);
+        StringContent stringContent = new(
+            System.Text.Json.JsonSerializer.Serialize(loginRequest),
+            System.Text.Encoding.UTF8,
+            "application/json");
+
+        return await this.Client.PostAsync("/api/v1/authentication/token", stringContent);
     }
 
     protected async Task<HttpResponseMessage> GetCurrentUser() =>

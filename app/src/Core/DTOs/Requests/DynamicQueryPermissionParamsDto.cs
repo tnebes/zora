@@ -9,4 +9,9 @@ public sealed class DynamicQueryPermissionParamsDto : DynamicQueryParamsDto
     public string? PermissionString { get; set; }
     public string? RoleIds { get; set; }
     public string? WorkItemIds { get; set; }
+
+    public override string ToQueryString()
+    {
+        return string.Empty;
+    }
 }
