@@ -11,5 +11,5 @@ public sealed class DynamicQueryAssetParamsDto : DynamicQueryParamsDto
     public string? WorkItemId { get; set; }
     public string? WorkItemName { get; set; }
 
-    public override string ToQueryString() => string.Empty;
+    protected override Dictionary<string, string> GetParameters() => throw new NotImplementedException();
 }

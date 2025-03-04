@@ -144,8 +144,11 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
 
             int totalCount = await query.CountAsync();
 
+            int totalPages = (int)Math.Ceiling(totalCount / (double)findParams.PageSize);
+            int page = totalPages > 0 ? Math.Min(findParams.Page, totalPages) : 1;
+
             List<Role> roles = await query
-                .Skip((findParams.Page - 1) * findParams.PageSize)
+                .Skip((page - 1) * findParams.PageSize)
                 .Take(findParams.PageSize)
                 .ToListAsync();
 

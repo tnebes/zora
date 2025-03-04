@@ -58,6 +58,18 @@ public static class QueryUtils
             };
         }
 
+        public static QueryParamsDto GetSearchQueryParamsForAdminUser()
+        {
+            return new QueryParamsDto
+            {
+                Page = 1,
+                PageSize = 10,
+                SearchTerm = "Admin Role",
+                SortColumn = "Name",
+                SortDirection = "asc"
+            };
+        }
+
         public static QueryParamsDto GetNonAdminSearchQueryParams()
         {
             return new QueryParamsDto
@@ -80,6 +92,25 @@ public static class QueryUtils
                 Page = 1,
                 PageSize = 50,
                 Email = "john.doe@example.com,jane.doe@example.com"
+            };
+        }
+
+        public static DynamicQueryRoleParamsDto GetDynamicRoleSearchQueryParams()
+        {
+            return new DynamicQueryRoleParamsDto
+            {
+                Page = 1,
+                PageSize = 10,
+                Name = "Admin Role"
+            };
+        }
+
+        public static DynamicQueryRoleParamsDto GetInvalidDynamicRoleQueryParams()
+        {
+            return new DynamicQueryRoleParamsDto
+            {
+                Page = -1,
+                PageSize = -50
             };
         }
     }

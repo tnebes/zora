@@ -8,5 +8,15 @@ public sealed class DynamicQueryRoleParamsDto : DynamicQueryParamsDto
     public string? Permission { get; set; }
     public string? User { get; set; }
 
-    public override string ToQueryString() => string.Empty;
+    protected override Dictionary<string, string> GetParameters()
+    {
+        return new Dictionary<string, string>
+        {
+            { "id", this.Id },
+            { "name", this.Name },
+            { "createdAt", this.CreatedAt?.ToString() },
+            { "permission", this.Permission },
+            { "user", this.User }
+        };
+    }
 }

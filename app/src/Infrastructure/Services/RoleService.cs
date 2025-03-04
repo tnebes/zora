@@ -207,7 +207,7 @@ public sealed class RoleService : IRoleService, IZoraService
             }
 
             findParams.SearchTerm = findParams.SearchTerm.Trim();
-            
+
             Result<(IEnumerable<Role>, int totalCount)> result = await this._roleRepository.FindRolesAsync(findParams);
 
             if (result.IsFailed)

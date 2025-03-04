@@ -4,7 +4,6 @@ using System.ComponentModel;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using zora.Core;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
@@ -59,7 +58,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
 
             this.NormalizeQueryParamsForAdmin(queryParams);
 
-            Result<RoleResponseDto> roleResponseResult = await this._roleService.GetDtoAsync(queryParams);
+            Result<RoleResponseDto> roleResponseResult = await this.RoleService.GetDtoAsync(queryParams);
 
             if (roleResponseResult.IsFailed)
             {
@@ -91,7 +90,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
     {
         try
         {
-            if (!this._roleService.IsAdmin(this.HttpContext.User))
+            if (!this.RoleService.IsAdmin(this.HttpContext.User))
             {
                 return this.Unauthorized();
             }
@@ -101,7 +100,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 return this.BadRequest("Role name cannot be empty or whitespace.");
             }
 
-            Result<Role> roleResult = await this._roleService.CreateAsync(roleDto);
+            Result<Role> roleResult = await this.RoleService.CreateAsync(roleDto);
 
             if (roleResult.IsFailed)
             {
@@ -109,7 +108,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 return this.StatusCode(StatusCodes.Status500InternalServerError, roleResult.Errors);
             }
 
-            FullRoleDto fullRoleDto = this._roleService.MapToFullDto(roleResult.Value);
+            FullRoleDto fullRoleDto = this.RoleService.MapToFullDto(roleResult.Value);
 
             return this.CreatedAtAction(nameof(this.Get), new { id = fullRoleDto.Id }, fullRoleDto);
         }
@@ -137,7 +136,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
     {
         try
         {
-            if (!this._roleService.IsAdmin(this.HttpContext.User))
+            if (!this.RoleService.IsAdmin(this.HttpContext.User))
             {
                 return this.Unauthorized();
             }
@@ -147,14 +146,14 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 return this.BadRequest("Role name cannot be empty or whitespace.");
             }
 
-            Result<Role> roleResult = await this._roleService.UpdateAsync(id, roleDto);
+            Result<Role> roleResult = await this.RoleService.UpdateAsync(id, roleDto);
             if (roleResult.IsFailed)
             {
                 this.Logger.LogError("Error updating role: {Error}", roleResult.Errors);
                 return this.NotFound();
             }
 
-            FullRoleDto fullRoleDto = this._roleService.MapToFullDto(roleResult.Value);
+            FullRoleDto fullRoleDto = this.RoleService.MapToFullDto(roleResult.Value);
 
             return this.Ok(fullRoleDto);
         }
@@ -181,12 +180,12 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
     {
         try
         {
-            if (!this._roleService.IsAdmin(this.HttpContext.User))
+            if (!this.RoleService.IsAdmin(this.HttpContext.User))
             {
                 return this.Unauthorized();
             }
 
-            bool success = await this._roleService.DeleteAsync(id);
+            bool success = await this.RoleService.DeleteAsync(id);
             if (!success)
             {
                 return this.NotFound();
@@ -212,7 +211,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
     {
         try
         {
-            if (this._roleService.IsAdmin(this.User))
+            if (this.RoleService.IsAdmin(this.User))
             {
                 this.QueryService.NormaliseQueryParamsForAdmin(findParams);
             }
@@ -221,7 +220,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
                 this.QueryService.NormaliseQueryParams(findParams);
             }
 
-            Result<RoleResponseDto> roles = await this._roleService.FindAsync(findParams);
+            Result<RoleResponseDto> roles = await this.RoleService.FindAsync(findParams);
 
             if (roles.IsFailed)
             {
@@ -244,34 +243,34 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
     [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
     [Tags("Roles")]
     [Description("Search roles with pagination, searching and sorting support")]
+    [Authorize]
     public override async Task<ActionResult<RoleResponseDto>> Search([FromQuery] DynamicQueryRoleParamsDto searchParams)
     {
         try
         {
-            if (this._roleService.IsAdmin(this.User))
+            if (this.RoleService.IsAdmin(this.User))
             {
-                searchParams.Page = Math.Max(1, searchParams.Page);
-                searchParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, searchParams.PageSize);
+                this.QueryService.NormaliseQueryParamsForAdmin(searchParams);
             }
             else
             {
                 this.QueryService.NormaliseQueryParams(searchParams);
             }
 
-            Result<RoleResponseDto> roles = await this._roleService.SearchAsync(searchParams);
+            Result<RoleResponseDto> result = await this.RoleService.SearchAsync(searchParams);
 
-            if (roles.IsFailed)
+            if (result.IsFailed)
             {
-                this.Logger.LogWarning("Failed to search roles with query params {@QueryParams}", searchParams);
-                return this.BadRequest();
+                this.Logger.LogWarning("Failed to search roles with query params {SearchParams}", searchParams);
+                return this.BadRequest(result.Errors.FirstOrDefault()?.Message);
             }
 
-            return this.Ok(roles.Value);
+            return this.Ok(result.Value);
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Failed to search roles");
-            return this.StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
+            this.Logger.LogError(ex, "Error searching roles");
+            return this.StatusCode(500, "An unexpected error occurred");
         }
     }
 }

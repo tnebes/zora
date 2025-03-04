@@ -10,5 +10,5 @@ public sealed class DynamicQueryPermissionParamsDto : DynamicQueryParamsDto
     public string? RoleIds { get; set; }
     public string? WorkItemIds { get; set; }
 
-    public override string ToQueryString() => string.Empty;
+    protected override Dictionary<string, string> GetParameters() => throw new NotImplementedException();
 }

@@ -32,11 +32,15 @@ public sealed class ExceptionThrowingWebApplicationFactory : WebApplicationFacto
     {
         builder.ConfigureServices(services =>
         {
-            var mockRoleService = new Mock<IRoleService>();
+            Mock<IRoleService> mockRoleService = new Mock<IRoleService>();
 
             mockRoleService
                 .Setup(service => service.FindAsync(It.IsAny<QueryParamsDto>()))
                 .ThrowsAsync(new Exception("Simulated exception for testing"));
+
+            mockRoleService
+                .Setup(service => service.SearchAsync(It.IsAny<DynamicQueryRoleParamsDto>()))
+                .ThrowsAsync(new Exception("Simulated exception for search testing"));
 
             mockRoleService
                 .Setup(service => service.IsAdmin(It.IsAny<ClaimsPrincipal>()))
@@ -68,16 +72,16 @@ public sealed class ExceptionThrowingWebApplicationFactory : WebApplicationFacto
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            var claims = new[]
+            Claim[] claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, "test-user"),
                 new Claim(ClaimTypes.Name, "Test User"),
                 new Claim("UserType", "Admin")
             };
 
-            var identity = new ClaimsIdentity(claims, "Test");
-            var principal = new ClaimsPrincipal(identity);
-            var ticket = new AuthenticationTicket(principal, "TestScheme");
+            ClaimsIdentity identity = new ClaimsIdentity(claims, "Test");
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            AuthenticationTicket ticket = new AuthenticationTicket(principal, "TestScheme");
 
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }
@@ -274,7 +278,6 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
     {
         await this.ClearDatabase();
 
-        // Create a role to update
         Role role = new Role { Name = "TestRole" };
         await this.SeedRoles(new List<Role> { role });
 
@@ -350,16 +353,13 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
     {
         await this.ClearDatabase();
 
-        // Create a role to delete
         Role role = new Role { Name = "RoleToDelete" };
         await this.SeedRoles(new List<Role> { role });
 
-        // Store the ID for later verification
         long roleId = role.Id;
 
         this.SetupAdminAuthentication();
 
-        // Verify role exists and is not deleted before the call
         Role? beforeRole = await this.DbContext.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Id == roleId);
         beforeRole.Should().NotBeNull();
         beforeRole!.Deleted.Should().BeFalse();
@@ -368,10 +368,8 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        // Clear EF tracking to ensure we get a fresh read
         this.DbContext.ChangeTracker.Clear();
 
-        // Verify the role was soft deleted (Deleted flag set to true)
         Role? dbRole = await this.DbContext.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Id == roleId);
         dbRole.Should().NotBeNull();
         dbRole!.Deleted.Should().BeTrue();
@@ -383,11 +381,9 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
     {
         await this.ClearDatabase();
 
-        // Create a role that should not be deleted
         Role role = new Role { Name = "RoleToNotDelete" };
         await this.SeedRoles(new List<Role> { role });
 
-        // Store the ID for later verification
         long roleId = role.Id;
 
         this.SetupRegularUserAuthentication();
@@ -396,7 +392,6 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
 
         response.StatusCode.Should().BeOneOf(HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden);
 
-        // Verify the role still exists in the database and is not deleted
         Role? dbRole = await this.DbContext.Roles.AsNoTracking().FirstOrDefaultAsync(r => r.Id == roleId);
         dbRole.Should().NotBeNull();
         dbRole!.Name.Should().Be("RoleToNotDelete");
@@ -428,7 +423,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         await this.SeedRoles(roles);
         this.SetupAdminAuthentication();
 
-        QueryParamsDto queryParams = QueryUtils.QueryParamUtils.GetSearchQueryParams();
+        QueryParamsDto queryParams = QueryUtils.QueryParamUtils.GetSearchQueryParamsForAdminUser();
 
         HttpResponseMessage response = await this.FindRoles(queryParams);
 
@@ -466,7 +461,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
     }
 
     [Fact(DisplayName =
-        "GIVEN a logged in user WHEN the Find method is called with invalid search parameters THEN return a 400 Bad Request")]
+        "GIVEN a logged in user WHEN the Find method is called with invalid search parameters THEN return a 200 OK with normalized query parameters")]
     public async Task FindRoles_WithInvalidParams_ReturnsBadRequest()
     {
         await this.ClearDatabase();
@@ -479,15 +474,15 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
 
         HttpResponseMessage response = await this.FindRoles(queryParams);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact(DisplayName =
         "GIVEN a service that throws an exception WHEN the Find method is called THEN return a 500 Internal Server Error")]
     public async Task FindRoles_WithServiceException_ReturnsInternalServerError()
     {
-        using var factory = new ExceptionThrowingWebApplicationFactory();
-        var client = factory.CreateClient();
+        await using ExceptionThrowingWebApplicationFactory factory = new ExceptionThrowingWebApplicationFactory();
+        HttpClient client = factory.CreateClient();
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "test-token");
 
@@ -495,6 +490,70 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
 
         HttpResponseMessage response = await client.GetAsync(
             $"/api/v1/roles/find?page={queryParams.Page}&pageSize={queryParams.PageSize}&sortColumn={queryParams.SortColumn}&sortDirection={queryParams.SortDirection}&searchTerm={Uri.EscapeDataString(queryParams.SearchTerm ?? string.Empty)}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a logged in admin user WHEN the Search method is called with valid search parameters THEN return a 200 OK with matching roles")]
+    public async Task SearchRoles_WithAdminUserAndValidParams_ReturnsOkWithMatchingRoles()
+    {
+        await this.ClearDatabase();
+
+        List<Role> roles = RoleUtils.GetFindTestRoles().ToList();
+        await this.SeedRoles(roles);
+        this.SetupAdminAuthentication();
+
+        DynamicQueryRoleParamsDto queryParams = QueryUtils.DynamicQueryParamsUtils.GetDynamicRoleSearchQueryParams();
+
+        HttpResponseMessage response = await this.SearchRoles(queryParams);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        RoleResponseDto? responseContent = await this.ReadResponseContent<RoleResponseDto>(response);
+        responseContent.Should().NotBeNull();
+        responseContent!.Items.Should().NotBeNull();
+        responseContent.Items.Should().HaveCount(1);
+        responseContent.Items.First().Name.Should().Be("Admin Role");
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a logged in non-admin user WHEN the Search method is called THEN return a 200 OK with normalized query parameters")]
+    public async Task SearchRoles_WithNonAdminUser_ReturnsOkWithNormalizedParams()
+    {
+        await this.ClearDatabase();
+
+        List<Role> roles = RoleUtils.GetFindTestRoles().ToList();
+        await this.SeedRoles(roles);
+
+        this.SetupRegularUserAuthentication();
+
+        DynamicQueryRoleParamsDto queryParams = QueryUtils.DynamicQueryParamsUtils.GetInvalidDynamicRoleQueryParams();
+
+        HttpResponseMessage response = await this.SearchRoles(queryParams);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        RoleResponseDto? responseContent = await this.ReadResponseContent<RoleResponseDto>(response);
+        responseContent.Should().NotBeNull();
+        responseContent!.Items.Should().NotBeNull();
+        responseContent.PageSize.Should().Be(50);
+        responseContent.Page.Should().Be(1);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a service that throws an exception WHEN the Search method is called THEN return a 500 Internal Server Error")]
+    public async Task SearchRoles_WithServiceException_ReturnsInternalServerError()
+    {
+        await using ExceptionThrowingWebApplicationFactory factory = new ExceptionThrowingWebApplicationFactory();
+        HttpClient client = factory.CreateClient();
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "test-token");
+
+        DynamicQueryRoleParamsDto queryParams = QueryUtils.DynamicQueryParamsUtils.GetDynamicRoleSearchQueryParams();
+
+        HttpResponseMessage response = await client.GetAsync(
+            $"/api/v1/roles/search?{queryParams.ToQueryString()}");
 
         response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }

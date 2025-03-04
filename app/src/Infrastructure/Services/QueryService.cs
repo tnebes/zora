@@ -26,7 +26,8 @@ public sealed class QueryService : IQueryService, IZoraService
     public void NormaliseQueryParams(IQueryParamsDto queryParams)
     {
         queryParams.Page = Math.Max(1, queryParams.Page);
-        queryParams.PageSize = Math.Min(queryParams.PageSize <= 0 ? Constants.DEFAULT_PAGE_SIZE : queryParams.PageSize, Constants.DEFAULT_PAGE_SIZE);
+        queryParams.PageSize = Math.Min(queryParams.PageSize <= 0 ? Constants.DEFAULT_PAGE_SIZE : queryParams.PageSize,
+            Constants.DEFAULT_PAGE_SIZE);
     }
 
     public void ValidateQueryParams(DynamicQueryParamsDto queryParams, ResourceType type)
@@ -35,5 +36,12 @@ public sealed class QueryService : IQueryService, IZoraService
         {
             throw new ArgumentOutOfRangeException(nameof(type), "Invalid resource type");
         }
+
+        if (queryParams.Page <= 0 || queryParams.PageSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(queryParams), "Page and PageSize must be greater than 0");
+        }
+
+        
     }
 }

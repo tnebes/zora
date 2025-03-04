@@ -9,25 +9,16 @@ public sealed class DynamicQueryUserParamsDto : DynamicQueryParamsDto
     public DateTime? CreatedAt { get; set; }
     public string? Permission { get; set; }
 
-    public override string ToQueryString()
+    protected override Dictionary<string, string> GetParameters()
     {
-        Dictionary<string, string> parameters = new Dictionary<string, string>
+        return new Dictionary<string, string>
         {
-            { "page", this.Page.ToString() },
-            { "pageSize", this.PageSize.ToString() },
             { "id", this.Id },
             { "username", this.Username },
             { "email", this.Email },
             { "role", this.Role },
-            { "createdAt", this.CreatedAt.ToString() },
+            { "createdAt", this.CreatedAt?.ToString() },
             { "permission", this.Permission }
         };
-
-        List<string> queryParams = parameters
-            .Where(p => !string.IsNullOrEmpty(p.Value))
-            .Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value)}")
-            .ToList();
-
-        return queryParams.Any() ? $"?{string.Join("&", queryParams)}" : string.Empty;
     }
 }
