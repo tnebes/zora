@@ -96,5 +96,14 @@ internal static class UserRepositoryMockBuilder
                     fixture.Users.Remove(existingUser);
                 }
             });
+
+        fixture.MockUserRepository
+            .Setup(repo => repo.FindUsersAsync(It.IsAny<QueryParamsDto>(), It.IsAny<bool>()))
+            .ReturnsAsync((QueryParamsDto queryParams, bool includeProperties) =>
+            {
+                int skip = (queryParams.Page - 1) * queryParams.PageSize;
+                IEnumerable<User> pagedUsers = fixture.Users.Skip(skip).Take(queryParams.PageSize);
+                return Result.Ok((pagedUsers, fixture.Users.Count));
+            });
     }
 }

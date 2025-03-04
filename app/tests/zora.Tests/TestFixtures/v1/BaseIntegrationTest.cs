@@ -101,4 +101,21 @@ public abstract class BaseIntegrationTest
 
     protected async Task<TResponse?> ReadResponseContent<TResponse>(HttpResponseMessage response) =>
         await response.Content.ReadFromJsonAsync<TResponse>();
+
+    protected async Task<HttpResponseMessage> UpdateUser(long userId, UpdateUserDto updateUserDto)
+    {
+        string json = JsonSerializer.Serialize(updateUserDto);
+        StringContent content = new(json, Encoding.UTF8, "application/json");
+        return await this.Client.PutAsync($"/api/v1/users/{userId}", content);
+    }
+
+    protected async Task<HttpResponseMessage> CreateUser(CreateMinimumUserDto createUserDto)
+    {
+        string json = JsonSerializer.Serialize(createUserDto);
+        StringContent content = new(json, Encoding.UTF8, "application/json");
+        return await this.Client.PostAsync("/api/v1/users", content);
+    }
+
+    protected async Task<HttpResponseMessage> FindUsers(QueryParamsDto queryParams) =>
+        await this.Client.GetAsync($"/api/v1/users/find{queryParams.ToQueryString()}");
 }
