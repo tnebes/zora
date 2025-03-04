@@ -50,18 +50,22 @@ public sealed class ExceptionHandlingMiddleware
 
     private ProblemDetails CreateProblemDetails(HttpContext context, Exception exception)
     {
-        int statusCode = exception switch
-        {
-            ArgumentException => (int)HttpStatusCode.BadRequest,
-            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
-            ValidationException => (int)HttpStatusCode.BadRequest,
-            InvalidOperationException => (int)HttpStatusCode.BadRequest,
-            FileNotFoundException => (int)HttpStatusCode.NotFound,
-            DirectoryNotFoundException => (int)HttpStatusCode.NotFound,
-            NotSupportedException => (int)HttpStatusCode.NotImplemented,
-            _ => (int)HttpStatusCode.InternalServerError
-        };
+        int statusCode = GetStatusCodeForException(exception);
+        Dictionary<string, object?> extensions = CreateExtensions(context, exception);
 
+        return new ProblemDetails
+        {
+            Status = statusCode,
+            Title = GetTitleForException(exception),
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+            Instance = context.TraceIdentifier,
+            Detail = this._environment.IsDevelopment() ? exception.ToString() : null,
+            Extensions = extensions
+        };
+    }
+
+    private Dictionary<string, object?> CreateExtensions(HttpContext context, Exception exception)
+    {
         Dictionary<string, object?> extensions = new()
         {
             ["correlationId"] = context.TraceIdentifier
@@ -72,14 +76,21 @@ public sealed class ExceptionHandlingMiddleware
             extensions["stackTrace"] = exception.StackTrace;
         }
 
-        return new ProblemDetails
+        return extensions;
+    }
+
+    private static int GetStatusCodeForException(Exception exception)
+    {
+        return exception switch
         {
-            Status = statusCode,
-            Title = GetTitleForException(exception),
-            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
-            Instance = context.TraceIdentifier,
-            Detail = this._environment.IsDevelopment() ? exception.ToString() : null,
-            Extensions = extensions
+            ArgumentException => (int)HttpStatusCode.BadRequest,
+            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+            ValidationException => (int)HttpStatusCode.BadRequest,
+            InvalidOperationException => (int)HttpStatusCode.BadRequest,
+            FileNotFoundException => (int)HttpStatusCode.NotFound,
+            DirectoryNotFoundException => (int)HttpStatusCode.NotFound,
+            NotSupportedException => (int)HttpStatusCode.NotImplemented,
+            _ => (int)HttpStatusCode.InternalServerError
         };
     }
 

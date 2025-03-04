@@ -202,41 +202,52 @@ public sealed class AssetService : IAssetService, IZoraService
             return Result.Fail<TRequestDto>("Request DTO cannot be null");
         }
 
-        if (dto is CreateAssetDto createAssetDto)
+        return dto switch
         {
-            if (string.IsNullOrEmpty(createAssetDto.Name))
-            {
-                return Result.Fail<TRequestDto>("Name is required");
-            }
+            CreateAssetDto createDto => ValidateCreateAssetDto(createDto).ToResult<TRequestDto>(),
+            UpdateAssetDto updateDto => ValidateUpdateAssetDto(updateDto).ToResult<TRequestDto>(),
+            _ => HandleInvalidDtoType(dto)
+        };
+    }
 
-            if (createAssetDto.Asset == null)
-            {
-                return Result.Fail<TRequestDto>("Asset is required");
-            }
-
-            if (createAssetDto.WorkAssetId.HasValue && createAssetDto.WorkAssetId.Value <= 0)
-            {
-                return Result.Fail<TRequestDto>("Work asset ID must be greater than 0");
-            }
+    private Result<CreateAssetDto> ValidateCreateAssetDto(CreateAssetDto dto)
+    {
+        if (string.IsNullOrEmpty(dto.Name))
+        {
+            return Result.Fail<CreateAssetDto>("Name is required");
         }
-        else if (dto is UpdateAssetDto updateAssetDto)
-        {
-            if (string.IsNullOrEmpty(updateAssetDto.Name))
-            {
-                return Result.Fail<TRequestDto>("Name is required");
-            }
 
-            if (updateAssetDto.File == null)
-            {
-                return Result.Fail<TRequestDto>("File is required");
-            }
-        }
-        else
+        if (dto.Asset == null)
         {
-            this._logger.LogError("Invalid request DTO type: {DtoType}", dto.GetType().Name);
-            throw new InvalidOperationException("Invalid request DTO type");
+            return Result.Fail<CreateAssetDto>("Asset is required");
+        }
+
+        if (dto.WorkAssetId.HasValue && dto.WorkAssetId.Value <= 0)
+        {
+            return Result.Fail<CreateAssetDto>("Work asset ID must be greater than 0");
         }
 
         return Result.Ok(dto);
+    }
+
+    private Result<UpdateAssetDto> ValidateUpdateAssetDto(UpdateAssetDto dto)
+    {
+        if (string.IsNullOrEmpty(dto.Name))
+        {
+            return Result.Fail<UpdateAssetDto>("Name is required");
+        }
+
+        if (dto.File == null)
+        {
+            return Result.Fail<UpdateAssetDto>("File is required");
+        }
+
+        return Result.Ok(dto);
+    }
+
+    private Result<TRequestDto> HandleInvalidDtoType<TRequestDto>(TRequestDto dto) where TRequestDto : class
+    {
+        this._logger.LogError("Invalid request DTO type: {DtoType}", dto.GetType().Name);
+        throw new InvalidOperationException("Invalid request DTO type");
     }
 }
