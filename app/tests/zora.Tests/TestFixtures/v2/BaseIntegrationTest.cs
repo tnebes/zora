@@ -150,6 +150,43 @@ public abstract class BaseIntegrationTest : IDisposable
 
     #endregion
 
+    #region Permission API Methods
+
+    protected async Task<HttpResponseMessage> GetPermissions(QueryParamsDto queryParams) =>
+        await this.Client.GetAsync($"/api/v1/permissions{queryParams.ToQueryString()}");
+
+    protected async Task<HttpResponseMessage> GetPermissionById(long permissionId) =>
+        await this.Client.GetAsync($"/api/v1/permissions/{permissionId}");
+
+    protected async Task<HttpResponseMessage> CreatePermission(CreatePermissionDto dto) =>
+        await this.Client.PostAsJsonAsync("/api/v1/permissions", dto);
+
+    protected async Task<HttpResponseMessage> UpdatePermission(long id, UpdatePermissionDto dto) =>
+        await this.Client.PutAsJsonAsync($"/api/v1/permissions/{id}", dto);
+
+    protected async Task<HttpResponseMessage> DeletePermission(long id) =>
+        await this.Client.DeleteAsync($"/api/v1/permissions/{id}");
+
+    protected async Task<HttpResponseMessage> SearchPermissions(DynamicQueryParamsDto queryParamsDto) =>
+        await this.Client.GetAsync($"/api/v1/permissions/search?{queryParamsDto.ToQueryString()}");
+
+    protected async Task<HttpResponseMessage> FindPermissions(QueryParamsDto queryParams) =>
+        await this.Client.GetAsync($"/api/v1/permissions/find{queryParams.ToQueryString()}");
+
+    protected async Task<PermissionResponseDto> AssertSuccessfulPermissionListResponse(
+        HttpResponseMessage response,
+        List<Permission> expectedPermissions)
+    {
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        PermissionResponseDto? content = await response.Content.ReadFromJsonAsync<PermissionResponseDto>();
+        content.Should().NotBeNull();
+        content!.Total.Should().Be(expectedPermissions.Count);
+        content.Items.Should().HaveCount(Math.Min(expectedPermissions.Count, content.PageSize));
+        return content;
+    }
+
+    #endregion
+
     #region Helper Methods
 
     protected async Task AssertResponseStatusCode(HttpResponseMessage response, HttpStatusCode expectedStatusCode) =>

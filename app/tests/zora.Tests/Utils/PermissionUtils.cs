@@ -1,6 +1,7 @@
 #region
 
 using zora.Core.Domain;
+using zora.Core.DTOs.Requests;
 
 #endregion
 
@@ -17,7 +18,7 @@ public static class PermissionUtils
                 Id = 1,
                 Name = "Create",
                 Description = "Create permission",
-                PermissionString = "10000",
+                PermissionString = "00100",
                 CreatedAt = DateTime.UtcNow
             },
 
@@ -26,7 +27,7 @@ public static class PermissionUtils
                 Id = 2,
                 Name = "Read",
                 Description = "Read permission",
-                PermissionString = "01000",
+                PermissionString = "00001",
                 CreatedAt = DateTime.UtcNow
             },
 
@@ -35,7 +36,7 @@ public static class PermissionUtils
                 Id = 3,
                 Name = "Update",
                 Description = "Update permission",
-                PermissionString = "00100",
+                PermissionString = "00010",
                 CreatedAt = DateTime.UtcNow
             },
 
@@ -44,7 +45,7 @@ public static class PermissionUtils
                 Id = 4,
                 Name = "Delete",
                 Description = "Delete permission",
-                PermissionString = "00010",
+                PermissionString = "01000",
                 CreatedAt = DateTime.UtcNow
             },
 
@@ -53,11 +54,30 @@ public static class PermissionUtils
                 Id = 5,
                 Name = "Admin",
                 Description = "Admin permission",
+                PermissionString = "10000",
+                CreatedAt = DateTime.UtcNow
+            },
+
+            new()
+            {
+                Id = 6,
+                Name = "Super Admin",
+                Description = "Super Admin permission",
                 PermissionString = "11111",
                 CreatedAt = DateTime.UtcNow
             }
         ];
 
         return permissions;
+    }
+
+    internal static UpdatePermissionDto GetValidUpdatePermissionDto()
+    {
+        return new UpdatePermissionDto
+        {
+            Name = "UpdatedPermission",
+            Description = "Updated Description",
+            PermissionString = "01010"
+        };
     }
 }

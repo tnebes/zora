@@ -41,7 +41,5 @@ public sealed class QueryService : IQueryService, IZoraService
         {
             throw new ArgumentOutOfRangeException(nameof(queryParams), "Page and PageSize must be greater than 0");
         }
-
-        
     }
 }

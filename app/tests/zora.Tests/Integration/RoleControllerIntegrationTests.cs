@@ -60,7 +60,7 @@ public sealed class ExceptionThrowingWebApplicationFactory : WebApplicationFacto
         });
     }
 
-    private class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    private sealed class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
         public TestAuthHandler(
             IOptionsMonitor<AuthenticationSchemeOptions> options,
@@ -98,6 +98,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         await this.ClearDatabase();
 
         List<Role> roles = RoleUtils.GetValidRoles().ToList();
+        List<RoleDto> expectedRoles = this.Mapper.Map<List<RoleDto>>(roles);
 
         await this.SeedRoles(roles);
         this.SetupAdminAuthentication();
@@ -107,6 +108,10 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         HttpResponseMessage response = await this.GetRoles(queryParams);
 
         RoleResponseDto roleResponse = await this.AssertSuccessfulRoleListResponse(response, roles);
+        roleResponse.Should().NotBeNull();
+        roleResponse.Items.Should().NotBeNull();
+        roleResponse.Items.Should().HaveCount(expectedRoles.Count);
+        roleResponse.Items.Should().BeEquivalentTo(expectedRoles);
     }
 
     [Fact(DisplayName =
@@ -116,6 +121,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         await this.ClearDatabase();
 
         List<Role> roles = RoleUtils.GetValidRoles().ToList();
+        List<RoleDto> expectedRoles = this.Mapper.Map<List<RoleDto>>(roles);
 
         await this.SeedRoles(roles);
         this.SetupAdminAuthentication();
@@ -127,8 +133,9 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         RoleResponseDto? content = await response.Content.ReadFromJsonAsync<RoleResponseDto>();
         content.Should().NotBeNull();
-        content!.Total.Should().Be(roles.Count);
+        content!.Total.Should().Be(expectedRoles.Count);
         content.Items.Should().HaveCount(Math.Min(roles.Count, content.PageSize));
+        content.Items.Should().BeEquivalentTo(expectedRoles);
     }
 
     [Fact(DisplayName =
@@ -156,6 +163,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         await this.ClearDatabase();
 
         List<Role> roles = RoleUtils.GetValidRoles().ToList();
+        List<RoleDto> expectedRoles = this.Mapper.Map<List<RoleDto>>(roles);
 
         await this.SeedRoles(roles);
         this.SetupAdminAuthentication();
@@ -176,7 +184,8 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         content.Should().NotBeNull();
         content!.Page.Should().BeGreaterThan(0);
         content.PageSize.Should().BeGreaterThan(0);
-        content.Total.Should().Be(roles.Count);
+        content.Total.Should().Be(expectedRoles.Count);
+        content.Items.Should().BeEquivalentTo(expectedRoles);
     }
 
     [Fact(DisplayName =
@@ -326,7 +335,6 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
     {
         await this.ClearDatabase();
 
-        // Create a role to update
         Role role = new Role { Name = "TestRole" };
         await this.SeedRoles(new List<Role> { role });
 
@@ -344,7 +352,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
 
         Role? dbRole = await this.DbContext.Roles.FirstOrDefaultAsync(r => r.Id == role.Id);
         dbRole.Should().NotBeNull();
-        dbRole!.Name.Should().Be("TestRole"); // Ensure the role name wasn't updated
+        dbRole!.Name.Should().Be("TestRole");
     }
 
     [Fact(DisplayName =

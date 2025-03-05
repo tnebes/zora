@@ -81,6 +81,16 @@ public static class QueryUtils
                 SortDirection = "asc"
             };
         }
+
+        public static CreatePermissionDto GetValidCreatePermissionDto()
+        {
+            return new CreatePermissionDto
+            {
+                Name = "TestPermission",
+                Description = "Test Description",
+                PermissionString = "00001"
+            };
+        }
     }
 
     public static class DynamicQueryParamsUtils
