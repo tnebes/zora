@@ -241,3 +241,4 @@ logs/
 
 # Coverage Report
 coverage-report/
+tests/zora.Tests/TestResults/
