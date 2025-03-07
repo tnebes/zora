@@ -12,6 +12,8 @@ namespace zora.Core.Interfaces.Services;
 public interface IAssetService : IBaseService<Asset, CreateAssetDto, UpdateAssetDto, AssetResponseDto,
     DynamicQueryAssetParamsDto>
 {
-    Result<TRequestDto> ValidateDto<TRequestDto>(TRequestDto dto)
-        where TRequestDto : class;
+    Result<CreateAssetDto> ValidateCreateAssetDto(CreateAssetDto dto);
+
+    Result<UpdateAssetDto> ValidateUpdateAssetDto(UpdateAssetDto dto);
+
 }

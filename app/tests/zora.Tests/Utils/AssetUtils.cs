@@ -1,5 +1,6 @@
 #region
 
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
@@ -73,6 +74,19 @@ public static class AssetUtils
                 "test.jpg"
             )
         };
+    }
+
+    internal static CreateAssetDto GetValidCreateAssetWithDataDto()
+    {
+        CreateAssetDto assetDto = GetValidCreateAssetDto();
+        assetDto.Asset = new MockFormFile(
+            new MemoryStream(),
+            0,
+            1024,
+            "test.jpg",
+            "test.jpg"
+            );
+        return assetDto;
     }
 
     internal static DynamicQueryAssetParamsDto GetValidDynamicQueryAssetParamsDto()

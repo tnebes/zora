@@ -195,22 +195,7 @@ public sealed class AssetService : IAssetService, IZoraService
         return Result.Ok(response);
     }
 
-    public Result<TRequestDto> ValidateDto<TRequestDto>(TRequestDto dto) where TRequestDto : class
-    {
-        if (dto == null)
-        {
-            return Result.Fail<TRequestDto>("Request DTO cannot be null");
-        }
-
-        return dto switch
-        {
-            CreateAssetDto createDto => this.ValidateCreateAssetDto(createDto).ToResult<TRequestDto>(),
-            UpdateAssetDto updateDto => this.ValidateUpdateAssetDto(updateDto).ToResult<TRequestDto>(),
-            var _ => this.HandleInvalidDtoType(dto)
-        };
-    }
-
-    private Result<CreateAssetDto> ValidateCreateAssetDto(CreateAssetDto dto)
+    public Result<CreateAssetDto> ValidateCreateAssetDto(CreateAssetDto dto)
     {
         if (string.IsNullOrEmpty(dto.Name))
         {
@@ -230,14 +215,14 @@ public sealed class AssetService : IAssetService, IZoraService
         return Result.Ok(dto);
     }
 
-    private Result<UpdateAssetDto> ValidateUpdateAssetDto(UpdateAssetDto dto)
+    public Result<UpdateAssetDto> ValidateUpdateAssetDto(UpdateAssetDto dto)
     {
         if (string.IsNullOrEmpty(dto.Name))
         {
             return Result.Fail<UpdateAssetDto>("Name is required");
         }
 
-        if (dto.File == null)
+        if (dto.File is null)
         {
             return Result.Fail<UpdateAssetDto>("File is required");
         }
@@ -245,9 +230,4 @@ public sealed class AssetService : IAssetService, IZoraService
         return Result.Ok(dto);
     }
 
-    private Result<TRequestDto> HandleInvalidDtoType<TRequestDto>(TRequestDto dto) where TRequestDto : class
-    {
-        this._logger.LogError("Invalid request DTO type: {DtoType}", dto.GetType().Name);
-        throw new InvalidOperationException("Invalid request DTO type");
-    }
 }

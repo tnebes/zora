@@ -56,11 +56,11 @@ public sealed class AssetExceptionThrowingWebApplicationFactory : WebApplication
                 .ThrowsAsync(new Exception("Simulated exception for update testing"));
 
             mockAssetService
-                .Setup(service => service.ValidateDto(It.IsAny<CreateAssetDto>()))
+                .Setup(service => service.ValidateCreateAssetDto(It.IsAny<CreateAssetDto>()))
                 .Returns<CreateAssetDto>(dto => Result.Ok(dto));
 
             mockAssetService
-                .Setup(service => service.ValidateDto(It.IsAny<UpdateAssetDto>()))
+                .Setup(service => service.ValidateUpdateAssetDto(It.IsAny<UpdateAssetDto>()))
                 .Returns<UpdateAssetDto>(dto => Result.Ok(dto));
 
             services.Replace(ServiceDescriptor.Scoped(_ => mockAssetService.Object));
@@ -159,6 +159,8 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 
+    // BUG asset length is 0.
+    // this should be in assetutils
     [Fact(DisplayName =
         "GIVEN a valid CreateAssetDto and an authenticated user WHEN Create() is invoked THEN the controller returns a 201 Created with the new asset")]
     public async Task Create_WithValidData_ReturnsCreatedWithNewAsset()
@@ -166,7 +168,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         await this.ClearDatabase();
         this.SetupAdminAuthentication();
 
-        CreateAssetDto createAssetDto = AssetUtils.GetValidCreateAssetDto();
+        CreateAssetDto createAssetDto = AssetUtils.GetValidCreateAssetWithDataDto();
         HttpResponseMessage response = await this.CreateAsset(createAssetDto);
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);

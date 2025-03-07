@@ -102,7 +102,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     {
         try
         {
-            Result<CreateAssetDto> assetValidationResult = this._assetService.ValidateDto(createDto);
+            Result<CreateAssetDto> assetValidationResult = this._assetService.ValidateCreateAssetDto(createDto);
 
             if (assetValidationResult.IsFailed)
             {
@@ -152,7 +152,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                 return this.Unauthorized();
             }
 
-            Result<UpdateAssetDto> dtoResult = this._assetService.ValidateDto(updateDto);
+            Result<UpdateAssetDto> dtoResult = this._assetService.ValidateUpdateAssetDto(updateDto);
 
             if (dtoResult.IsFailed)
             {
