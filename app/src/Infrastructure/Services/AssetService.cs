@@ -206,7 +206,7 @@ public sealed class AssetService : IAssetService, IZoraService
         {
             CreateAssetDto createDto => this.ValidateCreateAssetDto(createDto).ToResult<TRequestDto>(),
             UpdateAssetDto updateDto => this.ValidateUpdateAssetDto(updateDto).ToResult<TRequestDto>(),
-            _ => this.HandleInvalidDtoType(dto)
+            var _ => this.HandleInvalidDtoType(dto)
         };
     }
 

@@ -142,7 +142,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
     [Description("Updates an existing asset by ID.")]
-    public override async Task<ActionResult<Asset>> Update(long id, [FromBody] UpdateAssetDto updateDto)
+    public override async Task<ActionResult<Asset>> Update(long id, [FromForm] UpdateAssetDto updateDto)
     {
         try
         {
