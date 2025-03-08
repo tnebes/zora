@@ -1,5 +1,6 @@
 #region
 
+using System.Security.Claims;
 using zora.Core.Domain;
 
 #endregion
@@ -10,4 +11,5 @@ public interface IJwtService
 {
     string GenerateToken(User user);
     int GetTokenExpiration();
+    long GetCurrentUserId(ClaimsPrincipal user);
 }

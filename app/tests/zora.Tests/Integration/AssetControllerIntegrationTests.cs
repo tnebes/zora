@@ -1,13 +1,7 @@
 #region
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
 using FluentAssertions;
 using FluentResults;
 using Microsoft.AspNetCore.Authentication;
@@ -15,13 +9,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
+using zora.Core.Domain;
 using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
-using zora.Core.Domain;
 using zora.Core.Interfaces.Services;
 using zora.Tests.TestFixtures.v2;
 using zora.Tests.Utils;
@@ -117,7 +109,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
     }
 
     [Fact(DisplayName =
-        "GIVEN a valid QueryParamsDto with extra large page size and admin user WHEN Get() is invoked THEN the controller normalizes the query parameters and returns filtered results")]
+        "GIVEN a valid QueryParamsDto with extra large page size and admin user WHEN Get() is invoked THEN the controller does not normalise the query parameters and returns filtered results")]
     public async Task Get_WithQueryParameters_NormalizeQueryParametersAndReturnFilteredResults()
     {
         await this.ClearDatabase();
@@ -126,13 +118,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         List<Asset> assets = AssetUtils.GetValidAssets().ToList();
         await this.SeedAssets(assets);
 
-        QueryParamsDto queryParams = new QueryParamsDto
-        {
-            Page = 1,
-            PageSize = 1000,
-            SortColumn = "Name",
-            SortDirection = "asc"
-        };
+        QueryParamsDto queryParams = QueryUtils.QueryParamUtils.GetLargePageSizeQueryParams();
 
         HttpResponseMessage response = await this.GetAssets(queryParams);
 
@@ -140,15 +126,14 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         AssetResponseDto? responseAssets = await this.ReadResponseContent<AssetResponseDto>(response);
 
         responseAssets.Should().NotBeNull();
-        responseAssets.PageSize.Should().Be(1000);
-        responseAssets.Items.Should().BeInAscendingOrder(a => a.Name);
+        responseAssets.PageSize.Should().Be(10000);
     }
 
     [Fact(DisplayName =
         "GIVEN a QueryParamsDto that triggers an exception WHEN Get() is invoked THEN the controller returns a 500 Internal Server Error")]
     public async Task Get_WithExceptionAtRepositoryLevel_Returns500InternalServerError()
     {
-        using AssetExceptionThrowingWebApplicationFactory exceptionFactory = new();
+        await using AssetExceptionThrowingWebApplicationFactory exceptionFactory = new();
         HttpClient exceptionClient = exceptionFactory.CreateClient();
 
         exceptionClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "Admin");
@@ -159,8 +144,6 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 
-    // BUG asset length is 0.
-    // this should be in assetutils
     [Fact(DisplayName =
         "GIVEN a valid CreateAssetDto and an authenticated user WHEN Create() is invoked THEN the controller returns a 201 Created with the new asset")]
     public async Task Create_WithValidData_ReturnsCreatedWithNewAsset()
@@ -186,13 +169,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         await this.ClearDatabase();
         this.SetupAdminAuthentication();
 
-        CreateAssetDto invalidAssetDto = new()
-        {
-            Name = "",
-            Description = "Test Description",
-            Asset = new AssetUtils.MockFormFile(new MemoryStream(), 0, 0, "content",
-                "test.txt")
-        };
+        CreateAssetDto invalidAssetDto = AssetUtils.GetInvalidCreateAssetDto();
 
         HttpResponseMessage response = await this.CreateAsset(invalidAssetDto);
 

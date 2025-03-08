@@ -16,4 +16,7 @@ public interface IAssetService : IBaseService<Asset, CreateAssetDto, UpdateAsset
 
     Result<UpdateAssetDto> ValidateUpdateAssetDto(UpdateAssetDto dto);
 
+    Task<Result<Asset>> CreateAsync(CreateAssetDto createDto, long userId);
+
+    Task<Result<Asset>> UpdateAsync(long id, UpdateAssetDto updateDto, long userId);
 }

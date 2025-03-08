@@ -19,7 +19,7 @@ public abstract class DynamicQueryParamsDto : IQueryParamsDto
             { "pageSize", this.PageSize.ToString() }
         };
 
-        foreach (var parameter in this.GetParameters())
+        foreach (KeyValuePair<string, string> parameter in this.GetParameters())
         {
             parameters.TryAdd(parameter.Key, parameter.Value);
         }

@@ -61,6 +61,13 @@ public sealed class JwtService : IJwtService, IZoraService
 
     public int GetTokenExpiration() => TimeSpan.FromHours(Constants.TOKEN_EXPIRATION_HOURS).Seconds;
 
+    public long GetCurrentUserId(ClaimsPrincipal user)
+    {
+        string userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? throw new InvalidOperationException("User ID claim not found");
+        return long.Parse(userId);
+    }
+
     private static List<Claim> GenerateUserClaims(User user)
     {
         List<Claim> claims =

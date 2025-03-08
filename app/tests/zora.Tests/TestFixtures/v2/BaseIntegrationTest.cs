@@ -189,78 +189,69 @@ public abstract class BaseIntegrationTest : IDisposable
 
     #region Asset API Methods
 
-    protected async Task<HttpResponseMessage> GetAssets(QueryParamsDto queryParams)
-    {
-        return await this.Client.GetAsync($"/api/v1/assets{queryParams.ToQueryString()}");
-    }
+    protected async Task<HttpResponseMessage> GetAssets(QueryParamsDto queryParams) =>
+        await this.Client.GetAsync($"/api/v1/assets{queryParams.ToQueryString()}");
 
     protected async Task<HttpResponseMessage> CreateAsset(CreateAssetDto createDto)
     {
-        // Create a multipart form content to handle file upload
-        var formContent = new MultipartFormDataContent();
-        
-        // Add the file
+        MultipartFormDataContent formContent = new MultipartFormDataContent();
+
         if (createDto.Asset != null)
         {
             StreamContent fileContent = new(createDto.Asset.OpenReadStream());
             formContent.Add(fileContent, "Asset", createDto.Asset.FileName);
         }
-        
-        // Add other properties
+
         formContent.Add(new StringContent(createDto.Name), "Name");
-        
+
         if (!string.IsNullOrEmpty(createDto.Description))
         {
             formContent.Add(new StringContent(createDto.Description), "Description");
         }
-        
+
         if (createDto.WorkAssetId.HasValue)
         {
             formContent.Add(new StringContent(createDto.WorkAssetId.Value.ToString()), "WorkAssetId");
         }
-        
+
+        if (createDto.CreatedById.HasValue)
+        {
+            formContent.Add(new StringContent(createDto.CreatedById.Value.ToString()), "CreatedById");
+        }
+
         return await this.Client.PostAsync("/api/v1/assets", formContent);
     }
 
     protected async Task<HttpResponseMessage> UpdateAsset(long id, UpdateAssetDto updateDto)
     {
-        // Create a multipart form content to handle file upload
-        var formContent = new MultipartFormDataContent();
-        
-        // Add the file if present
+        MultipartFormDataContent formContent = new MultipartFormDataContent();
+
         if (updateDto.File != null)
         {
             StreamContent fileContent = new(updateDto.File.OpenReadStream());
             formContent.Add(fileContent, "File", updateDto.File.FileName);
         }
-        
-        // Add other properties
+
         formContent.Add(new StringContent(updateDto.Name), "Name");
-        
+
         if (!string.IsNullOrEmpty(updateDto.Description))
         {
             formContent.Add(new StringContent(updateDto.Description), "Description");
         }
-        
+
         formContent.Add(new StringContent(updateDto.WorkItemId.ToString()), "WorkItemId");
-        
+
         return await this.Client.PutAsync($"/api/v1/assets/{id}", formContent);
     }
 
-    protected async Task<HttpResponseMessage> DeleteAsset(long id)
-    {
-        return await this.Client.DeleteAsync($"/api/v1/assets/{id}");
-    }
+    protected async Task<HttpResponseMessage> DeleteAsset(long id) =>
+        await this.Client.DeleteAsync($"/api/v1/assets/{id}");
 
-    protected async Task<HttpResponseMessage> FindAssets(QueryParamsDto findParams)
-    {
-        return await this.Client.GetAsync($"/api/v1/assets/find{findParams.ToQueryString()}");
-    }
+    protected async Task<HttpResponseMessage> FindAssets(QueryParamsDto findParams) =>
+        await this.Client.GetAsync($"/api/v1/assets/find{findParams.ToQueryString()}");
 
-    protected async Task<HttpResponseMessage> SearchAssets(DynamicQueryAssetParamsDto searchParams)
-    {
-        return await this.Client.GetAsync($"/api/v1/assets/search{searchParams.ToQueryString()}");
-    }
+    protected async Task<HttpResponseMessage> SearchAssets(DynamicQueryAssetParamsDto searchParams) =>
+        await this.Client.GetAsync($"/api/v1/assets/search{searchParams.ToQueryString()}");
 
     #endregion
 
@@ -272,7 +263,8 @@ public abstract class BaseIntegrationTest : IDisposable
     protected async Task<TResponse?> ReadResponseContent<TResponse>(HttpResponseMessage response) =>
         await response.Content.ReadFromJsonAsync<TResponse>();
 
-    protected async Task<AssetResponseDto> AssertSuccessfulAssetListResponse(HttpResponseMessage response, List<Asset> expectedAssets)
+    protected async Task<AssetResponseDto> AssertSuccessfulAssetListResponse(HttpResponseMessage response,
+        List<Asset> expectedAssets)
     {
         await this.AssertResponseStatusCode(response, HttpStatusCode.OK);
         AssetResponseDto result = await this.ReadResponseContent<AssetResponseDto>(response);

@@ -1,6 +1,6 @@
 #region
 
-using System.Runtime.CompilerServices;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
@@ -50,13 +50,7 @@ public static class AssetUtils
             Name = "Updated Asset",
             Description = "Updated asset description",
             WorkItemId = 1,
-            File = new MockFormFile(
-                new MemoryStream(),
-                0,
-                1024,
-                "updated.jpg",
-                "updated.jpg"
-            )
+            File = GetValidAsset("Updated Asset.txt")
         };
     }
 
@@ -66,27 +60,61 @@ public static class AssetUtils
         {
             Name = "Test Asset",
             Description = "Test asset description",
-            Asset = new MockFormFile(
-                new MemoryStream(),
-                0,
-                1024,
-                "test.jpg",
-                "test.jpg"
-            )
+            Asset = GetValidAsset()
         };
     }
 
-    internal static CreateAssetDto GetValidCreateAssetWithDataDto()
+    internal static CreateAssetDto GetValidCreateAssetWithDataDto(long workItemId = 0, string assetName = "Test Asset",
+        string extension = "txt")
     {
+        string assetNameWithExtension = $"{assetName}.{extension}";
         CreateAssetDto assetDto = GetValidCreateAssetDto();
-        assetDto.Asset = new MockFormFile(
-            new MemoryStream(),
-            0,
-            1024,
-            "test.jpg",
-            "test.jpg"
-            );
+        assetDto.Asset = GetValidAsset(assetNameWithExtension);
+        assetDto.AssetPath = assetNameWithExtension;
+        assetDto.Name = assetName;
+
+        if (workItemId > 0)
+        {
+            assetDto.WorkAssetId = workItemId;
+        }
+
         return assetDto;
+    }
+
+    private static IFormFile GetValidAsset(string assetNameWithExtension = "Test Asset.txt")
+    {
+        string fileContent = "This is a test file content.";
+        MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+        IFormFile file = new FormFile(stream,
+            0,
+            stream.Length,
+            assetNameWithExtension,
+            assetNameWithExtension
+        )
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "text/plain"
+        };
+
+        return file;
+    }
+
+    private static IFormFile GetInvalidAsset(string assetNameWithExtension = "Test Asset.txt")
+    {
+        string fileContent = "";
+        MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
+        IFormFile file = new FormFile(stream,
+            0,
+            0,
+            assetNameWithExtension,
+            assetNameWithExtension
+        )
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "text/plain"
+        };
+
+        return file;
     }
 
     internal static DynamicQueryAssetParamsDto GetValidDynamicQueryAssetParamsDto()
@@ -100,45 +128,13 @@ public static class AssetUtils
         };
     }
 
-    public sealed class MockFormFile : IFormFile
+    public static CreateAssetDto GetInvalidCreateAssetDto()
     {
-        private readonly Stream _baseStream;
-        private readonly long _baseStreamOffset;
-
-        public MockFormFile(Stream baseStream, long baseStreamOffset, long length, string name, string fileName)
+        return new CreateAssetDto
         {
-            this._baseStream = baseStream;
-            this._baseStreamOffset = baseStreamOffset;
-            this.Length = length;
-            this.Name = name;
-            this.FileName = fileName;
-            this.Headers = new HeaderDictionary();
-            this.ContentType = "image/jpeg";
-        }
-
-        public Stream OpenReadStream()
-        {
-            this._baseStream.Position = this._baseStreamOffset;
-            return this._baseStream;
-        }
-
-        public void CopyTo(Stream target)
-        {
-            this._baseStream.Position = this._baseStreamOffset;
-            this._baseStream.CopyTo(target);
-        }
-
-        public async Task CopyToAsync(Stream target, CancellationToken cancellationToken = default)
-        {
-            this._baseStream.Position = this._baseStreamOffset;
-            await this._baseStream.CopyToAsync(target, cancellationToken);
-        }
-
-        public string ContentType { get; set; }
-        public string ContentDisposition => $"form-data; name=\"{this.Name}\"; filename=\"{this.FileName}\"";
-        public IHeaderDictionary Headers { get; }
-        public long Length { get; }
-        public string Name { get; }
-        public string FileName { get; }
+            Name = "Test Asset",
+            Description = "Test asset description",
+            Asset = GetInvalidAsset()
+        };
     }
 }

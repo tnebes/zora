@@ -1,10 +1,12 @@
 #region
 
 using System.ComponentModel;
+using AutoMapper;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core.Domain;
+using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
 using zora.Core.Interfaces.Services;
@@ -30,20 +32,31 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     /// </summary>
     private readonly IAssetService _assetService;
 
+    private readonly IJwtService _jwtService;
+    private readonly IMapper _mapper;
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="AssetController" /> class.
     /// </summary>
     /// <param name="assetService">The service for managing assets.</param>
     /// <param name="queryService">The service for handling queries.</param>
     /// <param name="roleService">The service for managing roles.</param>
+    /// <param name="jwtService">The service for managing JWT tokens.</param>
     /// <param name="logger">The logger.</param>
+    /// <param name="mapper">The AutoMapper instance.</param>
     public AssetController(
         IAssetService assetService,
         IQueryService queryService,
         IRoleService roleService,
-        ILogger<AssetController> logger)
-        : base(logger, roleService, queryService) =>
+        IJwtService jwtService,
+        ILogger<AssetController> logger,
+        IMapper mapper)
+        : base(logger, roleService, queryService)
+    {
         this._assetService = assetService;
+        this._jwtService = jwtService;
+        this._mapper = mapper;
+    }
 
     /// <summary>
     ///     Retrieves a paginated list of assets with support for filtering, sorting, and searching.
@@ -91,13 +104,12 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     /// <param name="createDto">Data transfer object containing asset creation details</param>
     /// <returns>Created asset object</returns>
     [HttpPost]
-    [ProducesResponseType(typeof(Asset), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(AssetDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
     [Description("Creates a new asset.")]
-    [Authorize]
     public override async Task<ActionResult<Asset>> Create([FromForm] CreateAssetDto createDto)
     {
         try
@@ -110,7 +122,8 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                 return this.BadRequest(assetValidationResult.Errors);
             }
 
-            Result<Asset> createdAssetResult = await this._assetService.CreateAsync(createDto);
+            long userId = this._jwtService.GetCurrentUserId(this.User);
+            Result<Asset> createdAssetResult = await this._assetService.CreateAsync(createDto, userId);
 
             if (createdAssetResult.IsFailed)
             {
@@ -118,8 +131,8 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                 return this.StatusCode(StatusCodes.Status500InternalServerError, createdAssetResult.Errors);
             }
 
-            return this.CreatedAtAction(nameof(this.Get), new { id = createdAssetResult.Value.Id },
-                createdAssetResult.Value);
+            AssetDto assetDto = this._mapper.Map<AssetDto>(createdAssetResult.Value);
+            return this.CreatedAtAction(nameof(this.Get), new { id = createdAssetResult.Value.Id }, assetDto);
         }
         catch (Exception ex)
         {
@@ -135,7 +148,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     /// <param name="updateDto">Data transfer object containing updated asset details</param>
     /// <returns>Updated asset object</returns>
     [HttpPut("{id:long}")]
-    [ProducesResponseType(typeof(Asset), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AssetDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -166,22 +179,25 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                 return this.BadRequest("Invalid asset ID.");
             }
 
-            Result<Asset> updatedAssetResult = await this._assetService.UpdateAsync(id, updateDto);
+            Result<Asset> existingAssetResult = await this._assetService.GetByIdAsync(id);
+
+            if (existingAssetResult.IsFailed)
+            {
+                this.Logger.LogWarning("Asset not found with ID: {Id}", id);
+                return this.NotFound($"Asset with ID {id} not found.");
+            }
+
+            long userId = this._jwtService.GetCurrentUserId(this.User);
+            Result<Asset> updatedAssetResult = await this._assetService.UpdateAsync(id, updateDto, userId);
 
             if (updatedAssetResult.IsFailed)
             {
-                if (updatedAssetResult.Errors.Any(error =>
-                        error.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)))
-                {
-                    this.Logger.LogWarning("Asset not found: {Id}", id);
-                    return this.NotFound($"Asset with ID {id} not found.");
-                }
-
                 this.Logger.LogError("Error updating asset: {Error}", updatedAssetResult.Errors);
                 return this.StatusCode(StatusCodes.Status500InternalServerError, updatedAssetResult.Errors);
             }
 
-            return this.Ok(updatedAssetResult.Value);
+            AssetDto assetDto = this._mapper.Map<AssetDto>(updatedAssetResult.Value);
+            return this.Ok(assetDto);
         }
         catch (Exception ex)
         {

@@ -108,13 +108,13 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         }
     }
 
-    public new async Task<Result> UpdateAsync(Asset entity)
+    public new async Task<Result<Asset>> UpdateAsync(Asset entity)
     {
         try
         {
             this.DbSet.Update(entity);
             await this.DbContext.SaveChangesAsync();
-            return Result.Ok();
+            return Result.Ok(entity);
         }
         catch (Exception ex)
         {
