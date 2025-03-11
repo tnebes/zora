@@ -7,9 +7,20 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'master', url: 'https://github.com/tnebes/zora.git'
+        stage('Setup') {
+            parallel {
+                stage('Checkout Code') {
+                    steps {
+                        git branch: 'master', url: 'https://github.com/tnebes/zora.git'
+                    }
+                }
+
+                stage('Stop Services') {
+                    steps {
+                        sh 'sudo systemctl stop zora.service'
+                        sh 'sudo systemctl stop nginx'
+                    }
+                }
             }
         }
 
@@ -19,9 +30,19 @@ pipeline {
             }
         }
 
-        stage('Build and Publish Backend') {
-            steps {
-                sh 'cd app && dotnet publish -c Release -o ../publish'
+        stage('Build and Publish') {
+            parallel {
+                stage('Build and Publish Backend') {
+                    steps {
+                        sh 'cd app && dotnet publish -c Release -o ../publish'
+                    }
+                }
+
+                stage('Build and Publish Frontend') {
+                    steps {
+                        sh 'cd app/ClientApp && npm install && npm run build -- --omit=dev'
+                    }
+                }
             }
         }
 
@@ -29,8 +50,16 @@ pipeline {
             steps {
                 sh 'rm -rf /var/www/zora/app/*'
                 sh 'cp -r publish/. /var/www/zora/app/'
+                sh 'cp -r publish/ClientApp/dist/* /var/www/zora/wwwroot/'
                 sh 'sudo systemctl restart zora.service'
+                sh 'sudo systemctl restart nginx'
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
