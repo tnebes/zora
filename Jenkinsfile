@@ -9,6 +9,8 @@ pipeline {
         TESTS_DIR = "${SOLUTION_DIR}/tests/zora.Tests"
         PUBLISH_DIR = "publish"
         DEPLOY_DIR = "/var/www/zora"
+        FRONTEND_SRC = "${SOLUTION_DIR}/ClientApp/dist"
+        FRONTEND_DEST = "${DEPLOY_DIR}/wwwroot"
     }
 
     stages {
@@ -53,15 +55,58 @@ pipeline {
         }
 
         stage('Deploy') {
-            steps {
-                sh '''
-                    rm -rf ${DEPLOY_DIR}/app/*
-                    cp -r ${PUBLISH_DIR}/. ${DEPLOY_DIR}/app/
-                    
-                    # The frontend should be built by the PublishRunWebpack target in the .csproj
-                    # Ensure the wwwroot folder exists in the deploy directory
-                    mkdir -p ${DEPLOY_DIR}/wwwroot
-                '''
+            parallel {
+                stage('Deploy Backend') {
+                    steps {
+                        sh '''
+                            set -e  # Exit immediately if a command exits with a non-zero status
+                            echo "Starting backend deployment..."
+                            
+                            if [ ! -d "${PUBLISH_DIR}" ]; then
+                                echo "ERROR: Publish directory not found at ${PUBLISH_DIR}"
+                                exit 1
+                            fi
+                            
+                            rm -rf ${DEPLOY_DIR}/app/*
+                            cp -r ${PUBLISH_DIR}/. ${DEPLOY_DIR}/app/
+                            
+                            if [ $? -ne 0 ]; then
+                                echo "ERROR: Failed to copy backend files to deployment directory"
+                                exit 1
+                            fi
+                            
+                            echo "Backend deployment completed successfully"
+                        '''
+                    }
+                }
+                
+                stage('Deploy Frontend') {
+                    steps {
+                        sh '''
+                            set -e  # Exit immediately if a command exits with a non-zero status
+                            echo "Starting frontend deployment..."
+                            
+                            rm -rf ${FRONTEND_DEST}/*
+                            mkdir -p ${FRONTEND_DEST}
+                            
+                            if [ -d "${FRONTEND_SRC}" ]; then
+                                echo "Copying Angular dist files to wwwroot..."
+                                cp -r ${FRONTEND_SRC}/* ${FRONTEND_DEST}/
+                                
+                                if [ $? -ne 0 ]; then
+                                    echo "ERROR: Failed to copy frontend files to wwwroot"
+                                    exit 1
+                                fi
+                                
+                                echo "Frontend deployment completed successfully"
+                            else
+                                echo "ERROR: Angular dist directory not found at ${FRONTEND_SRC}"
+                                echo "Frontend build may have failed or was not generated"
+                                exit 1
+                            fi
+                        '''
+                    }
+                }
             }
         }
 
