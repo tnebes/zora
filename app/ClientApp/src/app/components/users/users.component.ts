@@ -185,6 +185,8 @@ export class UsersComponent implements OnInit, AfterViewInit {
                 next: () => {
                     NotificationUtils.showSuccess(this.dialog, `User ${user.username} has been updated successfully`);
                     this.loadUsers();
+                    this.addRoles();
+                    this.setupSearchAndSort();
                 },
                 error: (error) => {
                     console.error('Error updating user:', error);
