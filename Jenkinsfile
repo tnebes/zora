@@ -17,8 +17,8 @@ pipeline {
 
                 stage('Stop Services') {
                     steps {
-                        sh 'systemctl stop zora.service'
-                        sh 'systemctl stop nginx'
+                        sh 'sudo systemctl stop zora.service'
+                        sh 'sudo systemctl stop nginx'
                     }
                 }
             }
