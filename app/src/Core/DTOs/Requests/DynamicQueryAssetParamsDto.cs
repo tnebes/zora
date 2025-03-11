@@ -11,5 +11,18 @@ public sealed class DynamicQueryAssetParamsDto : DynamicQueryParamsDto
     public string? WorkItemId { get; set; }
     public string? WorkItemName { get; set; }
 
-    protected override Dictionary<string, string> GetParameters() => throw new NotImplementedException();
+    protected override Dictionary<string, string> GetParameters()
+    {
+        return new Dictionary<string, string>
+        {
+            { "id", this.Id },
+            { "name", this.Name },
+            { "description", this.Description },
+            { "assetPath", this.AssetPath },
+            { "createdBy", this.CreatedBy },
+            { "updatedBy", this.UpdatedBy },
+            { "workItemId", this.WorkItemId },
+            { "workItemName", this.WorkItemName }
+        };
+    }
 }

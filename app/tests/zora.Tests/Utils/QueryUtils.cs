@@ -16,7 +16,7 @@ public static class QueryUtils
             {
                 Page = 1,
                 PageSize = 50,
-                SearchTerm = "",
+                SearchTerm = "test",
                 SortColumn = "asc",
                 SortDirection = "Id"
             };

@@ -55,6 +55,10 @@ public sealed class AssetExceptionThrowingWebApplicationFactory : WebApplication
                 .Setup(service => service.ValidateUpdateAssetDto(It.IsAny<UpdateAssetDto>()))
                 .Returns<UpdateAssetDto>(dto => Result.Ok(dto));
 
+            mockAssetService
+                .Setup(service => service.DeleteAsync(It.IsAny<long>()))
+                .ThrowsAsync(new Exception("Simulated exception for delete testing"));
+
             services.Replace(ServiceDescriptor.Scoped(_ => mockAssetService.Object));
 
             services.Configure<AuthenticationOptions>(options =>
@@ -272,69 +276,163 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid asset ID that triggers an exception WHEN Update() is invoked THEN the controller returns a 500 Internal Server Error")]
     public async Task Update_WithRepositoryException_Returns500InternalServerError()
     {
-        // TODO: Implement test
+        using AssetExceptionThrowingWebApplicationFactory exceptionFactory = new();
+        HttpClient exceptionClient = exceptionFactory.CreateClient();
+        exceptionClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "Admin");
+
+        long validAssetId = 1;
+        UpdateAssetDto updateAssetDto = AssetUtils.GetValidUpdateAssetDto();
+
+        MultipartFormDataContent formContent = new MultipartFormDataContent();
+        formContent.Add(new StringContent(updateAssetDto.Name), "Name");
+
+        if (updateAssetDto.Description != null)
+        {
+            formContent.Add(new StringContent(updateAssetDto.Description), "Description");
+        }
+
+        formContent.Add(new StringContent(updateAssetDto.WorkItemId.ToString()), "WorkItemId");
+
+        if (updateAssetDto.File != null)
+        {
+            StreamContent fileContent = new StreamContent(updateAssetDto.File.OpenReadStream());
+            formContent.Add(fileContent, "File", updateAssetDto.File.FileName);
+        }
+
+        HttpResponseMessage response = await exceptionClient.PutAsync($"/api/v1/assets/{validAssetId}", formContent);
+
+        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 
     [Fact(DisplayName =
         "GIVEN a valid asset ID and an admin user WHEN Delete() is invoked THEN the controller returns a 200 OK with true")]
     public async Task Delete_WithAdminUserAndValidAssetId_ReturnsOkWithTrue()
     {
-        // TODO: Implement test
+        await this.ClearDatabase();
+        this.SetupAdminAuthentication();
+
+        List<Asset> assets = AssetUtils.GetValidAssets().ToList();
+        await this.SeedAssets(assets);
+        Asset existingAsset = assets.First();
+
+        HttpResponseMessage response = await this.DeleteAsset(existingAsset.Id);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        bool? result = await this.ReadResponseContent<bool>(response);
+
+        result.Should().NotBeNull();
+        result.Should().BeTrue();
     }
 
     [Fact(DisplayName =
         "GIVEN a valid asset ID and a non-admin user WHEN Delete() is invoked THEN the controller returns an Unauthorized result")]
     public async Task Delete_WithNonAdminUser_ReturnsUnauthorized()
     {
-        // TODO: Implement test
+        await this.ClearDatabase();
+        this.SetupRegularUserAuthentication();
+
+        List<Asset> assets = AssetUtils.GetValidAssets().ToList();
+        await this.SeedAssets(assets);
+        Asset existingAsset = assets.First();
+
+        HttpResponseMessage response = await this.DeleteAsset(existingAsset.Id);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact(DisplayName =
         "GIVEN an invalid asset ID WHEN Delete() is invoked THEN the controller returns a 400 Bad Request")]
     public async Task Delete_WithInvalidAssetId_ReturnsBadRequest()
     {
-        // TODO: Implement test
+        await this.ClearDatabase();
+        this.SetupAdminAuthentication();
+
+        long invalidAssetId = -1;
+        HttpResponseMessage response = await this.DeleteAsset(invalidAssetId);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact(DisplayName =
         "GIVEN a non-existent asset ID WHEN Delete() is invoked THEN the controller returns a 404 Not Found")]
     public async Task Delete_WithNonExistentAssetId_ReturnsNotFound()
     {
-        // TODO: Implement test
+        await this.ClearDatabase();
+        this.SetupAdminAuthentication();
+
+        long nonExistentAssetId = 9999;
+        HttpResponseMessage response = await this.DeleteAsset(nonExistentAssetId);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact(DisplayName =
         "GIVEN a valid asset ID that triggers an exception WHEN Delete() is invoked THEN the controller returns a 500 Internal Server Error")]
     public async Task Delete_WithRepositoryException_Returns500InternalServerError()
     {
-        // TODO: Implement test
+        await using AssetExceptionThrowingWebApplicationFactory exceptionFactory = new();
+        HttpClient exceptionClient = exceptionFactory.CreateClient();
+        exceptionClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "Admin");
+
+        long validAssetId = 1;
+        HttpResponseMessage response = await exceptionClient.DeleteAsync($"/api/v1/assets/{validAssetId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 
     [Fact(DisplayName =
         "GIVEN a valid QueryParamsDto and an admin user WHEN Find() is invoked THEN the controller returns an OK result with matching assets")]
     public async Task Find_WithAdminUserAndValidParams_ReturnsOkWithMatchingAssets()
     {
-        // TODO: Implement test
-    }
+        await this.ClearDatabase();
+        this.SetupAdminAuthentication();
 
-    [Fact(DisplayName =
-        "GIVEN a null QueryParamsDto WHEN Find() is invoked THEN the controller returns a 400 Bad Request")]
-    public async Task Find_WithNullParams_ReturnsBadRequest()
-    {
-        // TODO: Implement test
+        List<Asset> assets = AssetUtils.GetValidAssets().ToList();
+        await this.SeedAssets(assets);
+
+        QueryParamsDto queryParams = QueryUtils.QueryParamUtils.GetValidQueryParams();
+        HttpResponseMessage response = await this.FindAssets(queryParams);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        AssetResponseDto? responseAssets = await this.ReadResponseContent<AssetResponseDto>(response);
+
+        responseAssets.Should().NotBeNull();
+        responseAssets.Items.Should().NotBeNull();
+        responseAssets.Items.Should().HaveCountGreaterThanOrEqualTo(1);
     }
 
     [Fact(DisplayName =
         "GIVEN a valid DynamicQueryAssetParamsDto and an admin user WHEN Search() is invoked THEN the controller returns an OK result with matching assets")]
     public async Task Search_WithAdminUserAndValidParams_ReturnsOkWithMatchingAssets()
     {
-        // TODO: Implement test
+        await this.ClearDatabase();
+        this.SetupAdminAuthentication();
+
+        List<Asset> assets = AssetUtils.GetValidAssets().ToList();
+        await this.SeedAssets(assets);
+
+        DynamicQueryAssetParamsDto searchParams = AssetUtils.GetValidDynamicQueryAssetParamsDto();
+        HttpResponseMessage response = await this.SearchAssets(searchParams);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        AssetResponseDto? responseAssets = await this.ReadResponseContent<AssetResponseDto>(response);
+
+        responseAssets.Should().NotBeNull();
+        responseAssets.Items.Should().NotBeNull();
     }
 
     [Fact(DisplayName =
         "GIVEN a DynamicQueryAssetParamsDto that triggers an exception WHEN Search() is invoked THEN the controller returns a 500 Internal Server Error")]
     public async Task Search_WithServiceException_Returns500InternalServerError()
     {
-        // TODO: Implement test
+        await using AssetExceptionThrowingWebApplicationFactory exceptionFactory = new();
+        HttpClient exceptionClient = exceptionFactory.CreateClient();
+        exceptionClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "Admin");
+
+        DynamicQueryAssetParamsDto searchParams = AssetUtils.GetValidDynamicQueryAssetParamsDto();
+        HttpResponseMessage response =
+            await exceptionClient.GetAsync($"/api/v1/assets/search{searchParams.ToQueryString()}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
     }
 }
