@@ -9,7 +9,9 @@ using zora.Core;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
+using zora.Core.Enums;
 using zora.Core.Interfaces.Services;
+using zora.Core.Utilities;
 
 #endregion
 
@@ -109,6 +111,12 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
 
             if (result.IsFailed)
             {
+                if (ResultUtilities.IsValidationError(result, ErrorType.ValidationError))
+                {
+                    this.Logger.LogError("Error creating permission: {Error}", result.Errors);
+                    return this.BadRequest();
+                }
+
                 this.Logger.LogError("Error creating permission: {Error}", result.Errors);
                 return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
             }
@@ -153,6 +161,12 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
 
             if (result.IsFailed)
             {
+                if (ResultUtilities.IsValidationError(result, ErrorType.NotFound))
+                {
+                    this.Logger.LogError("Error updating permission: {Error}", result.Errors);
+                    return this.NotFound();
+                }
+
                 this.Logger.LogError("Error updating permission: {Error}", result.Errors);
                 return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
             }

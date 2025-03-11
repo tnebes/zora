@@ -85,14 +85,19 @@ public sealed class UserService : IUserService, IZoraService
         try
         {
             (IEnumerable<User> users, int total) = await this._userRepository.GetUsersAsync(queryParams);
+
+            if (!users.Any() || total == 0)
+            {
+                return Result.Fail<(IEnumerable<User>, int total)>(new Error("No users found")
+                    .WithMetadata(Constants.ERROR_TYPE, ErrorType.NotFound));
+            }
+
             return Result.Ok((users, total));
         }
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error getting users");
-            return Result.Fail<(IEnumerable<User>, int total)>(new Error("Error getting users")
-                .WithMetadata(Constants.ERROR_TYPE, ErrorType.SystemError)
-                .WithMetadata("exception", ex));
+            throw;
         }
     }
 
@@ -108,9 +113,7 @@ public sealed class UserService : IUserService, IZoraService
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error getting users");
-            return Result.Fail<UserResponseDto<FullUserDto>>(new Error("Error getting users")
-                .WithMetadata(Constants.ERROR_TYPE, ErrorType.SystemError)
-                .WithMetadata("exception", ex));
+            throw;
         }
     }
 
@@ -227,7 +230,7 @@ public sealed class UserService : IUserService, IZoraService
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error deleting user with ID {UserId}", id);
-            return false;
+            throw;
         }
     }
 
@@ -289,8 +292,25 @@ public sealed class UserService : IUserService, IZoraService
         }
     }
 
-    public bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username) =>
-        httpContextUser.Identity?.Name == username;
+    public bool ClaimIsUser(ClaimsPrincipal httpContextUser, string username)
+    {
+        if (httpContextUser.Identity?.Name == username)
+        {
+            return true;
+        }
+
+        string? userIdClaim = httpContextUser.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim != null && long.TryParse(userIdClaim, out long userId))
+        {
+            Result<User> userResult = this._userRepository.GetByIdAsync(userId).Result;
+            if (userResult.IsSuccess && userResult.Value.Username == username)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public async Task<Result<User>> GetUserByUsernameAsync(string username)
     {

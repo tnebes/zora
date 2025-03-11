@@ -135,13 +135,20 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
                 query = this.IncludeProperties(query);
             }
 
-            query = query.Where(r =>
-                EF.Functions.Like(r.Name, $"%{findParams.SearchTerm}%"));
+            if (!string.IsNullOrWhiteSpace(findParams.SearchTerm))
+            {
+                string searchTerm = findParams.SearchTerm.ToLower();
+                query = query.Where(r =>
+                    r.Name.ToLower().Contains(searchTerm));
+            }
 
             int totalCount = await query.CountAsync();
 
+            int totalPages = (int)Math.Ceiling(totalCount / (double)findParams.PageSize);
+            int page = totalPages > 0 ? Math.Min(findParams.Page, totalPages) : 1;
+
             List<Role> roles = await query
-                .Skip((findParams.Page - 1) * findParams.PageSize)
+                .Skip((page - 1) * findParams.PageSize)
                 .Take(findParams.PageSize)
                 .ToListAsync();
 

@@ -206,6 +206,8 @@ public sealed class RoleService : IRoleService, IZoraService
                 return Result.Fail<RoleResponseDto>("Search term must be at least 3 characters long");
             }
 
+            findParams.SearchTerm = findParams.SearchTerm.Trim();
+
             Result<(IEnumerable<Role>, int totalCount)> result = await this._roleRepository.FindRolesAsync(findParams);
 
             if (result.IsFailed)

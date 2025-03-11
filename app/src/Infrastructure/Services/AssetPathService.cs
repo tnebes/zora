@@ -11,8 +11,6 @@ namespace zora.Infrastructure.Services;
 [ServiceLifetime(ServiceLifetime.Singleton)]
 public sealed class AssetPathService : IAssetPathService, IZoraService
 {
-    private const string _assetsFolder = "assets";
-    private const string _contentFolder = "content";
     private readonly string _basePath;
     private readonly IEnvironmentManagerService _environmentManager;
 
@@ -23,19 +21,15 @@ public sealed class AssetPathService : IAssetPathService, IZoraService
     }
 
     public string GetAssetsBasePath() =>
-        Path.Combine(this._basePath, _contentFolder, _assetsFolder);
+        Path.Combine(this._basePath, Constants.CONTENT_ASSETS_FOLDER);
 
     public string GetAssetWebPath(string fileName) =>
-        Path.Combine(_contentFolder, _assetsFolder, fileName);
+        Path.Combine(Constants.CONTENT_ASSETS_FOLDER, fileName);
 
     private string DetermineBasePath()
     {
-        if (this._environmentManager.IsDevelopment())
-        {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Constants.WWW_ROOT);
-        }
-
-
-        return Constants.PRODUCTION_BASE_PATH;
+        return this._environmentManager.IsDevelopment()
+            ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Constants.WWW_ROOT)
+            : Constants.PRODUCTION_BASE_PATH;
     }
 }

@@ -68,21 +68,16 @@ public sealed class AssetService : IAssetService, IZoraService
     public async Task<Result<Asset>> GetByIdAsync(long id, bool includeProperties = false) =>
         await this._assetRepository.GetByIdAsync(id, includeProperties);
 
+    public async Task<Result<Asset>> CreateAsync(CreateAssetDto createDto, long userId)
+    {
+        createDto.CreatedById = userId;
+        return await this.CreateAsync(createDto);
+    }
+
     public async Task<Result<Asset>> CreateAsync(CreateAssetDto createDto)
     {
         try
         {
-            if (createDto.Asset == null || createDto.Asset.Length == 0)
-            {
-                return Result.Fail<Asset>("Asset file is required and cannot be empty");
-            }
-
-            if (createDto.Asset.Length > Constants.MAX_FILE_SIZE)
-            {
-                return Result.Fail<Asset>(
-                    $"File size exceeds maximum limit of {Constants.MAX_FILE_SIZE / 1024 / 1024}MB");
-            }
-
             string fileName = $"{Guid.NewGuid()}_{Path.GetFileName(createDto.Asset.FileName)}";
             string uploadDirectory = this._assetPathService.GetAssetsBasePath();
             Directory.CreateDirectory(uploadDirectory);
@@ -95,7 +90,6 @@ public sealed class AssetService : IAssetService, IZoraService
 
             createDto.AssetPath = this._assetPathService.GetAssetWebPath(fileName);
             Asset asset = this._mapper.Map<Asset>(createDto);
-            asset.CreatedAt = DateTime.UtcNow;
 
             return await this._assetRepository.AddAsync(asset);
         }
@@ -113,19 +107,48 @@ public sealed class AssetService : IAssetService, IZoraService
 
     public async Task<Result<Asset>> UpdateAsync(long id, UpdateAssetDto updateDto)
     {
-        Result<Asset> existingAssetResult = await this._assetRepository.GetByIdAsync(id);
-        if (existingAssetResult.IsFailed)
+        try
         {
-            this._logger.LogError("Failed to find asset with id {Id}. Errors: {Errors}", id,
-                existingAssetResult.Errors);
-            return existingAssetResult;
+            Result<Asset> existingAsset = await this.GetByIdAsync(id);
+            if (existingAsset.IsFailed)
+            {
+                return existingAsset;
+            }
+
+            if (updateDto == null)
+            {
+                return Result.Fail<Asset>("Update data is required");
+            }
+
+            Asset asset = existingAsset.Value;
+
+            if (updateDto.File is { Length: > 0 })
+            {
+                string fileName = $"{Guid.NewGuid()}_{Path.GetFileName(updateDto.File.FileName)}";
+                string uploadDirectory = this._assetPathService.GetAssetsBasePath();
+                string filePath = Path.Combine(uploadDirectory, fileName);
+
+                await using FileStream stream = new FileStream(filePath, FileMode.Create);
+                await updateDto.File.CopyToAsync(stream);
+
+                asset.AssetPath = this._assetPathService.GetAssetWebPath(fileName);
+            }
+
+            this._mapper.Map(updateDto, asset);
+
+            return await this._assetRepository.UpdateAsync(asset);
         }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error updating asset with ID {Id}: {Message}", id, ex.Message);
+            return Result.Fail<Asset>($"Error updating asset: {ex.Message}");
+        }
+    }
 
-        Asset existingAsset = existingAssetResult.Value;
-        this._mapper.Map(updateDto, existingAsset);
-        existingAsset.UpdatedAt = DateTime.UtcNow;
-
-        return await this._assetRepository.UpdateAsync(existingAsset);
+    public async Task<Result<Asset>> UpdateAsync(long id, UpdateAssetDto updateDto, long userId)
+    {
+        updateDto.UpdatedById = userId;
+        return await this.UpdateAsync(id, updateDto);
     }
 
     public async Task<bool> DeleteAsync(long id)
@@ -195,46 +218,42 @@ public sealed class AssetService : IAssetService, IZoraService
         return Result.Ok(response);
     }
 
-    public Result<TRequestDto> ValidateDto<TRequestDto>(TRequestDto dto) where TRequestDto : class
+    public Result<CreateAssetDto> ValidateCreateAssetDto(CreateAssetDto dto)
     {
-        if (dto == null)
+        if (string.IsNullOrEmpty(dto.Name))
         {
-            return Result.Fail<TRequestDto>("Request DTO cannot be null");
+            return Result.Fail<CreateAssetDto>("Name is required");
         }
 
-        if (dto is CreateAssetDto createAssetDto)
+        if (dto.Asset == null || dto.Asset.Length == 0)
         {
-            if (string.IsNullOrEmpty(createAssetDto.Name))
-            {
-                return Result.Fail<TRequestDto>("Name is required");
-            }
-
-            if (createAssetDto.Asset == null)
-            {
-                return Result.Fail<TRequestDto>("Asset is required");
-            }
-
-            if (createAssetDto.WorkAssetId.HasValue && createAssetDto.WorkAssetId.Value <= 0)
-            {
-                return Result.Fail<TRequestDto>("Work asset ID must be greater than 0");
-            }
+            return Result.Fail<CreateAssetDto>("Asset file is required and cannot be empty");
         }
-        else if (dto is UpdateAssetDto updateAssetDto)
-        {
-            if (string.IsNullOrEmpty(updateAssetDto.Name))
-            {
-                return Result.Fail<TRequestDto>("Name is required");
-            }
 
-            if (updateAssetDto.File == null)
-            {
-                return Result.Fail<TRequestDto>("File is required");
-            }
-        }
-        else
+        if (dto.WorkAssetId.HasValue && dto.WorkAssetId.Value <= 0)
         {
-            this._logger.LogError("Invalid request DTO type: {DtoType}", dto.GetType().Name);
-            throw new InvalidOperationException("Invalid request DTO type");
+            return Result.Fail<CreateAssetDto>("Work asset ID must be greater than 0");
+        }
+
+        if (dto.Asset.Length > Constants.MAX_FILE_SIZE_BYTES)
+        {
+            return Result.Fail<CreateAssetDto>(
+                $"File size exceeds maximum limit of {Constants.MAX_FILE_SIZE_MB}MB");
+        }
+
+        return Result.Ok(dto);
+    }
+
+    public Result<UpdateAssetDto> ValidateUpdateAssetDto(UpdateAssetDto dto)
+    {
+        if (string.IsNullOrEmpty(dto.Name))
+        {
+            return Result.Fail<UpdateAssetDto>("Name is required");
+        }
+
+        if (dto.File is null)
+        {
+            return Result.Fail<UpdateAssetDto>("File is required");
         }
 
         return Result.Ok(dto);

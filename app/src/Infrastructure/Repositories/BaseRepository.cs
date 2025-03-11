@@ -93,7 +93,11 @@ public abstract class BaseRepository<T> where T : BaseEntity
     protected async Task<(IQueryable<T>, int totalCount)> GetPagedAsync(IQueryable<T> query, int page, int pageSize)
     {
         int totalCount = await query.CountAsync();
-        IQueryable<T> entities = query.Skip((page - 1) * pageSize).Take(pageSize);
+
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        int adjustedPage = totalPages > 0 ? Math.Min(page, totalPages) : 1;
+
+        IQueryable<T> entities = query.Skip((adjustedPage - 1) * pageSize).Take(pageSize);
         return (entities, totalCount);
     }
 

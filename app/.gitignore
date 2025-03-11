@@ -235,3 +235,10 @@ wwwroot/content/
 
 # Angular trash files
 **/.angular/cache
+
+# Logs
+logs/
+
+# Coverage Report
+coverage-report/
+tests/zora.Tests/TestResults/

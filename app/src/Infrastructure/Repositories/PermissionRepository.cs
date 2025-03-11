@@ -113,9 +113,12 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
                     .AsSplitQuery();
             }
 
+            int totalPages = (int)Math.Ceiling(totalCount / (double)queryParams.PageSize);
+            int page = totalPages > 0 ? Math.Min(queryParams.Page, totalPages) : 1;
+
             List<Permission> permissions = await query
                 .OrderBy(p => p.Id)
-                .Skip((queryParams.Page - 1) * queryParams.PageSize)
+                .Skip((page - 1) * queryParams.PageSize)
                 .Take(queryParams.PageSize)
                 .ToListAsync();
 
@@ -144,8 +147,11 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
 
             int totalCount = await query.CountAsync();
 
+            int totalPages = (int)Math.Ceiling(totalCount / (double)findParams.PageSize);
+            int page = totalPages > 0 ? Math.Min(findParams.Page, totalPages) : 1;
+
             List<Permission> permissions = await query
-                .Skip((findParams.Page - 1) * findParams.PageSize)
+                .Skip((page - 1) * findParams.PageSize)
                 .Take(findParams.PageSize)
                 .ToListAsync();
 

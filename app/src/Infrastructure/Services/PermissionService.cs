@@ -2,6 +2,7 @@
 
 using AutoMapper;
 using FluentResults;
+using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
@@ -9,6 +10,7 @@ using zora.Core.DTOs.Responses;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
+using zora.Core.Utilities;
 
 #endregion
 
@@ -101,6 +103,14 @@ public sealed class PermissionService : IPermissionService, IZoraService
     {
         try
         {
+            Result<Permission> validationResult = this.validateCreatePermission(permissionDto);
+
+            if (validationResult.IsFailed)
+            {
+                this._logger.LogError("Error creating permission: {Error}", validationResult.Errors);
+                return validationResult;
+            }
+
             Permission permission = new Permission
             {
                 Name = permissionDto.Name,
@@ -126,7 +136,10 @@ public sealed class PermissionService : IPermissionService, IZoraService
             Result<Permission> permissionResult = await this._permissionRepository.GetByIdAsync(id);
             if (permissionResult.IsFailed)
             {
-                return Result.Fail<Permission>($"Permission with ID {id} not found");
+                this._logger.LogError("Error updating permission: {Error}", permissionResult.Errors);
+                return Result.Fail<Permission>(new Error($"Permission with ID {id} not found")
+                        .WithMetadata(Constants.REASON, ErrorType.NotFound))
+                    .WithError(permissionResult.Errors[0].Message);
             }
 
             Permission permission = permissionResult.Value;
@@ -305,6 +318,28 @@ public sealed class PermissionService : IPermissionService, IZoraService
         }
     }
 
+    private Result<Permission> validateCreatePermission(CreatePermissionDto permissionDto)
+    {
+        if (string.IsNullOrWhiteSpace(permissionDto.Name))
+        {
+            Result<Permission> result = Result.Fail(new Error("Name is required")
+                .WithMetadata(Constants.REASON, ErrorType.ValidationError));
+            return result;
+        }
+
+        Result<bool> permissionStringValidation =
+            PermissionUtilities.ValidatePermissionString(permissionDto.PermissionString);
+
+        if (permissionStringValidation.IsFailed)
+        {
+            Result<Permission> result = Result.Fail<Permission>(new Error("Permission string is invalid")
+                .WithMetadata(Constants.REASON, ErrorType.ValidationError));
+            return result;
+        }
+
+        return Result.Ok();
+    }
+
     private async Task<bool> CheckRolePermissionsAsync(UserRole userRole, PermissionRequestDto request)
     {
         Result<IEnumerable<RolePermission>> result =
@@ -336,12 +371,6 @@ public sealed class PermissionService : IPermissionService, IZoraService
             await this._permissionWorkItemRepository.GetByCompositeKeyAsync(permission.Id, request.ResourceId);
 
         return permissionWorkItemResult is { IsSuccess: true, Value: not null } &&
-               DoesPermissionGrantAccess(permission.PermissionString, request.RequestedPermission);
-    }
-
-    private static bool DoesPermissionGrantAccess(string permissionString, PermissionFlag requestedPermission)
-    {
-        int permissions = Convert.ToInt32(permissionString, 2);
-        return (permissions & (int)requestedPermission) == (int)requestedPermission;
+               PermissionUtilities.DoesPermissionGrantAccess(permission.PermissionString, request.RequestedPermission);
     }
 }

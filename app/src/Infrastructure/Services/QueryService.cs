@@ -17,11 +17,17 @@ public sealed class QueryService : IQueryService, IZoraService
     private readonly ILogger<QueryService> _logger;
     public QueryService(ILogger<QueryService> logger) => this._logger = logger;
 
+    public void NormaliseQueryParamsForAdmin(IQueryParamsDto queryParams)
+    {
+        queryParams.Page = Math.Max(Constants.DEFAULT_PAGE_SIZE, queryParams.Page);
+        queryParams.PageSize = Math.Max(Constants.DEFAULT_PAGE_SIZE, queryParams.PageSize);
+    }
+
     public void NormaliseQueryParams(IQueryParamsDto queryParams)
     {
         queryParams.Page = Math.Max(1, queryParams.Page);
-        queryParams.PageSize = Math.Clamp(queryParams.PageSize, Constants.DEFAULT_PAGE_SIZE,
-            Constants.MAX_RESULTS_PER_PAGE);
+        queryParams.PageSize = Math.Min(queryParams.PageSize <= 0 ? Constants.DEFAULT_PAGE_SIZE : queryParams.PageSize,
+            Constants.DEFAULT_PAGE_SIZE);
     }
 
     public void ValidateQueryParams(DynamicQueryParamsDto queryParams, ResourceType type)
@@ -29,6 +35,11 @@ public sealed class QueryService : IQueryService, IZoraService
         if (type == ResourceType.Route)
         {
             throw new ArgumentOutOfRangeException(nameof(type), "Invalid resource type");
+        }
+
+        if (queryParams.Page <= 0 || queryParams.PageSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(queryParams), "Page and PageSize must be greater than 0");
         }
     }
 }

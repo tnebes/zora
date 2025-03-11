@@ -8,7 +8,9 @@ using zora.Extensions;
 
 #endregion
 
-public class Program
+namespace zora;
+
+public sealed class Program
 {
     public static async Task Main(string[] args)
     {

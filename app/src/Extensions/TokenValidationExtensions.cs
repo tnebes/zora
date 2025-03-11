@@ -31,17 +31,17 @@ public static class TokenValidationExtensions
     {
         byte[] key = Encoding.UTF8.GetBytes(issuerSigningKey);
 
-        string[] validAudiences = new[]
-        {
+        string[] validAudiences =
+        [
             Constants.ZORA_SUBDOMAIN_URL,
             Constants.LOCAL_CLIENT_URL
-        };
+        ];
 
-        string[] validIssuers = new[]
-        {
+        string[] validIssuers =
+        [
             Constants.ZORA_URL,
             Constants.LOCAL_API_URL
-        };
+        ];
 
         return new TokenValidationParameters
         {

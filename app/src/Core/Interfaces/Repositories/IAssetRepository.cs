@@ -17,7 +17,7 @@ public interface IAssetRepository : ISearchRepository<Asset, DynamicQueryAssetPa
         bool includeProperties = false);
 
     Task<Result<Asset>> AddAsync(Asset entity);
-    Task<Result> UpdateAsync(Asset entity);
+    Task<Result<Asset>> UpdateAsync(Asset entity);
     Task<Result> DeleteAsync(long id);
 
     Task<Result<(IEnumerable<Asset> Assets, int TotalCount)>> FindByConditionAsync(string searchTerm,
