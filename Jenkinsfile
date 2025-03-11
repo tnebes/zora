@@ -32,7 +32,7 @@ pipeline {
 
         stage('Build and Publish') {
             steps {
-                sh 'cd app && dotnet publish -c Release -o ../publish'
+                sh 'cd app && dotnet publish zora.csproj -c Release -o ../publish'
             }
         }
 
@@ -40,8 +40,8 @@ pipeline {
             steps {
                 sh 'rm -rf /var/www/zora/app/*'
                 sh 'cp -r publish/. /var/www/zora/app/'
-                sh 'sudo systemctl restart zora.service'
-                sh 'sudo systemctl restart nginx'
+                sh 'sudo systemctl start zora.service'
+                sh 'sudo systemctl start nginx'
             }
         }
     }
