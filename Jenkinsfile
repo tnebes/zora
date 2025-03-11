@@ -81,14 +81,17 @@ pipeline {
                     systemctl is-active --quiet nginx && echo "Nginx is running" || (echo "Nginx failed to start" && exit 1)
                     
                     # Wait for the application to be responsive
-                    for i in {1..30}; do
+                    i=1
+                    while [ $i -le 30 ]
+                    do
                         if curl -s -f http://localhost:5000/health > /dev/null; then
                             echo "Application is responding to health checks"
                             break
                         fi
                         echo "Waiting for application to respond..."
                         sleep 2
-                        if [ $i -eq 30 ]; then
+                        i=$((i+1))
+                        if [ $i -gt 30 ]; then
                             echo "Application failed to respond within timeout"
                             exit 1
                         fi
