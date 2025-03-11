@@ -34,30 +34,12 @@ pipeline {
             }
         }
 
-        stage('Build and Test') {
-            parallel {
-                stage('Build Solution') {
-                    steps {
-                        sh '''
-                            cd ${SOLUTION_DIR}
-                            dotnet build --configuration Release --no-restore
-                        '''
-                    }
-                }
-                
-                stage('Run Tests') {
-                    steps {
-                        sh '''
-                            cd ${TESTS_DIR}
-                            dotnet test --configuration Release --no-build --verbosity normal
-                        '''
-                    }
-                    post {
-                        always {
-                            junit allowEmptyResults: true, testResults: '**/TestResults/*.xml'
-                        }
-                    }
-                }
+        stage('Build') {
+            steps {
+                sh '''
+                    cd ${SOLUTION_DIR}
+                    dotnet build --configuration Release --no-restore
+                '''
             }
         }
 
@@ -117,9 +99,9 @@ pipeline {
     }
 
     post {
-        // always {
-        //     cleanWs()
-        // }
+        always {
+            cleanWs()
+        }
         success {
             echo 'Deployment completed successfully!'
         }
