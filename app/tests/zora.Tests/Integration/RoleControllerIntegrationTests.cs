@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Roles;
 using zora.Core.Interfaces.Services;
 using zora.Tests.TestFixtures.v2;
 using zora.Tests.Utils;

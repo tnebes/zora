@@ -1,11 +1,10 @@
 #region
 
 using System.ComponentModel.DataAnnotations;
-using zora.Core.DTOs.Responses;
 
 #endregion
 
-namespace zora.Core.DTOs.Requests;
+namespace zora.Core.DTOs.Users;
 
 public sealed class UpdateUserDto : MinimumUserDto
 {

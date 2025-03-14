@@ -1,7 +1,7 @@
 #region
 
 using zora.Core.Domain;
-using zora.Core.DTOs.Requests;
+using zora.Core.DTOs.Permissions;
 
 #endregion
 

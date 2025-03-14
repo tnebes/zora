@@ -6,7 +6,7 @@ using FluentResults;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Roles;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;

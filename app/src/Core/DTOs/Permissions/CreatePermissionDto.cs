@@ -1,4 +1,4 @@
-namespace zora.Core.DTOs.Requests;
+namespace zora.Core.DTOs.Permissions;
 
 public sealed class CreatePermissionDto
 {

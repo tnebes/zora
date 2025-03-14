@@ -1,4 +1,4 @@
-namespace zora.Core.DTOs.Requests;
+namespace zora.Core.DTOs.Assets;
 
 public sealed class UpdateAssetDto
 {

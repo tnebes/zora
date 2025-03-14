@@ -67,24 +67,34 @@ public static class AppExtensions
         {
             options.SwaggerEndpoint("/swagger/v1/swagger.json", "Zora API v1");
             options.DocExpansion(DocExpansion.List);
-            options.DefaultModelsExpandDepth(-1);
+            options.DefaultModelsExpandDepth(2);
             options.DisplayRequestDuration();
             options.EnableFilter();
             options.EnableDeepLinking();
             options.EnableValidator();
             options.ShowExtensions();
             options.EnableTryItOutByDefault();
+            options.DisplayOperationId();
+            options.ShowCommonExtensions();
+            options.ConfigObject.AdditionalItems["syntaxHighlight"] = new Dictionary<string, object>
+            {
+                ["activated"] = true
+            };
+            options.ConfigObject.AdditionalItems["requestSnippetsEnabled"] = true;
+            options.ConfigObject.DefaultModelRendering = ModelRendering.Example;
+            options.ConfigObject.ShowExtensions = true;
+            options.ConfigObject.ShowCommonExtensions = true;
         });
-        Log.Debug("Swagger UI configured with expanded lists and try-it-out enabled");
+        Log.Debug("Swagger UI configured with expanded schemas and enhanced documentation");
         return app;
     }
 
     private static WebApplication ConfigureAdvancedLogging(this WebApplication app)
     {
-        Log.Information("Setting up request performance tracking middleware");
+        Log.Debug("Setting up request performance tracking middleware");
         app.Use(async (context, next) =>
         {
-            Log.Information("Request {Method} {Path} started", context.Request.Method, context.Request.Path);
+            Log.Debug("Request {Method} {Path} started", context.Request.Method, context.Request.Path);
 
             Stopwatch timer = Stopwatch.StartNew();
             try
@@ -92,7 +102,7 @@ public static class AppExtensions
                 await next();
                 timer.Stop();
 
-                Log.Information(
+                Log.Debug(
                     "Request {Method} {Path} completed in {ElapsedMilliseconds}ms with status code {StatusCode}",
                     context.Request.Method,
                     context.Request.Path,

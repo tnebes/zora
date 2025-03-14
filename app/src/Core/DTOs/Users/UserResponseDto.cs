@@ -4,7 +4,7 @@ using zora.Core.DTOs.Responses.Interface;
 
 #endregion
 
-namespace zora.Core.DTOs.Responses;
+namespace zora.Core.DTOs.Users;
 
 public sealed class UserResponseDto<T> : IResponseDto<T> where T : MinimumUserDto
 {

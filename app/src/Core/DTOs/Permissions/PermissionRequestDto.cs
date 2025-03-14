@@ -5,7 +5,7 @@ using zora.Core.Enums;
 
 #endregion
 
-namespace zora.Core.DTOs.Requests;
+namespace zora.Core.DTOs.Permissions;
 
 public sealed class PermissionRequestDto
 {

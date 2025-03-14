@@ -1,4 +1,4 @@
-namespace zora.Core.DTOs.Responses;
+namespace zora.Core.DTOs.Permissions;
 
 public sealed class PermissionDto
 {

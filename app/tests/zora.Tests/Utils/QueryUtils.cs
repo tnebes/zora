@@ -1,5 +1,6 @@
 #region
 
+using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
 
 #endregion

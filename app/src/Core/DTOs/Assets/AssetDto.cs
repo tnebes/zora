@@ -1,4 +1,10 @@
-namespace zora.Core.DTOs;
+#region
+
+using zora.Core.DTOs.WorkItems;
+
+#endregion
+
+namespace zora.Core.DTOs.Assets;
 
 public class AssetDto
 {

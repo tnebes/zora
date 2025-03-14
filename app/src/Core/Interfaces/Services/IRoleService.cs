@@ -3,7 +3,7 @@
 using System.Security.Claims;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Roles;
 
 #endregion
 

@@ -1,4 +1,4 @@
-namespace zora.Core.DTOs;
+namespace zora.Core.DTOs.WorkItems;
 
 public sealed class WorkItemDto
 {

@@ -11,8 +11,11 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using zora.Core.Domain;
+using zora.Core.DTOs.Assets;
+using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Roles;
+using zora.Core.DTOs.Users;
 using zora.Infrastructure.Data;
 
 #endregion

@@ -11,6 +11,7 @@ using zora.Core.Domain;
 using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Users;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Services;
 

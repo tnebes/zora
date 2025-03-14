@@ -9,7 +9,7 @@ using FluentAssertions;
 using zora.API.Mapping;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Users;
 using zora.Tests.Utils;
 
 #endregion

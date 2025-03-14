@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 #endregion
 
-namespace zora.Core.DTOs.Requests;
+namespace zora.Core.DTOs.Users;
 
 public sealed class CreateMinimumUserDto : UserDto
 {
