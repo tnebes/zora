@@ -7,7 +7,7 @@ using zora.Tests.TestFixtures.v2;
 namespace zora.Tests.Integration;
 
 [Collection("TestCollectionV2")]
-public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
+public sealed class ProgramControllerIntegrationTests : BaseIntegrationTest
 {
     [Fact(DisplayName =
         "GIVEN a simple get request from an authorised user with read permission WHEN Get() is invoked THEN the controller returns the task DTO")]

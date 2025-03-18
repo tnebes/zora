@@ -66,6 +66,13 @@ public abstract class BaseIntegrationTest : IDisposable
         this.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "User");
     }
 
+    # region Task API Methods
+
+    protected async Task<HttpResponseMessage> GetTasks(QueryParamsDto queryParams) =>
+        await this.Client.GetAsync($"/api/v1/tasks{queryParams.ToQueryString()}");
+
+    # endregion
+
     #region API Methods
 
     protected async Task<HttpResponseMessage> GetUsers(QueryParamsDto queryParams) =>

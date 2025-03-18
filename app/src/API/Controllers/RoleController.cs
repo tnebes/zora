@@ -53,6 +53,8 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                string ipAddress = this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown IP";
+                this.Logger.LogWarning("Unauthorized access from {IpAddress} attempt to roles endpoint.", ipAddress);
                 return this.Unauthorized();
             }
 
@@ -92,6 +94,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         {
             if (!this.RoleService.IsAdmin(this.HttpContext.User))
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -138,6 +141,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         {
             if (!this.RoleService.IsAdmin(this.HttpContext.User))
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -182,6 +186,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         {
             if (!this.RoleService.IsAdmin(this.HttpContext.User))
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 

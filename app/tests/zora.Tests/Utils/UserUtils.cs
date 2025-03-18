@@ -39,4 +39,15 @@ public static class UserUtils
 
         return users;
     }
+
+    public static User GetValidUser()
+    {
+        return new User
+        {
+            Id = 1,
+            Username = "john.doe",
+            Email = "john@doe.com",
+            Password = "password"
+        };
+    }
 }

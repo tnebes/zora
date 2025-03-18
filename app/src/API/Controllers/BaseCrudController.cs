@@ -1,5 +1,6 @@
 #region
 
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using zora.API.Interfaces;
 using zora.Core;
@@ -47,6 +48,7 @@ public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TRespo
     {
         if (!this.RoleService.IsAdmin(this.HttpContext.User))
         {
+            this.LogUnauthorisedAccess(this.HttpContext.User);
             return this.Unauthorized();
         }
 
@@ -64,5 +66,14 @@ public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TRespo
         {
             this.QueryService.NormaliseQueryParams(queryParams);
         }
+    }
+
+    protected void LogUnauthorisedAccess(ClaimsPrincipal user)
+    {
+        string ipAddress = this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown IP";
+        string userAgent = this.HttpContext.Request.Headers["User-Agent"].ToString() ?? "Unknown User-Agent";
+        string endpoint = this.RouteData.Values["action"]?.ToString() ?? string.Empty;
+        this.Logger.LogWarning("Unauthorized access attempt from {IpAddress} to {Endpoint}. User-Agent: {UserAgent}",
+            ipAddress, endpoint, userAgent);
     }
 }

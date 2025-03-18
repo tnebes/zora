@@ -75,6 +75,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                this.LogUnauthorisedAccess(this.User);
                 return this.Unauthorized();
             }
 
@@ -161,6 +162,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                this.LogUnauthorisedAccess(this.User);
                 return this.Unauthorized();
             }
 
@@ -225,6 +227,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -270,6 +273,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -315,6 +319,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
