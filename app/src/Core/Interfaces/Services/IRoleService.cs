@@ -16,4 +16,5 @@ public interface
     bool IsAdmin(ClaimsPrincipal httpContextUser);
     Task<bool> AssignRoles(User user, IEnumerable<long> roleIds);
     FullRoleDto MapToFullDto(Role role);
+    Task<IEnumerable<Role>> GetRolesByIdsAsync(IEnumerable<long> roleIds, bool includeProperties = false);
 }

@@ -152,6 +152,66 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
         }
     }
 
+    public async Task<IQueryable<WorkItem>> FilterByPermission(IQueryable<WorkItem> filteredQuery, long userId, PermissionFlag permissionFlag)
+    {
+        // Short-circuit for admin users
+        if (await this._userRoleService.IsAdminAsync(userId))
+        {
+            return filteredQuery;
+        }
+
+        // Build separate queries for each type and then combine them
+        // This approach is more compatible with EF Core than using Compile()
+
+        // Tasks (with inheritance)
+        IQueryable<ZoraTask> tasksQuery = filteredQuery.OfType<ZoraTask>().Where(task =>
+            // Direct permission
+            task.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId))) ||
+            // Project permission
+            (task.ProjectId != null && task.Project.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId)))) ||
+            // Program permission
+            (task.ProjectId != null && task.Project.ProgramId != null &&
+             task.Project.Program.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId))))
+        );
+
+        // Projects (with inheritance)
+        IQueryable<Project> projectsQuery = filteredQuery.OfType<Project>().Where(project =>
+            // Direct permission
+            project.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId))) ||
+            // Program permission
+            (project.ProgramId != null && project.Program.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId))))
+        );
+
+        // Programs (direct permission only)
+        IQueryable<ZoraProgram> programsQuery = filteredQuery.OfType<ZoraProgram>().Where(program =>
+            program.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId)))
+        );
+
+        // Combine all queries
+        return tasksQuery.Cast<WorkItem>()
+            .Union(projectsQuery.Cast<WorkItem>())
+            .Union(programsQuery.Cast<WorkItem>());
+    }
+
+
     private static string GetCacheKey(PermissionRequestDto request) =>
         $"{CACHE_KEY_PREFIX}{request.UserId}_{request.ResourceId}_{request.RequestedPermission}";
 

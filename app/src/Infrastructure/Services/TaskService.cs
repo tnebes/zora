@@ -6,6 +6,7 @@ using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Tasks;
+using zora.Core.Enums;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
 
@@ -33,15 +34,9 @@ public class TaskService : ITaskService, IZoraService
     {
         IQueryable<ZoraTask> query = this._taskRepository.GetQueryable();
 
-        IQueryable<ZoraTask> filteredQuery = query.Where(task =>
-            task.PermissionWorkItems.Any(pwi =>
-                pwi.Permission.RolePermissions.Any(rp =>
-                    rp.Role.UserRoles.Any(ur =>
-                        ur.UserId == userId
-                    )
-                )
-            )
-        );
+        // Apply authorization filter
+        IQueryable<WorkItem> filteredWorkItems = await this._authorisationService.FilterByPermission(query, userId, PermissionFlag.Read);
+        IQueryable<ZoraTask> filteredQuery = filteredWorkItems.OfType<ZoraTask>();
 
         Result<(IEnumerable<ZoraTask>, int total)> tasksResult =
             await this._taskRepository.GetPagedAsync(filteredQuery, queryParams.Page, queryParams.PageSize);
@@ -52,6 +47,23 @@ public class TaskService : ITaskService, IZoraService
             return Result.Fail<(IEnumerable<ZoraTask>, int total)>(tasksResult.Errors);
         }
 
+        IEnumerable<ZoraTask> tasks = tasksResult.Value.Item1;
+        int total = tasksResult.Value.Item2;
+
+        // after getting the tasks, we need to check if the user has at least READ permissions to the tasks
+        // hint: use AuthorisationService to check if the user has at least READ permissions to the tasks
+        // only those tasks should be returned and all the logic should be in the AuthorisationService
+        // logic:
+        // 1. get query for all tasks
+        // 2. filter tasks based on permissions connected with roles connected to the user
+        // 3. return the filtered tasks and total count of tasks
+        // requirement: do not query the database so as to encounter the n+1 problem or any other performance issues
+        // hint: the AuthorisationService should be, if possible, deal with WorkItem types other than Task
+        // because we will also have to deal with Program and Project types
+
+        // additionally, this must account for cases when the user has a permission on a project or program so that all the tasks related to that project or program are also returned
+
+        // BUG: the tasks are not being filtered based on permissions, only the existence of permissions is checked
         return tasksResult;
     }
 

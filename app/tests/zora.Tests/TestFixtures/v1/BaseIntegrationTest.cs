@@ -109,6 +109,11 @@ public abstract class BaseIntegrationTest
         return await this.Client.PostAsync("/api/v1/users", content);
     }
 
+    protected async Task SeedRoles(List<Role> roles)
+    {
+        this.Fixture.Roles = roles;
+    }
+
     protected async Task<HttpResponseMessage> FindUsers(QueryParamsDto queryParams) =>
         await this.Client.GetAsync($"/api/v1/users/find{queryParams.ToQueryString()}");
 }

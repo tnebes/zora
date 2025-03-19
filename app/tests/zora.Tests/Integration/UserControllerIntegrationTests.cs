@@ -236,6 +236,10 @@ public sealed class UserControllerIntegrationTests : BaseIntegrationTest
         List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
         this.Fixture.Users = expectedUsers;
 
+        List<Role> roles = RoleUtils.GetValidRoles().ToList();
+        this.Fixture.Roles = roles;
+        await this.SeedRoles(roles);
+        
         long userId = 1;
         User userToUpdate = expectedUsers.First(u => u.Id == userId);
 

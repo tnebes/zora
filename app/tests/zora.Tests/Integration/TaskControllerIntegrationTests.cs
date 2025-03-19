@@ -19,7 +19,7 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
     public TaskControllerIntegrationTests() => this._taskUtils = new TaskUtils(this.DbContext);
 
     [Fact(DisplayName =
-        "GIVEN a 4 tasks of which 3 are visible to the user WHEN Get() is called THEN return 3 tasks for which the user has at least READ permissions with default page size.")]
+        "GIVEN 4 tasks of which 3 are visible to the user WHEN Get() is called THEN return 3 tasks for which the user has at least READ permissions with default page size.")]
     public async Task GetTasks_LoggedInUserWith3CreatedTasks_Returns3Tasks()
     {
         await DatabaseSeeder.ClearDatabaseAsync(this.DbContext);

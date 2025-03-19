@@ -196,15 +196,19 @@ public sealed class UserService : IUserService, IZoraService
         }
 
         IEnumerable<long> rolesToAdd = newRoleIds.Where(roleId => !existingRoleIds.Contains(roleId));
-        foreach (long roleId in rolesToAdd)
+        if (rolesToAdd.Any())
         {
-            UserRole userRole = new UserRole
+            IEnumerable<Role> newRoles = await this._roleService.GetRolesByIdsAsync(rolesToAdd);
+            foreach (Role role in newRoles)
             {
-                UserId = originalUser.Id,
-                RoleId = roleId,
-                Role = (await this._roleService.GetByIdAsync(roleId)).Value
-            };
-            originalUser.UserRoles.Add(userRole);
+                UserRole userRole = new UserRole
+                {
+                    UserId = originalUser.Id,
+                    RoleId = role.Id,
+                    Role = role
+                };
+                originalUser.UserRoles.Add(userRole);
+            }
         }
 
         Result<User> updatedUser = await this._userRepository.Update(originalUser);
