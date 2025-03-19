@@ -12,6 +12,7 @@ using zora.Tests.Utils;
 
 namespace zora.Tests.Integration;
 
+[Collection("TestCollectionV2")]
 public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
 {
     private readonly TaskUtils _taskUtils;
@@ -22,7 +23,7 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
         "GIVEN 4 tasks of which 3 are visible to the user WHEN Get() is called THEN return 3 tasks for which the user has at least READ permissions with default page size.")]
     public async Task GetTasks_LoggedInUserWith3CreatedTasks_Returns3Tasks()
     {
-        await DatabaseSeeder.ClearDatabaseAsync(this.DbContext);
+        await this.ClearDatabaseAsync();
 
         User user = UserUtils.GetValidUser();
         Role role = RoleUtils.GetValidRole();

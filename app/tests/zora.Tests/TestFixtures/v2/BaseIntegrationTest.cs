@@ -22,7 +22,7 @@ using zora.Infrastructure.Data;
 
 namespace zora.Tests.TestFixtures.v2;
 
-public abstract class BaseIntegrationTest : IDisposable
+public abstract class BaseIntegrationTest : IAsyncLifetime, IDisposable
 {
     private readonly IServiceScope _serviceScope;
     private readonly WebApplicationFactory<Program> Factory;
@@ -39,6 +39,17 @@ public abstract class BaseIntegrationTest : IDisposable
         this.DbContext = this._serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         this.InitializeMapper();
+    }
+
+    public async Task InitializeAsync()
+    {
+        await this.ClearDatabaseAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        await this.ClearDatabaseAsync();
+        this.Dispose();
     }
 
     public void Dispose()
@@ -323,13 +334,16 @@ public abstract class BaseIntegrationTest : IDisposable
         await this.DbContext.SaveChangesAsync();
     }
 
-    protected async Task ClearDatabase()
+    protected async Task ClearDatabaseAsync()
     {
+        this.DbContext.PermissionWorkItems.RemoveRange(await this.DbContext.PermissionWorkItems.ToListAsync());
         this.DbContext.RolePermissions.RemoveRange(await this.DbContext.RolePermissions.ToListAsync());
         this.DbContext.UserRoles.RemoveRange(await this.DbContext.UserRoles.ToListAsync());
+        this.DbContext.Tasks.RemoveRange(await this.DbContext.Tasks.ToListAsync());
         this.DbContext.Permissions.RemoveRange(await this.DbContext.Permissions.ToListAsync());
         this.DbContext.Roles.RemoveRange(await this.DbContext.Roles.ToListAsync());
         this.DbContext.Users.RemoveRange(await this.DbContext.Users.ToListAsync());
+        this.DbContext.Assets.RemoveRange(await this.DbContext.Assets.ToListAsync());
         await this.DbContext.SaveChangesAsync();
     }
 

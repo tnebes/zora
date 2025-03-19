@@ -59,7 +59,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid QueryParamsDto and an admin user WHEN GetPermissions() is invoked THEN the controller returns an OK result with the expected paginated permission list")]
     public async Task GetPermissions_WithValidQueryParamsAndAdminUser_ReturnsOkWithPaginatedPermissionList()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         List<Permission> permissions = PermissionUtils.GetValidPermissions().ToList();
@@ -75,7 +75,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in non-admin user WHEN the Get method is called THEN return a 401 Unauthorized")]
     public async Task GetPermissions_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupRegularUserAuthentication();
 
         QueryParamsDto queryParams = QueryUtils.QueryParamUtils.GetValidQueryParams();
@@ -88,7 +88,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Get method is called with query parameters THEN normalize the query parameters and return filtered results")]
     public async Task GetPermissions_WithQueryParameters_NormalizeQueryParametersAndReturnFilteredResults()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         List<Permission> permissions = PermissionUtils.GetValidPermissions().ToList();
@@ -112,7 +112,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Create method is called with valid permission data THEN return a 201 Created with the new permission")]
     public async Task CreatePermission_WithAdminUserAndValidData_ReturnsCreatedWithNewPermission()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         CreatePermissionDto createPermissionDto = QueryUtils.QueryParamUtils.GetValidCreatePermissionDto();
@@ -135,7 +135,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in non-admin user WHEN the Create method is called THEN return a 401 Unauthorized")]
     public async Task CreatePermission_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupRegularUserAuthentication();
 
         CreatePermissionDto createPermissionDto = new()
@@ -154,7 +154,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Create method is called with invalid permission data THEN return a 400 Bad Request")]
     public async Task CreatePermission_WithAdminUserAndInvalidData_ReturnsBadRequest()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         CreatePermissionDto createPermissionDto = new()
@@ -173,7 +173,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Update method is called with valid permission data THEN return a 200 OK with the updated permission")]
     public async Task UpdatePermission_WithAdminUserAndValidData_ReturnsOkWithUpdatedPermission()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         Permission permission = PermissionUtils.GetValidPermissions().First();
@@ -209,7 +209,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in non-admin user WHEN the Update method is called THEN return a 401 Unauthorized")]
     public async Task UpdatePermission_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupRegularUserAuthentication();
 
         UpdatePermissionDto updatePermissionDto = PermissionUtils.GetValidUpdatePermissionDto();
@@ -223,7 +223,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Update method is called with a non-existent permission ID THEN return a 404 Not Found")]
     public async Task UpdatePermission_WithNonExistentPermissionId_ReturnsNotFound()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         UpdatePermissionDto updatePermissionDto = PermissionUtils.GetValidUpdatePermissionDto();
@@ -237,7 +237,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Delete method is called with a valid permission ID THEN return a 204 No Content")]
     public async Task DeletePermission_WithAdminUserAndValidPermissionId_ReturnsNoContent()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         Permission permission = PermissionUtils.GetValidPermissions().First();
@@ -263,7 +263,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in non-admin user WHEN the Delete method is called THEN return a 401 Unauthorized")]
     public async Task DeletePermission_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupRegularUserAuthentication();
 
         HttpResponseMessage response = await this.DeletePermission(1);
@@ -275,7 +275,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Delete method is called with a non-existent permission ID THEN return a 404 Not Found")]
     public async Task DeletePermission_WithNonExistentPermissionId_ReturnsNotFound()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         HttpResponseMessage response = await this.DeletePermission(99999);
@@ -287,7 +287,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Find method is called with valid search parameters THEN return a 200 OK with matching permissions")]
     public async Task FindPermissions_WithAdminUserAndValidParams_ReturnsOkWithMatchingPermissions()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         List<Permission> permissions = PermissionUtils.GetValidPermissions().ToList();
@@ -327,7 +327,7 @@ public sealed class PermissionControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Search method is called with valid search parameters THEN return a 200 OK with matching permissions")]
     public async Task SearchPermissions_WithAdminUserAndValidParams_ReturnsOkWithMatchingPermissions()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         List<Permission> permissions = PermissionUtils.GetValidPermissions().ToList();

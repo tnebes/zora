@@ -77,18 +77,4 @@ public static class DatabaseSeeder
         await dbContext.SaveChangesAsync();
     }
 
-    public static async Task ClearDatabaseAsync(ApplicationDbContext dbContext)
-    {
-        dbContext.RolePermissions.RemoveRange(await dbContext.RolePermissions.ToListAsync());
-        dbContext.UserRoles.RemoveRange(await dbContext.UserRoles.ToListAsync());
-        dbContext.Permissions.RemoveRange(await dbContext.Permissions.ToListAsync());
-        dbContext.Roles.RemoveRange(await dbContext.Roles.ToListAsync());
-        dbContext.Users.RemoveRange(await dbContext.Users.ToListAsync());
-        dbContext.PermissionWorkItems.RemoveRange(await dbContext.PermissionWorkItems.ToListAsync());
-        dbContext.Tasks.RemoveRange(await dbContext.Tasks.ToListAsync());
-        dbContext.Projects.RemoveRange(await dbContext.Projects.ToListAsync());
-        dbContext.Programs.RemoveRange(await dbContext.Programs.ToListAsync());
-
-        await dbContext.SaveChangesAsync();
-    }
 }

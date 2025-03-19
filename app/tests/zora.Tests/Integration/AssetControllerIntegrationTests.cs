@@ -80,7 +80,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid QueryParamsDto and an admin user WHEN Get() is invoked THEN the controller returns an OK result with the expected paginated asset list")]
     public async Task Get_WithValidQueryParamsAndAdminUser_ReturnsOkWithPaginatedAssetList()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         List<Asset> assets = AssetUtils.GetValidAssets().ToList();
@@ -102,7 +102,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid QueryParamsDto and a non-admin user WHEN Get() is invoked THEN the controller returns an Unauthorized result")]
     public async Task Get_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupRegularUserAuthentication();
 
         QueryParamsDto queryParams = QueryUtils.QueryParamUtils.GetValidQueryParams();
@@ -115,7 +115,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid QueryParamsDto with extra large page size and admin user WHEN Get() is invoked THEN the controller does not normalise the query parameters and returns filtered results")]
     public async Task Get_WithQueryParameters_NormalizeQueryParametersAndReturnFilteredResults()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         List<Asset> assets = AssetUtils.GetValidAssets().ToList();
@@ -151,7 +151,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid CreateAssetDto and an authenticated user WHEN Create() is invoked THEN the controller returns a 201 Created with the new asset")]
     public async Task Create_WithValidData_ReturnsCreatedWithNewAsset()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         CreateAssetDto createAssetDto = AssetUtils.GetValidCreateAssetWithDataDto();
@@ -169,7 +169,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN an invalid CreateAssetDto and an authenticated user WHEN Create() is invoked THEN the controller returns a 400 Bad Request")]
     public async Task Create_WithInvalidData_ReturnsBadRequest()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         CreateAssetDto invalidAssetDto = AssetUtils.GetInvalidCreateAssetDto();
@@ -207,7 +207,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid UpdateAssetDto and an admin user WHEN Update() is invoked THEN the controller returns a 200 OK with the updated asset")]
     public async Task Update_WithAdminUserAndValidData_ReturnsOkWithUpdatedAsset()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         List<Asset> assets = AssetUtils.GetValidAssets().ToList();
@@ -230,7 +230,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid UpdateAssetDto and a non-admin user WHEN Update() is invoked THEN the controller returns an Unauthorized result")]
     public async Task Update_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupRegularUserAuthentication();
 
         List<Asset> assets = AssetUtils.GetValidAssets().ToList();
@@ -247,7 +247,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN an invalid asset ID WHEN Update() is invoked THEN the controller returns a 400 Bad Request")]
     public async Task Update_WithInvalidAssetId_ReturnsBadRequest()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         long invalidAssetId = -1;
@@ -261,7 +261,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a non-existent asset ID WHEN Update() is invoked THEN the controller returns a 404 Not Found")]
     public async Task Update_WithNonExistentAssetId_ReturnsNotFound()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         long nonExistentAssetId = 9999;
@@ -307,7 +307,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid asset ID and an admin user WHEN Delete() is invoked THEN the controller returns a 200 OK with true")]
     public async Task Delete_WithAdminUserAndValidAssetId_ReturnsOkWithTrue()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         List<Asset> assets = AssetUtils.GetValidAssets().ToList();
@@ -327,7 +327,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid asset ID and a non-admin user WHEN Delete() is invoked THEN the controller returns an Unauthorized result")]
     public async Task Delete_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupRegularUserAuthentication();
 
         List<Asset> assets = AssetUtils.GetValidAssets().ToList();
@@ -343,7 +343,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN an invalid asset ID WHEN Delete() is invoked THEN the controller returns a 400 Bad Request")]
     public async Task Delete_WithInvalidAssetId_ReturnsBadRequest()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         long invalidAssetId = -1;
@@ -356,7 +356,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a non-existent asset ID WHEN Delete() is invoked THEN the controller returns a 404 Not Found")]
     public async Task Delete_WithNonExistentAssetId_ReturnsNotFound()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         long nonExistentAssetId = 9999;
@@ -383,7 +383,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid QueryParamsDto and an admin user WHEN Find() is invoked THEN the controller returns an OK result with matching assets")]
     public async Task Find_WithAdminUserAndValidParams_ReturnsOkWithMatchingAssets()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         List<Asset> assets = AssetUtils.GetValidAssets().ToList();
@@ -404,7 +404,7 @@ public sealed class AssetControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid DynamicQueryAssetParamsDto and an admin user WHEN Search() is invoked THEN the controller returns an OK result with matching assets")]
     public async Task Search_WithAdminUserAndValidParams_ReturnsOkWithMatchingAssets()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
         this.SetupAdminAuthentication();
 
         List<Asset> assets = AssetUtils.GetValidAssets().ToList();
