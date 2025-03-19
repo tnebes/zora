@@ -36,7 +36,7 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
         await this.DbContext.Tasks.AddRangeAsync(tasks);
         await this.DbContext.SaveChangesAsync();
 
-        UserRole userRole = new UserRole { UserId = user.Id, RoleId = role.Id };
+        UserRole userRole = new UserRole { UserId = user.Id, RoleId = role.Id, Role = role, User = user };
         await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRole]);
 
         RolePermission rolePermission = new RolePermission { RoleId = role.Id, PermissionId = permission.Id };

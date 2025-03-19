@@ -166,8 +166,8 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Failed to find users");
-            return Result.Fail<(IEnumerable<User>, int)>(new Error("Failed to find users"));
+            this.Logger.LogError(ex, "Error finding users");
+            return Result.Fail<(IEnumerable<User>, int)>(new Error("Error finding users"));
         }
         finally
         {

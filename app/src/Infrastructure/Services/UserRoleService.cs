@@ -25,7 +25,7 @@ public sealed class UserRoleService : IUserRoleService, IZoraService
 
     public async Task<IEnumerable<UserRole>> GetUserRolesByUserIdAsync(long userId)
     {
-        Result<IEnumerable<UserRole>> result = await this._userRoleRepository.GetByUserIdAsync(userId);
+        Result<IEnumerable<UserRole>> result = await this._userRoleRepository.GetByUserIdAsync(userId, true);
         return result.IsSuccess ? result.Value : [];
     }
 

@@ -21,8 +21,8 @@ namespace zora.Tests.TestFixtures.v1;
 public sealed class MockedRepositoryFixture : WebApplicationFactory<Program>
 {
     private List<Permission> _permissions = [];
-    private List<User> _users = [];
     private List<Role> _roles = [];
+    private List<User> _users = [];
 
     public Mock<IUserRepository> MockUserRepository { get; } = new();
     public Mock<IPermissionRepository> MockPermissionRepository { get; } = new();

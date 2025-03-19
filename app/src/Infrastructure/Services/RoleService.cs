@@ -55,10 +55,9 @@ public sealed class RoleService : IRoleService, IZoraService
 
     public bool IsAdmin(ClaimsPrincipal httpContextUser) => this.IsRole(httpContextUser, Constants.ADMIN);
 
-    public async Task<IEnumerable<Role>> GetRolesByIdsAsync(IEnumerable<long> roleIds, bool includeProperties = false)
-    {
-        return await this._roleRepository.GetRolesByIdsAsync(roleIds, includeProperties);
-    }
+    public async Task<IEnumerable<Role>>
+        GetRolesByIdsAsync(IEnumerable<long> roleIds, bool includeProperties = false) =>
+        await this._roleRepository.GetRolesByIdsAsync(roleIds, includeProperties);
 
     public async Task<bool> AssignRoles(User user, IEnumerable<long> roleIds)
     {

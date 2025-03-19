@@ -25,4 +25,4 @@ internal static class RoleRepositoryMockBuilder
                 return role != null ? Result.Ok(role) : Result.Fail<Role>(new Error("Role not found"));
             });
     }
-} 
+}
