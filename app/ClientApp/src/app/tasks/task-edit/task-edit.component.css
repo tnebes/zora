@@ -1,0 +1,31 @@
+.task-edit-container {
+  padding: 20px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.loading-indicator, .error-message {
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.error-message {
+  color: #f44336;
+  background-color: #ffebee;
+  border-radius: 4px;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

@@ -1,0 +1,26 @@
+.task-detail-container {
+  padding: 20px;
+}
+
+.error-message {
+  color: #f44336;
+}
+
+.task-details {
+  margin-top: 20px;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.label {
+  font-weight: bold;
+  width: 120px;
+  margin-right: 10px;
+}
+
+.value {
+  flex: 1;
+}

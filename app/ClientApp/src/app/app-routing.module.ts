@@ -10,6 +10,11 @@ const routes: Routes = [
     {
         path: 'control-panel',
         loadChildren: () => import('./control-panel/control-panel.module').then(m => m.ControlPanelModule)
+    },
+    {
+        path: 'tasks',
+        loadChildren: () => import('./tasks/tasks.module').then(m => m.TasksModule),
+        canActivate: [AuthGuard]
     }
 ];
 
