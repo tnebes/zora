@@ -22,6 +22,9 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SharedModule } from '../shared/shared.module';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AuthInterceptor } from '../core/services/authentication.interceptor';
+import { AuthGuard } from '../core/guards/auth.guard';
 
 @NgModule({
   declarations: [
@@ -49,6 +52,14 @@ import { SharedModule } from '../shared/shared.module';
     MatCardModule,
     MatTooltipModule,
     SharedModule
+  ],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    },
+    AuthGuard
   ],
   exports: [
     TaskListComponent,

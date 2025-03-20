@@ -23,7 +23,42 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
     }
 
     public Task<Result<(IEnumerable<ZoraTask>, int TotalCount)>> SearchAsync(DynamicQueryTaskParamsDto searchParams,
-        bool includeProperties = false) => throw new NotImplementedException();
+        bool includeProperties = false)
+    {
+        try
+        {
+            List<ZoraTask> dummyTasks = new List<ZoraTask>
+            {
+                new ZoraTask
+                {
+                    Id = 1,
+                    Name = "Task 1",
+                    Description = "Dummy repository task 1",
+                    Status = "Active",
+                    CreatedAt = DateTime.UtcNow.AddDays(-5),
+                    ProjectId = 1,
+                    Priority = "Medium"
+                },
+                new ZoraTask
+                {
+                    Id = 2,
+                    Name = "Task 2",
+                    Description = "Dummy repository task 2",
+                    Status = "Completed",
+                    CreatedAt = DateTime.UtcNow.AddDays(-10),
+                    ProjectId = 1,
+                    Priority = "High"
+                }
+            };
+            
+            return Task.FromResult(Result.Ok((dummyTasks.AsEnumerable(), dummyTasks.Count)));
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error searching tasks");
+            return Task.FromResult(Result.Fail<(IEnumerable<ZoraTask>, int)>(Constants.ERROR_500_MESSAGE));
+        }
+    }
 
     public async Task<Result<(IEnumerable<ZoraTask>, int total)>> GetPagedAsync(IQueryable<ZoraTask> query, int page,
         int pageSize)

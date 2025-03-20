@@ -83,16 +83,202 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
         }
     }
 
-    public override Task<ActionResult<ZoraTask>> Create(CreateTaskDto createDto) => throw new NotImplementedException();
+    [HttpGet("{id:long}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ZoraTask>> GetSingle(long id)
+    {
+        try
+        {
+            if (!this.User.Identity?.IsAuthenticated ?? true)
+            {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
+                return this.Unauthorized();
+            }
 
-    public override Task<ActionResult<ZoraTask>> Update(long id, UpdateTaskDto updateDto) =>
-        throw new NotImplementedException();
+            long userId = this.HttpContext.User.GetUserId();
+            Result<ZoraTask> result = await this._taskService.GetByIdAsync(id, userId);
 
-    public override Task<ActionResult<bool>> Delete(long id) => throw new NotImplementedException();
+            if (result.IsFailed)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
+            }
 
-    public override Task<ActionResult<TaskResponseDto>> Find(QueryParamsDto findParams) =>
-        throw new NotImplementedException();
+            return this.Ok(result.Value);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting task with id {Id}", id);
+            return this.BadRequest(ex.Message);
+        }
+    }
 
-    public override Task<ActionResult<TaskResponseDto>> Search(DynamicQueryTaskParamsDto searchParams) =>
-        throw new NotImplementedException();
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public override async Task<ActionResult<ZoraTask>> Create(CreateTaskDto createDto)
+    {
+        try
+        {
+            if (!this.User.Identity?.IsAuthenticated ?? true)
+            {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
+                return this.Unauthorized();
+            }
+
+            long userId = this.HttpContext.User.GetUserId();
+            Result<ZoraTask> result = await this._taskService.CreateAsync(createDto, userId);
+
+            if (result.IsFailed)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
+            }
+
+            return this.CreatedAtAction(nameof(this.Get), new { id = result.Value.Id }, result.Value);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error creating task");
+            return this.BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPut("{id:long}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public override async Task<ActionResult<ZoraTask>> Update(long id, UpdateTaskDto updateDto)
+    {
+        try
+        {
+            if (!this.User.Identity?.IsAuthenticated ?? true)
+            {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
+                return this.Unauthorized();
+            }
+
+            long userId = this.HttpContext.User.GetUserId();
+            Result<ZoraTask> result = await this._taskService.UpdateAsync(id, updateDto, userId);
+
+            if (result.IsFailed)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
+            }
+
+            return this.Ok(result.Value);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error updating task with id {Id}", id);
+            return this.BadRequest(ex.Message);
+        }
+    }
+
+    [HttpDelete("{id:long}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public override async Task<ActionResult<bool>> Delete(long id)
+    {
+        try
+        {
+            if (!this.User.Identity?.IsAuthenticated ?? true)
+            {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
+                return this.Unauthorized();
+            }
+
+            long userId = this.HttpContext.User.GetUserId();
+            bool result = await this._taskService.DeleteAsync(id, userId);
+
+            if (!result)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Failed to delete task");
+            }
+
+            return this.Ok(result);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error deleting task with id {Id}", id);
+            return this.BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("find")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public override async Task<ActionResult<TaskResponseDto>> Find(QueryParamsDto findParams)
+    {
+        try
+        {
+            if (!this.User.Identity?.IsAuthenticated ?? true)
+            {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
+                return this.Unauthorized();
+            }
+
+            this.QueryService.NormaliseQueryParams(findParams);
+
+            long userId = this.HttpContext.User.GetUserId();
+            Result<TaskResponseDto> result = await this._taskService.FindAsync(findParams, userId);
+
+            if (result.IsFailed)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
+            }
+
+            return this.Ok(result.Value);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error finding tasks");
+            return this.BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public override async Task<ActionResult<TaskResponseDto>> Search(DynamicQueryTaskParamsDto searchParams)
+    {
+        try
+        {
+            if (!this.User.Identity?.IsAuthenticated ?? true)
+            {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
+                return this.Unauthorized();
+            }
+
+            this.QueryService.NormaliseQueryParams(searchParams);
+
+            long userId = this.HttpContext.User.GetUserId();
+            Result<TaskResponseDto> result = await this._taskService.SearchAsync(searchParams, userId);
+
+            if (result.IsFailed)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
+            }
+
+            return this.Ok(result.Value);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error searching tasks");
+            return this.BadRequest(ex.Message);
+        }
+    }
 }

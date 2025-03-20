@@ -15,7 +15,7 @@ export interface Task {
 }
 
 export interface TaskResponseDto {
-    tasks: Task[];
+    items: Task[];
     totalCount: number;
     pageSize: number;
     currentPage: number;

@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Task } from '../models/task';
-import { TaskService } from '../task.service';
+import { TaskService } from '../../core/services/task.service';
 
 interface EntityOption {
   value: number;

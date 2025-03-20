@@ -1,9 +1,20 @@
 <div class="task-list-container">
   <div class="task-list-header">
     <h2>Task List</h2>
-    <button mat-raised-button color="primary" (click)="createTask()">
-      <mat-icon>add</mat-icon> Create Task
-    </button>
+    <div class="actions">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput type="text" (input)="onSearch($event)" placeholder="Search tasks...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      <button mat-raised-button color="primary" (click)="createTask()">
+        <mat-icon>add</mat-icon> Create Task
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-shade" *ngIf="isLoading">
+    <div class="loading-text">Loading...</div>
   </div>
 
   <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
@@ -53,8 +64,7 @@
 
   <mat-paginator 
     [length]="totalCount"
-    [pageSize]="pageSize"
-    [pageSizeOptions]="[5, 10, 25, 50]"
-    (page)="onPageChange($event)">
+    [pageSize]="50"
+    [pageSizeOptions]="[50, 100, 500, 1000]">
   </mat-paginator>
 </div>

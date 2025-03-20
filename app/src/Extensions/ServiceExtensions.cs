@@ -241,7 +241,10 @@ public static class ServiceExtensions
             {
                 options.AddPolicy(Constants.ZORA_CORS_POLICY_NAME, builder =>
                 {
-                    builder.SetIsOriginAllowed(origin => true)
+                    builder.WithOrigins(
+                           "https://localhost:4200", 
+                           "http://localhost:4200", 
+                           Constants.LOCAL_CLIENT_URL)
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials()

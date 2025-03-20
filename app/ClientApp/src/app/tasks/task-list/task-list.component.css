@@ -1,4 +1,6 @@
 .task-list-container {
+  position: relative;
+  min-height: 200px;
   padding: 20px;
 }
 
@@ -9,10 +11,56 @@
   margin-bottom: 20px;
 }
 
+.task-list-header h2 {
+  margin: 0;
+}
+
+.task-list-header .actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.loading-shade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.15);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-text {
+  color: #3f51b5;
+  font-size: 18px;
+  font-weight: 500;
+}
+
 table {
   width: 100%;
 }
 
 .mat-column-actions {
-  width: 140px;
+  width: 150px;
+  text-align: center;
+}
+
+.mat-column-id {
+  width: 80px;
+}
+
+.mat-column-status {
+  width: 120px;
+}
+
+.mat-column-dueDate {
+  width: 120px;
+}
+
+.mat-column-assignedUserName {
+  width: 150px;
 }
