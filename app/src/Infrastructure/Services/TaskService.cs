@@ -15,7 +15,7 @@ using zora.Core.Interfaces.Services;
 namespace zora.Infrastructure.Services;
 
 [ServiceLifetime(ServiceLifetime.Scoped)]
-public class TaskService : ITaskService, IZoraService
+public sealed class TaskService : ITaskService, IZoraService
 {
     private readonly IAuthorisationService _authorisationService;
     private readonly ILogger<TaskService> _logger;
@@ -36,7 +36,6 @@ public class TaskService : ITaskService, IZoraService
         {
             IQueryable<ZoraTask> query = this._taskRepository.GetQueryable();
 
-            // Apply authorization filter
             IQueryable<ZoraTask> filteredQuery =
                 await this._authorisationService.FilterByPermission(query, userId, PermissionFlag.Read);
 
@@ -48,22 +47,6 @@ public class TaskService : ITaskService, IZoraService
                 this._logger.LogError("Task Service failed to receive tasks. Errors: {Errors}", tasksResult.Errors);
                 return Result.Fail<(IEnumerable<ZoraTask>, int total)>(tasksResult.Errors);
             }
-
-            // after getting the tasks, we need to check if the user has at least READ permissions to the tasks
-            // hint: use AuthorisationService to check if the user has at least READ permissions to the tasks
-            // only those tasks should be returned and all the logic should be in the AuthorisationService
-            // logic:
-            // 1. get query for all tasks
-            // 2. filter tasks based on permissions connected with roles connected to the user
-            // 3. return the filtered tasks and total count of tasks
-            // requirement: do not query the database so as to encounter the n+1 problem or any other performance issues
-            // hint: the AuthorisationService should be, if possible, deal with WorkItem types other than Task
-            // because we will also have to deal with Program and Project types
-
-            // additionally, this must account for cases when the user has a permission on a project or program so that all the tasks 
-            // related to that project or program are also returned
-
-            // BUG: the tasks are not being filtered based on permissions, only the existence of permissions is checked
 
             return tasksResult;
         }

@@ -110,13 +110,11 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
     public async Task<IQueryable<T>> FilterByPermission<T>(IQueryable<T> query, long userId,
         PermissionFlag permissionFlag) where T : WorkItem
     {
-        // Short-circuit for admin users
         if (await this._userRoleService.IsAdminAsync(userId))
         {
             return query;
         }
 
-        // Filter based on type
         return typeof(T) switch
         {
             var t when t == typeof(ZoraTask) => (IQueryable<T>)this.FilterTasksByPermission((IQueryable<ZoraTask>)query,
@@ -125,7 +123,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
                 (IQueryable<Project>)query, userId, permissionFlag),
             var t when t == typeof(ZoraProgram) => (IQueryable<T>)this.FilterProgramsByPermission(
                 (IQueryable<ZoraProgram>)query, userId, permissionFlag),
-            _ => throw new ArgumentException($"Unsupported type: {typeof(T).Name}")
+            var _ => throw new ArgumentException($"Unsupported type: {typeof(T).Name}")
         };
     }
 
@@ -177,21 +175,23 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
     private IQueryable<ZoraTask> FilterTasksByPermission(IQueryable<ZoraTask> tasksQuery, long userId,
         PermissionFlag permissionFlag)
     {
+        string permissionMask = permissionFlag.GetPermissionMask();
+        
         return tasksQuery.Where(task =>
-            // Direct permission
             task.PermissionWorkItems.Any(pwi =>
-                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.PermissionString != PermissionFlag.None.ToString() &&
+                string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
                 pwi.Permission.RolePermissions.Any(rp =>
                     rp.Role.UserRoles.Any(ur => ur.UserId == userId))) ||
-            // Project permission
             (task.ProjectId != null && task.Project.PermissionWorkItems.Any(pwi =>
-                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
+                string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
                 pwi.Permission.RolePermissions.Any(rp =>
                     rp.Role.UserRoles.Any(ur => ur.UserId == userId)))) ||
-            // Program permission
             (task.ProjectId != null && task.Project.ProgramId != null &&
              task.Project.Program.PermissionWorkItems.Any(pwi =>
-                 pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                 pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
+                 string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
                  pwi.Permission.RolePermissions.Any(rp =>
                      rp.Role.UserRoles.Any(ur => ur.UserId == userId))))
         );
@@ -200,15 +200,17 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
     private IQueryable<Project> FilterProjectsByPermission(IQueryable<Project> projectsQuery, long userId,
         PermissionFlag permissionFlag)
     {
+        string permissionMask = permissionFlag.GetPermissionMask();
+        
         return projectsQuery.Where(project =>
-            // Direct permission
             project.PermissionWorkItems.Any(pwi =>
-                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
+                string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
                 pwi.Permission.RolePermissions.Any(rp =>
                     rp.Role.UserRoles.Any(ur => ur.UserId == userId))) ||
-            // Program permission
             (project.ProgramId != null && project.Program.PermissionWorkItems.Any(pwi =>
-                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
+                string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
                 pwi.Permission.RolePermissions.Any(rp =>
                     rp.Role.UserRoles.Any(ur => ur.UserId == userId))))
         );
@@ -217,9 +219,12 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
     private IQueryable<ZoraProgram> FilterProgramsByPermission(IQueryable<ZoraProgram> programsQuery, long userId,
         PermissionFlag permissionFlag)
     {
+        string permissionMask = permissionFlag.GetPermissionMask();
+        
         return programsQuery.Where(program =>
             program.PermissionWorkItems.Any(pwi =>
-                pwi.Permission.PermissionString.Contains(permissionFlag.ToString()) &&
+                pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
+                string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
                 pwi.Permission.RolePermissions.Any(rp =>
                     rp.Role.UserRoles.Any(ur => ur.UserId == userId)))
         );
