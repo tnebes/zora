@@ -244,7 +244,8 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
         result.Items.Should().HaveCount(tasks.Count);
     }
 
-    [Fact(DisplayName = "GIVEN 7 tasks with different permissions WHEN Get() is called THEN return only tasks with appropriate permissions")]
+    [Fact(DisplayName =
+        "GIVEN 7 tasks with different permissions WHEN Get() is called THEN return only tasks with appropriate permissions")]
     public async Task GetTasks_WithSevenTasksAndDifferentPermissions_ReturnsOnlyAccessibleTasks()
     {
         await this.ClearDatabaseAsync();
@@ -273,32 +274,34 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
 
         await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
         await DatabaseSeeder.SeedRolesAsync(this.DbContext, [userRole]);
-        await DatabaseSeeder.SeedPermissionsAsync(this.DbContext, [nonePermission, readPermission, writePermission, createPermission, deletePermission, adminPermission]);
+        await DatabaseSeeder.SeedPermissionsAsync(this.DbContext,
+            [nonePermission, readPermission, writePermission, createPermission, deletePermission, adminPermission]);
         await this.DbContext.Tasks.AddRangeAsync(tasks);
         await this.DbContext.SaveChangesAsync();
 
-        UserRole userRoleAssociation = new UserRole { UserId = user.Id, RoleId = userRole.Id, Role = userRole, User = user };
+        UserRole userRoleAssociation = new UserRole
+            { UserId = user.Id, RoleId = userRole.Id, Role = userRole, User = user };
         await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRoleAssociation]);
 
         List<RolePermission> rolePermissions = new List<RolePermission>
         {
-            new RolePermission { RoleId = userRole.Id, PermissionId = nonePermission.Id },
-            new RolePermission { RoleId = userRole.Id, PermissionId = readPermission.Id },
-            new RolePermission { RoleId = userRole.Id, PermissionId = writePermission.Id },
-            new RolePermission { RoleId = userRole.Id, PermissionId = createPermission.Id },
-            new RolePermission { RoleId = userRole.Id, PermissionId = deletePermission.Id },
-            new RolePermission { RoleId = userRole.Id, PermissionId = adminPermission.Id }
+            new() { RoleId = userRole.Id, PermissionId = nonePermission.Id },
+            new() { RoleId = userRole.Id, PermissionId = readPermission.Id },
+            new() { RoleId = userRole.Id, PermissionId = writePermission.Id },
+            new() { RoleId = userRole.Id, PermissionId = createPermission.Id },
+            new() { RoleId = userRole.Id, PermissionId = deletePermission.Id },
+            new() { RoleId = userRole.Id, PermissionId = adminPermission.Id }
         };
         await DatabaseSeeder.SeedRolePermissionsAsync(this.DbContext, rolePermissions);
 
         List<PermissionWorkItem> permissionWorkItems = new List<PermissionWorkItem>
         {
-            new PermissionWorkItem { PermissionId = nonePermission.Id, WorkItemId = 2 },
-            new PermissionWorkItem { PermissionId = readPermission.Id, WorkItemId = 3 },
-            new PermissionWorkItem { PermissionId = writePermission.Id, WorkItemId = 4 },
-            new PermissionWorkItem { PermissionId = createPermission.Id, WorkItemId = 5 },
-            new PermissionWorkItem { PermissionId = deletePermission.Id, WorkItemId = 6 },
-            new PermissionWorkItem { PermissionId = adminPermission.Id, WorkItemId = 7 }
+            new() { PermissionId = nonePermission.Id, WorkItemId = 2 },
+            new() { PermissionId = readPermission.Id, WorkItemId = 3 },
+            new() { PermissionId = writePermission.Id, WorkItemId = 4 },
+            new() { PermissionId = createPermission.Id, WorkItemId = 5 },
+            new() { PermissionId = deletePermission.Id, WorkItemId = 6 },
+            new() { PermissionId = adminPermission.Id, WorkItemId = 7 }
         };
         await this.DbContext.PermissionWorkItems.AddRangeAsync(permissionWorkItems);
         await this.DbContext.SaveChangesAsync();
@@ -316,7 +319,8 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
         returnedTaskIds.Should().NotContain(new[] { 1L, 2L });
     }
 
-    [Fact(DisplayName = "GIVEN an admin user and 10 tasks with various permissions WHEN Get() is called THEN return all 10 tasks")]
+    [Fact(DisplayName =
+        "GIVEN an admin user and 10 tasks with various permissions WHEN Get() is called THEN return all 10 tasks")]
     public async Task GetTasks_AdminUserWithTenTasksWithVariousPermissions_ReturnsAllTasks()
     {
         await this.ClearDatabaseAsync();
@@ -346,23 +350,25 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
 
         await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
         await DatabaseSeeder.SeedRolesAsync(this.DbContext, [adminRole]);
-        await DatabaseSeeder.SeedPermissionsAsync(this.DbContext, [nonePermission, readPermission, writePermission, createPermission, deletePermission, adminPermission]);
+        await DatabaseSeeder.SeedPermissionsAsync(this.DbContext,
+            [nonePermission, readPermission, writePermission, createPermission, deletePermission, adminPermission]);
         await this.DbContext.Tasks.AddRangeAsync(tasks);
         await this.DbContext.SaveChangesAsync();
 
-        UserRole userRoleAssociation = new UserRole { UserId = user.Id, RoleId = adminRole.Id, Role = adminRole, User = user };
+        UserRole userRoleAssociation = new UserRole
+            { UserId = user.Id, RoleId = adminRole.Id, Role = adminRole, User = user };
         await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRoleAssociation]);
 
         List<PermissionWorkItem> permissionWorkItems = new List<PermissionWorkItem>
         {
-            new PermissionWorkItem { PermissionId = nonePermission.Id, WorkItemId = 3 },
-            new PermissionWorkItem { PermissionId = nonePermission.Id, WorkItemId = 4 },
-            new PermissionWorkItem { PermissionId = readPermission.Id, WorkItemId = 5 },
-            new PermissionWorkItem { PermissionId = readPermission.Id, WorkItemId = 6 },
-            new PermissionWorkItem { PermissionId = writePermission.Id, WorkItemId = 7 },
-            new PermissionWorkItem { PermissionId = createPermission.Id, WorkItemId = 8 },
-            new PermissionWorkItem { PermissionId = deletePermission.Id, WorkItemId = 9 },
-            new PermissionWorkItem { PermissionId = adminPermission.Id, WorkItemId = 10 }
+            new() { PermissionId = nonePermission.Id, WorkItemId = 3 },
+            new() { PermissionId = nonePermission.Id, WorkItemId = 4 },
+            new() { PermissionId = readPermission.Id, WorkItemId = 5 },
+            new() { PermissionId = readPermission.Id, WorkItemId = 6 },
+            new() { PermissionId = writePermission.Id, WorkItemId = 7 },
+            new() { PermissionId = createPermission.Id, WorkItemId = 8 },
+            new() { PermissionId = deletePermission.Id, WorkItemId = 9 },
+            new() { PermissionId = adminPermission.Id, WorkItemId = 10 }
         };
         await this.DbContext.PermissionWorkItems.AddRangeAsync(permissionWorkItems);
         await this.DbContext.SaveChangesAsync();

@@ -97,7 +97,7 @@ public sealed class TaskService : ITaskService, IZoraService
                 Priority = "Medium",
                 ParentTaskId = null
             };
-            
+
             return Task.FromResult(Result.Ok(dummyTask));
         }
         catch (Exception ex)
@@ -122,7 +122,7 @@ public sealed class TaskService : ITaskService, IZoraService
                 ProjectId = 1,
                 Priority = "Medium"
             };
-            
+
             return Task.FromResult(Result.Ok(newTask));
         }
         catch (Exception ex)
@@ -149,7 +149,7 @@ public sealed class TaskService : ITaskService, IZoraService
                 ProjectId = 1,
                 Priority = "High"
             };
-            
+
             return Task.FromResult(Result.Ok(updatedTask));
         }
         catch (Exception ex)
@@ -187,7 +187,7 @@ public sealed class TaskService : ITaskService, IZoraService
                 ProjectId = 1,
                 Priority = "Medium"
             };
-            
+
             TaskResponseDto response = new TaskResponseDto
             {
                 Total = 1,
@@ -195,7 +195,7 @@ public sealed class TaskService : ITaskService, IZoraService
                 PageSize = findParams.PageSize,
                 Items = new List<ReadTaskDto> { dummyTaskDto }
             };
-            
+
             return Task.FromResult(Result.Ok(response));
         }
         catch (Exception ex)
@@ -211,7 +211,7 @@ public sealed class TaskService : ITaskService, IZoraService
         {
             List<ReadTaskDto> dummyTasks = new List<ReadTaskDto>
             {
-                new ReadTaskDto
+                new()
                 {
                     Id = 1,
                     Name = "Search Result Task 1",
@@ -222,7 +222,7 @@ public sealed class TaskService : ITaskService, IZoraService
                     ProjectId = 1,
                     Priority = "Medium"
                 },
-                new ReadTaskDto
+                new()
                 {
                     Id = 2,
                     Name = "Search Result Task 2",
@@ -234,7 +234,7 @@ public sealed class TaskService : ITaskService, IZoraService
                     Priority = "High"
                 }
             };
-            
+
             TaskResponseDto response = new TaskResponseDto
             {
                 Total = dummyTasks.Count,
@@ -242,7 +242,7 @@ public sealed class TaskService : ITaskService, IZoraService
                 PageSize = searchParams.PageSize,
                 Items = dummyTasks
             };
-            
+
             return Task.FromResult(Result.Ok(response));
         }
         catch (Exception ex)

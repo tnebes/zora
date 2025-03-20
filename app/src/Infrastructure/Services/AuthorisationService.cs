@@ -176,7 +176,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
         PermissionFlag permissionFlag)
     {
         string permissionMask = permissionFlag.GetPermissionMask();
-        
+
         return tasksQuery.Where(task =>
             task.PermissionWorkItems.Any(pwi =>
                 pwi.Permission.PermissionString != PermissionFlag.None.ToString() &&
@@ -201,7 +201,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
         PermissionFlag permissionFlag)
     {
         string permissionMask = permissionFlag.GetPermissionMask();
-        
+
         return projectsQuery.Where(project =>
             project.PermissionWorkItems.Any(pwi =>
                 pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
@@ -220,7 +220,7 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
         PermissionFlag permissionFlag)
     {
         string permissionMask = permissionFlag.GetPermissionMask();
-        
+
         return programsQuery.Where(program =>
             program.PermissionWorkItems.Any(pwi =>
                 pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&

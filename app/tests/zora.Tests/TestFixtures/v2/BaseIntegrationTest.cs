@@ -41,10 +41,7 @@ public abstract class BaseIntegrationTest : IAsyncLifetime, IDisposable
         this.InitializeMapper();
     }
 
-    public async Task InitializeAsync()
-    {
-        await this.ClearDatabaseAsync();
-    }
+    public async Task InitializeAsync() => await this.ClearDatabaseAsync();
 
     public async Task DisposeAsync()
     {

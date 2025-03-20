@@ -76,5 +76,4 @@ public static class DatabaseSeeder
 
         await dbContext.SaveChangesAsync();
     }
-
 }

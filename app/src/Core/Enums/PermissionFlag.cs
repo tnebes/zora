@@ -13,15 +13,9 @@ public enum PermissionFlag
 
 public static class PermissionFlagExtensions
 {
-    public static string GetPermissionName(this PermissionFlag permissionFlag)
-    {
-        return permissionFlag.ToString();
-    }
+    public static string GetPermissionName(this PermissionFlag permissionFlag) => permissionFlag.ToString();
 
-    public static int GetPermissionValue(this PermissionFlag permissionFlag)
-    {
-        return (int)permissionFlag;
-    }
+    public static int GetPermissionValue(this PermissionFlag permissionFlag) => (int)permissionFlag;
 
     public static string GetPermissionMask(this PermissionFlag permissionFlag)
     {
@@ -31,7 +25,7 @@ public static class PermissionFlagExtensions
         {
             return "00000";
         }
-        
+
         int position = (int)Math.Log2((int)permissionFlag);
         char[] mask = new char[5];
         Array.Fill(mask, '0');
@@ -39,4 +33,3 @@ public static class PermissionFlagExtensions
         return new string(mask);
     }
 }
-

@@ -29,7 +29,7 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
         {
             List<ZoraTask> dummyTasks = new List<ZoraTask>
             {
-                new ZoraTask
+                new()
                 {
                     Id = 1,
                     Name = "Task 1",
@@ -39,7 +39,7 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
                     ProjectId = 1,
                     Priority = "Medium"
                 },
-                new ZoraTask
+                new()
                 {
                     Id = 2,
                     Name = "Task 2",
@@ -50,7 +50,7 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
                     Priority = "High"
                 }
             };
-            
+
             return Task.FromResult(Result.Ok((dummyTasks.AsEnumerable(), dummyTasks.Count)));
         }
         catch (Exception ex)
