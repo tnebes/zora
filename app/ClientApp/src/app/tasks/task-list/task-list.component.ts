@@ -20,7 +20,7 @@ import { ConfirmDialogComponent } from 'src/app/shared/components/confirm-dialog
   styleUrls: ['./task-list.component.css']
 })
 export class TaskListComponent implements OnInit, AfterViewInit {
-  public readonly displayedColumns: string[] = ['id', 'title', 'status', 'dueDate', 'assignedUserName', 'actions'];
+  public readonly displayedColumns: string[] = ['id', 'name', 'status', 'priority', 'dueDate', 'completionPercentage', 'actions'];
   public readonly dataSource: MatTableDataSource<Task> = new MatTableDataSource<Task>([]);
   public searchTerm: Subject<string> = new Subject<string>();
   public isLoading: boolean = false;
@@ -28,6 +28,7 @@ export class TaskListComponent implements OnInit, AfterViewInit {
   public currentSearchValue: string = '';
   public errorMessage: string = '';
   public readonly defaultPageSize: number = Constants.DEFAULT_PAGE_SIZE;
+  public filters: { [key: string]: string } = {};
 
   @ViewChild(MatPaginator) public paginator!: MatPaginator;
   @ViewChild(MatSort) private readonly sort!: MatSort;
@@ -51,12 +52,12 @@ export class TaskListComponent implements OnInit, AfterViewInit {
         catchError(error => {
           console.error('Error fetching tasks:', error);
           NotificationUtils.showError(this.dialog, 'Failed to fetch tasks', error);
-          return of({items: [], totalCount: 0, pageSize: this.defaultPageSize, currentPage: 1});
+          return of({items: [], total: 0, page: 1, pageSize: this.defaultPageSize});
         })
       )
       .subscribe((response: TaskResponseDto) => {
         this.dataSource.data = response.items;
-        this.totalCount = response.totalCount;
+        this.totalCount = response.total;
         this.isLoading = false;
       });
   }
@@ -81,6 +82,16 @@ export class TaskListComponent implements OnInit, AfterViewInit {
     const target = event.target as HTMLInputElement;
     this.currentSearchValue = target.value;
     this.searchTerm.next(this.currentSearchValue);
+  }
+
+  public onFilterChange(filterName: string, value: string): void {
+    if (value === '') {
+      delete this.filters[filterName];
+    } else {
+      this.filters[filterName] = value;
+    }
+    
+    this.loadTasks();
   }
 
   public viewTask(taskId: number): void {
@@ -134,7 +145,8 @@ export class TaskListComponent implements OnInit, AfterViewInit {
             page: this.paginator.pageIndex + 1,
             pageSize: this.paginator.pageSize || this.defaultPageSize,
             sortColumn: this.sort.active,
-            sortDirection: this.sort.direction as 'asc' | 'desc'
+            sortDirection: this.sort.direction as 'asc' | 'desc',
+            ...this.filters
           };
 
           return this.taskService.getTasks(params)
@@ -142,15 +154,19 @@ export class TaskListComponent implements OnInit, AfterViewInit {
               catchError(error => {
                 console.error('Error fetching tasks:', error);
                 NotificationUtils.showError(this.dialog, 'Failed to fetch tasks', error);
-                return of({items: [], totalCount: 0, pageSize: this.defaultPageSize, currentPage: 1});
+                return of({items: [], total: 0, page: 1, pageSize: this.defaultPageSize});
               })
             );
         })
       )
       .subscribe((response: TaskResponseDto) => {
         this.dataSource.data = response.items;
-        this.totalCount = response.totalCount;
+        this.totalCount = response.total;
         this.isLoading = false;
+        
+        if (this.paginator) {
+          this.paginator.pageIndex = response.page - 1;
+        }
         
         if (this.sort) {
           this.dataSource.sort = this.sort;

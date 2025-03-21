@@ -1,22 +1,26 @@
 export interface Task {
     id: number;
-    title: string;
+    name: string;
     description: string;
-    dueDate?: Date;
     status: string;
-    assignedUserId?: number;
-    assignedUserName?: string;
-    createdAt: Date;
-    updatedAt: Date;
-    programId?: number;
-    programName?: string;
+    startDate?: string;
+    dueDate?: string;
+    completionPercentage?: number;
+    estimatedHours?: number;
+    actualHours?: number;
+    createdAt: string;
+    createdById: number;
+    updatedAt?: string | null;
+    updatedById?: number | null;
+    assigneeId?: number;
     projectId?: number;
-    projectName?: string;
+    priority?: string;
+    parentTaskId?: number | null;
 }
 
 export interface TaskResponseDto {
     items: Task[];
-    totalCount: number;
+    total: number;
+    page: number;
     pageSize: number;
-    currentPage: number;
 }

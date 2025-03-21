@@ -64,9 +64,8 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
                 return this.Unauthorized();
             }
 
-            this.QueryService.NormaliseQueryParams(queryParams);
-
             long userId = this.HttpContext.User.GetUserId();
+
             Result<TaskResponseDto> result = await this._taskService.GetDtoAsync(queryParams, userId);
 
             if (result.IsFailed)

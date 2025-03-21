@@ -22,11 +22,11 @@ export class TaskEditComponent implements OnInit {
   loading: boolean = false;
   error: string = '';
   statuses: {value: string, display: string}[] = [
-    { value: 'Todo', display: 'Todo' },
+    { value: 'NotStarted', display: 'Not Started' },
     { value: 'InProgress', display: 'In Progress' },
-    { value: 'Done', display: 'Done' }
+    { value: 'OnHold', display: 'On Hold' },
+    { value: 'Completed', display: 'Completed' }
   ];
-  programs: EntityOption[] = [];
   projects: EntityOption[] = [];
   users: EntityOption[] = [];
 
@@ -56,31 +56,33 @@ export class TaskEditComponent implements OnInit {
 
   createForm(): FormGroup {
     return this.fb.group({
-      title: ['', [Validators.required, Validators.minLength(3)]],
+      name: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', Validators.required],
-      status: ['Todo', Validators.required],
+      status: ['NotStarted', Validators.required],
+      priority: ['Medium', Validators.required],
+      startDate: [null],
       dueDate: [null],
-      assignedUserId: [null],
-      programId: [null],
-      projectId: [null]
+      completionPercentage: [0, [Validators.min(0), Validators.max(100)]],
+      estimatedHours: [null, Validators.min(0)],
+      actualHours: [null, Validators.min(0)],
+      assigneeId: [null],
+      projectId: [null],
+      parentTaskId: [null]
     });
   }
 
   loadRelatedEntities(): void {
     // Mock data - in a real application, you would load these from API
-    this.programs = [
-      { value: 1, display: 'Program A' },
-      { value: 2, display: 'Program B' }
-    ];
-    
     this.projects = [
       { value: 1, display: 'Project X' },
-      { value: 2, display: 'Project Y' }
+      { value: 2, display: 'Project Y' },
+      { value: 11, display: 'Project Z' }
     ];
     
     this.users = [
       { value: 1, display: 'User 1' },
-      { value: 2, display: 'User 2' }
+      { value: 2, display: 'User 2' },
+      { value: 997, display: 'User 997' }
     ];
   }
 
@@ -91,13 +93,18 @@ export class TaskEditComponent implements OnInit {
     this.taskService.getTask(this.taskId).subscribe({
       next: (task) => {
         this.taskForm.patchValue({
-          title: task.title,
+          name: task.name,
           description: task.description,
           status: task.status,
+          priority: task.priority,
+          startDate: task.startDate ? new Date(task.startDate) : null,
           dueDate: task.dueDate ? new Date(task.dueDate) : null,
-          assignedUserId: task.assignedUserId,
-          programId: task.programId,
-          projectId: task.projectId
+          completionPercentage: task.completionPercentage,
+          estimatedHours: task.estimatedHours,
+          actualHours: task.actualHours,
+          assigneeId: task.assigneeId,
+          projectId: task.projectId,
+          parentTaskId: task.parentTaskId
         });
         this.loading = false;
       },

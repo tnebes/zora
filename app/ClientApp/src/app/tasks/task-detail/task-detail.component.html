@@ -13,7 +13,7 @@
 
   <mat-card *ngIf="task && !loading">
     <mat-card-header>
-      <mat-card-title>{{task.title}}</mat-card-title>
+      <mat-card-title>{{task.name}}</mat-card-title>
       <mat-card-subtitle>ID: {{task.id}} | Status: {{task.status}}</mat-card-subtitle>
     </mat-card-header>
     
@@ -25,23 +25,48 @@
         </div>
         
         <div class="detail-row">
+          <span class="label">Priority:</span>
+          <span class="value">{{task.priority}}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="label">Start Date:</span>
+          <span class="value">{{task.startDate | date:'medium'}}</span>
+        </div>
+        
+        <div class="detail-row">
           <span class="label">Due Date:</span>
           <span class="value">{{task.dueDate | date:'medium'}}</span>
         </div>
         
         <div class="detail-row">
-          <span class="label">Assigned To:</span>
-          <span class="value">{{task.assignedUserName || 'Not assigned'}}</span>
+          <span class="label">Completion:</span>
+          <span class="value">{{task.completionPercentage}}%</span>
         </div>
         
-        <div class="detail-row" *ngIf="task.programId">
-          <span class="label">Program:</span>
-          <span class="value">{{task.programName}}</span>
+        <div class="detail-row">
+          <span class="label">Estimated Hours:</span>
+          <span class="value">{{task.estimatedHours}}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="label">Actual Hours:</span>
+          <span class="value">{{task.actualHours}}</span>
+        </div>
+        
+        <div class="detail-row" *ngIf="task.assigneeId">
+          <span class="label">Assignee ID:</span>
+          <span class="value">{{task.assigneeId}}</span>
         </div>
         
         <div class="detail-row" *ngIf="task.projectId">
-          <span class="label">Project:</span>
-          <span class="value">{{task.projectName}}</span>
+          <span class="label">Project ID:</span>
+          <span class="value">{{task.projectId}}</span>
+        </div>
+        
+        <div class="detail-row" *ngIf="task.parentTaskId">
+          <span class="label">Parent Task ID:</span>
+          <span class="value">{{task.parentTaskId}}</span>
         </div>
         
         <div class="detail-row">
@@ -49,7 +74,7 @@
           <span class="value">{{task.createdAt | date:'medium'}}</span>
         </div>
         
-        <div class="detail-row">
+        <div class="detail-row" *ngIf="task.updatedAt">
           <span class="label">Updated At:</span>
           <span class="value">{{task.updatedAt | date:'medium'}}</span>
         </div>
