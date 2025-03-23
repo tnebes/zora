@@ -64,3 +64,18 @@ table {
 .mat-column-assignedUserName {
   width: 150px;
 }
+
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clickable-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Prevent the action buttons from triggering row click */
+.mat-column-actions button {
+  position: relative;
+  z-index: 2;
+}

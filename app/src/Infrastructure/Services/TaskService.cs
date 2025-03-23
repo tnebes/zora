@@ -140,30 +140,52 @@ public sealed class TaskService : ITaskService, IZoraService
         }
     }
 
-    public Task<Result<ZoraTask>> UpdateAsync(long id, UpdateTaskDto updateDto, long userId)
+    public async Task<Result<ZoraTask>> UpdateAsync(long id, UpdateTaskDto updateDto, long userId)
     {
         try
         {
-            ZoraTask updatedTask = new ZoraTask
+            PermissionRequestDto permissionRequest = new PermissionRequestDto
             {
-                Id = id,
-                Name = "Updated Task",
-                Description = "Dummy updated task description",
-                Status = "Updated",
-                CreatedAt = DateTime.UtcNow.AddDays(-10),
-                UpdatedAt = DateTime.UtcNow,
-                CreatedById = 1,
-                UpdatedById = userId,
-                ProjectId = 1,
-                Priority = "High"
+                ResourceId = id,
+                ResourceType = ResourceType.Task,
+                RequestedPermission = PermissionFlag.Write,
+                UserId = userId
             };
 
-            return Task.FromResult(Result.Ok(updatedTask));
+            if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
+            {
+                this._logger.LogInformation("User {UserId} is not authorised to update task {TaskId}", userId, id);
+                return Result.Fail<ZoraTask>("User is not authorised to update task");
+            }
+
+            Result<ZoraTask> taskResult = await this._taskRepository.GetByIdAsync(id, true);
+            
+            if (taskResult.IsFailed)
+            {
+                this._logger.LogError("Failed to retrieve task for update. Errors: {Errors}", taskResult.Errors);
+                return Result.Fail<ZoraTask>(taskResult.Errors);
+            }
+
+            ZoraTask existingTask = taskResult.Value;
+            
+            this._mapper.Map(updateDto, existingTask);
+            existingTask.UpdatedAt = DateTime.UtcNow;
+            existingTask.UpdatedById = userId;
+            
+            Result<ZoraTask> updateResult = await this._taskRepository.UpdateAsync(existingTask);
+            
+            if (updateResult.IsFailed)
+            {
+                this._logger.LogError("Failed to update task. Errors: {Errors}", updateResult.Errors);
+                return Result.Fail<ZoraTask>(updateResult.Errors);
+            }
+
+            return Result.Ok(updateResult.Value);
         }
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error updating task with id {Id}", id);
-            return Task.FromResult(Result.Fail<ZoraTask>($"Error updating task with id {id}"));
+            return Result.Fail<ZoraTask>($"Error updating task with id {id}");
         }
     }
 

@@ -69,7 +69,7 @@ export class TaskListComponent implements OnInit, AfterViewInit {
     this.searchTerm.next(this.currentSearchValue);
   }
 
-  public viewTask(taskId: number): void {
+  public navigateToTaskDetail(taskId: number): void {
     this.router.navigate(['/tasks/detail', taskId]);
   }
 

@@ -100,4 +100,19 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
             return Result.Fail<ZoraTask>($"Error getting task by id {id}");
         }
     }
+
+    public new async Task<Result<ZoraTask>> UpdateAsync(ZoraTask task)
+    {
+        try
+        {
+            this.DbContext.Entry(task).State = EntityState.Modified;
+            await this.DbContext.SaveChangesAsync();
+            return Result.Ok(task);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error updating task with id {Id}", task.Id);
+            return Result.Fail<ZoraTask>($"Error updating task with id {task.Id}");
+        }
+    }
 }

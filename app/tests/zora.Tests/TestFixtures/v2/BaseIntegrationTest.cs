@@ -15,6 +15,7 @@ using zora.Core.DTOs.Assets;
 using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Roles;
+using zora.Core.DTOs.Tasks;
 using zora.Core.DTOs.Users;
 using zora.Infrastructure.Data;
 
@@ -81,6 +82,9 @@ public abstract class BaseIntegrationTest : IAsyncLifetime, IDisposable
 
     protected async Task<HttpResponseMessage> GetIndividualTask(long taskId) =>
         await this.Client.GetAsync($"/api/v1/tasks/{taskId}");
+
+    protected async Task<HttpResponseMessage> UpdateTask(long taskId, UpdateTaskDto updateDto) =>
+        await this.Client.PutAsJsonAsync($"/api/v1/tasks/{taskId}", updateDto);
 
     #endregion
 

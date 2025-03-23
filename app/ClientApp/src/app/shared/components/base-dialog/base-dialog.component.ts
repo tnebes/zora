@@ -10,6 +10,7 @@ export interface DialogField {
     options?: Array<{ value: any; display: string }>;
     validators?: Array<any>;
     accept?: string;
+    isDate?: boolean;
 }
 
 export interface BaseDialogData<T> {
@@ -17,6 +18,12 @@ export interface BaseDialogData<T> {
     entity?: T;
     fields: DialogField[];
     mode: 'create' | 'edit';
+}
+
+export interface ViewOnlyDialogData<T> {
+    title: string;
+    entity: T;
+    fields: DialogField[];
 }
 
 @Component({

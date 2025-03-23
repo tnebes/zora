@@ -2,6 +2,7 @@
 
 using FluentResults;
 using zora.Core.Enums;
+using System.Linq;
 
 #endregion
 
@@ -52,50 +53,50 @@ public static class PermissionUtilities
 
     public static bool HasPermission(PermissionFlag userPermissions, PermissionFlag requiredPermission)
     {
-        PermissionFlag effectivePermissions = userPermissions;
+        // If user has Admin permission, automatically grant any permission
+        if ((userPermissions & PermissionFlag.Admin) != 0)
+        {
+            return true;
+        }
 
-        // If user has WRITE, CREATE, DELETE or ADMIN, they automatically have READ
-        if ((userPermissions &
-             (PermissionFlag.Write | PermissionFlag.Create | PermissionFlag.Delete | PermissionFlag.Admin)) != 0)
+        // Calculate effective permissions (add READ if user has any higher permission)
+        PermissionFlag effectivePermissions = userPermissions;
+        if ((userPermissions & (PermissionFlag.Write | PermissionFlag.Create | PermissionFlag.Delete)) != 0)
         {
             effectivePermissions |= PermissionFlag.Read;
         }
 
+        // Permission check: all bits in requiredPermission must be present in effectivePermissions
         return (effectivePermissions & requiredPermission) == requiredPermission;
     }
 
     public static PermissionFlag CombinePermissions(params PermissionFlag[] permissions)
     {
-        PermissionFlag result = PermissionFlag.None;
-        foreach (PermissionFlag permission in permissions)
-        {
-            result |= permission;
-        }
-
-        return result;
+        // Simply OR all permission flags together
+        return permissions.Aggregate(PermissionFlag.None, (current, permission) => current | permission);
     }
 
     public static string CombinePermissionStrings(params string[] permissionStrings)
     {
-        int result = 0;
-        foreach (string permissionString in permissionStrings)
-        {
-            if (ValidatePermissionString(permissionString).IsSuccess)
-            {
-                result |= Convert.ToInt32(permissionString, 2);
-            }
-        }
-
-        return Convert.ToString(result, 2).PadLeft(5, '0');
+        return permissionStrings
+            .Where(ps => ValidatePermissionString(ps).IsSuccess)
+            .Select(ps => Convert.ToInt32(ps, 2))
+            .Aggregate(0, (current, value) => current | value)
+            .ToString("D5")
+            .PadLeft(5, '0');
     }
 
     public static PermissionFlag GetEffectivePermissions(PermissionFlag permissions)
     {
-        PermissionFlag effectivePermissions = permissions;
+        // If Admin permission is present, return all permissions
+        if ((permissions & PermissionFlag.Admin) != 0)
+        {
+            return PermissionFlag.Read | PermissionFlag.Write | PermissionFlag.Create | PermissionFlag.Delete | PermissionFlag.Admin;
+        }
 
-        // If user has WRITE, CREATE, DELETE or ADMIN, they automatically have READ
-        if ((permissions &
-             (PermissionFlag.Write | PermissionFlag.Create | PermissionFlag.Delete | PermissionFlag.Admin)) != 0)
+        // Add READ if any higher-level permission is present
+        PermissionFlag effectivePermissions = permissions;
+        if ((permissions & (PermissionFlag.Write | PermissionFlag.Create | PermissionFlag.Delete)) != 0)
         {
             effectivePermissions |= PermissionFlag.Read;
         }

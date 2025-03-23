@@ -22,7 +22,7 @@ namespace zora.API.Controllers;
 [Route("api/v1/tasks")]
 [Produces("application/json")]
 [Description("Tasks API")]
-public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto, UpdateTaskDto,
+public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto, UpdateTaskDto, ReadTaskDto,
     TaskResponseDto, DynamicQueryTaskParamsDto>, IZoraService
 {
     private readonly IAssetService _assetService;
@@ -141,7 +141,7 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public override async Task<ActionResult<ZoraTask>> Create(CreateTaskDto createDto)
+    public override async Task<ActionResult<ReadTaskDto>> Create(CreateTaskDto createDto)
     {
         try
         {
@@ -174,7 +174,7 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public override async Task<ActionResult<ZoraTask>> Update(long id, UpdateTaskDto updateDto)
+    public override async Task<ActionResult<ReadTaskDto>> Update(long id, UpdateTaskDto updateDto)
     {
         try
         {
@@ -185,6 +185,21 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
             }
 
             long userId = this.HttpContext.User.GetUserId();
+
+            PermissionRequestDto permissionRequest = new PermissionRequestDto
+            {
+                ResourceId = id,
+                ResourceType = ResourceType.Task,
+                RequestedPermission = PermissionFlag.Write,
+                UserId = userId
+            };
+
+            if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
+            {
+                this._logger.LogInformation("User {UserId} is not authorised to access task {TaskId}", userId, id);
+                return this.Forbid();
+            }
+
             Result<ZoraTask> result = await this._taskService.UpdateAsync(id, updateDto, userId);
 
             if (result.IsFailed)
@@ -192,7 +207,9 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
                 return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
             }
 
-            return this.Ok(result.Value);
+            ReadTaskDto taskDto = this._mapper.Map<ReadTaskDto>(result.Value);
+
+            return this.Ok(taskDto);
         }
         catch (Exception ex)
         {

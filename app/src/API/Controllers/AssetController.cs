@@ -23,7 +23,7 @@ namespace zora.API.Controllers;
 [Route("api/v1/assets")]
 [Produces("application/json")]
 [Description("Assets API")]
-public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, UpdateAssetDto, AssetResponseDto,
+public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, UpdateAssetDto, AssetDto, AssetResponseDto,
     DynamicQueryAssetParamsDto>, IZoraService
 {
     /// <summary>
@@ -110,7 +110,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
     [Description("Creates a new asset.")]
-    public override async Task<ActionResult<Asset>> Create([FromForm] CreateAssetDto createDto)
+    public override async Task<ActionResult<AssetDto>> Create([FromForm] CreateAssetDto createDto)
     {
         try
         {
@@ -155,7 +155,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Tags("Assets")]
     [Description("Updates an existing asset by ID.")]
-    public override async Task<ActionResult<Asset>> Update(long id, [FromForm] UpdateAssetDto updateDto)
+    public override async Task<ActionResult<AssetDto>> Update(long id, [FromForm] UpdateAssetDto updateDto)
     {
         try
         {

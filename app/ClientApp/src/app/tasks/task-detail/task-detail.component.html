@@ -18,67 +18,36 @@
     </mat-card-header>
     
     <mat-card-content>
-      <div class="task-details">
-        <div class="detail-row">
-          <span class="label">Description:</span>
-          <span class="value">{{task.description}}</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Priority:</span>
-          <span class="value">{{task.priority}}</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Start Date:</span>
-          <span class="value">{{task.startDate | date:'medium'}}</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Due Date:</span>
-          <span class="value">{{task.dueDate | date:'medium'}}</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Completion:</span>
-          <span class="value">{{task.completionPercentage}}%</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Estimated Hours:</span>
-          <span class="value">{{task.estimatedHours}}</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Actual Hours:</span>
-          <span class="value">{{task.actualHours}}</span>
-        </div>
-        
-        <div class="detail-row" *ngIf="task.assigneeId">
-          <span class="label">Assignee ID:</span>
-          <span class="value">{{task.assigneeId}}</span>
-        </div>
-        
-        <div class="detail-row" *ngIf="task.projectId">
-          <span class="label">Project ID:</span>
-          <span class="value">{{task.projectId}}</span>
-        </div>
-        
-        <div class="detail-row" *ngIf="task.parentTaskId">
-          <span class="label">Parent Task ID:</span>
-          <span class="value">{{task.parentTaskId}}</span>
-        </div>
-        
-        <div class="detail-row">
-          <span class="label">Created At:</span>
-          <span class="value">{{task.createdAt | date:'medium'}}</span>
-        </div>
-        
-        <div class="detail-row" *ngIf="task.updatedAt">
-          <span class="label">Updated At:</span>
-          <span class="value">{{task.updatedAt | date:'medium'}}</span>
-        </div>
-      </div>
+      <table class="task-details-table">
+        <tr>
+          <td><strong>Description:</strong></td>
+          <td>{{task.description}}</td>
+        </tr>
+        <tr>
+          <td><strong>Priority:</strong></td>
+          <td>{{task.priority}}</td>
+        </tr>
+        <tr>
+          <td><strong>Status:</strong></td>
+          <td>{{task.status}}</td>
+        </tr>
+        <tr>
+          <td><strong>Completion:</strong></td>
+          <td>{{task.completionPercentage}}%</td>
+        </tr>
+        <tr *ngIf="task.startDate">
+          <td><strong>Start Date:</strong></td>
+          <td>{{task.startDate | date:'medium'}}</td>
+        </tr>
+        <tr *ngIf="task.dueDate">
+          <td><strong>Due Date:</strong></td>
+          <td>{{task.dueDate | date:'medium'}}</td>
+        </tr>
+      </table>
+      
+      <button mat-button color="primary" (click)="showTaskDetails()">
+        <mat-icon>info</mat-icon> View Full Details
+      </button>
     </mat-card-content>
     
     <mat-card-actions>

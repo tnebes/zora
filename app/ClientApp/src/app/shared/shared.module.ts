@@ -8,6 +8,7 @@ import {MatInputModule} from '@angular/material/input';
 import {MatSelectModule} from '@angular/material/select';
 import {ConfirmDialogComponent} from './components/confirm-dialog/confirm-dialog.component';
 import {BaseDialogComponent} from './components/base-dialog/base-dialog.component';
+import {ViewOnlyDialogComponent} from './components/view-only-dialog/view-only-dialog.component';
 import {EntitySelectorDialogComponent} from './components/entity-display-dialog/entity-display-dialog.component';
 import {MatTableModule} from "@angular/material/table";
 import {NotificationDialogComponent} from './components/notification-dialog/notification-dialog.component';
@@ -19,7 +20,8 @@ import {MatIconModule} from '@angular/material/icon';
         BaseDialogComponent,
         ConfirmDialogComponent,
         EntitySelectorDialogComponent,
-        NotificationDialogComponent
+        NotificationDialogComponent,
+        ViewOnlyDialogComponent
     ],
     imports: [
         CommonModule,
@@ -35,6 +37,7 @@ import {MatIconModule} from '@angular/material/icon';
     exports: [
         BaseDialogComponent,
         ConfirmDialogComponent,
+        ViewOnlyDialogComponent,
         ReactiveFormsModule,
         MatDialogModule,
         MatButtonModule,
@@ -42,6 +45,8 @@ import {MatIconModule} from '@angular/material/icon';
         MatInputModule,
         MatSelectModule,
         MatIconModule,
+        MatTableModule,
+        CommonModule
     ]
 })
 export class SharedModule {

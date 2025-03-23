@@ -23,7 +23,7 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("User API")]
-public sealed class UserController : BaseCrudController<FullUserDto, CreateMinimumUserDto, UpdateUserDto,
+public sealed class UserController : BaseCrudController<FullUserDto, CreateMinimumUserDto, UpdateUserDto, FullUserDto,
     UserResponseDto<FullUserDto>, DynamicQueryUserParamsDto>
 {
     private readonly IUserService _userService;
