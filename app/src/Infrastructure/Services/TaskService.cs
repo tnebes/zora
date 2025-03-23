@@ -159,7 +159,7 @@ public sealed class TaskService : ITaskService, IZoraService
             }
 
             Result<ZoraTask> taskResult = await this._taskRepository.GetByIdAsync(id, true);
-            
+
             if (taskResult.IsFailed)
             {
                 this._logger.LogError("Failed to retrieve task for update. Errors: {Errors}", taskResult.Errors);
@@ -167,13 +167,13 @@ public sealed class TaskService : ITaskService, IZoraService
             }
 
             ZoraTask existingTask = taskResult.Value;
-            
+
             this._mapper.Map(updateDto, existingTask);
             existingTask.UpdatedAt = DateTime.UtcNow;
             existingTask.UpdatedById = userId;
-            
+
             Result<ZoraTask> updateResult = await this._taskRepository.UpdateAsync(existingTask);
-            
+
             if (updateResult.IsFailed)
             {
                 this._logger.LogError("Failed to update task. Errors: {Errors}", updateResult.Errors);

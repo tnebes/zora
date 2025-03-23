@@ -54,10 +54,10 @@
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef> Actions </th>
       <td mat-cell *matCellDef="let task" (click)="$event.stopPropagation()">
-        <button mat-icon-button color="accent" matTooltip="Edit" (click)="editTask(task.id)">
+        <button mat-icon-button color="accent" matTooltip="Edit" (click)="editTask(task, $event)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button color="warn" matTooltip="Delete" (click)="deleteTask(task.id)">
+        <button mat-icon-button color="warn" matTooltip="Delete" (click)="deleteTask(task.id, $event)">
           <mat-icon>delete</mat-icon>
         </button>
       </td>

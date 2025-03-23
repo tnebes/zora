@@ -5,6 +5,7 @@ import { TaskService } from '../../core/services/task.service';
 import { MatDialog } from '@angular/material/dialog';
 import { BaseDialogComponent, DialogField } from '../../shared/components/base-dialog/base-dialog.component';
 import { ViewOnlyDialogComponent } from '../../shared/components/view-only-dialog/view-only-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-task-detail',
@@ -17,12 +18,14 @@ export class TaskDetailComponent implements OnInit {
   loading: boolean = true;
   error: string = '';
   dialogFields: DialogField[] = [];
+  editableFields: DialogField[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private taskService: TaskService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -42,6 +45,7 @@ export class TaskDetailComponent implements OnInit {
         this.task = task;
         this.loading = false;
         this.setupDialogFields();
+        this.setupEditableFields();
       },
       error: (err) => {
         this.error = 'Error loading task. Please try again later.';
@@ -71,6 +75,49 @@ export class TaskDetailComponent implements OnInit {
     ];
   }
 
+  setupEditableFields(): void {
+    if (!this.task) return;
+
+    // Only include fields that should be editable
+    this.editableFields = [
+      { name: 'name', type: 'text', label: 'Name', required: true },
+      { name: 'description', type: 'text', label: 'Description', required: false },
+      { 
+        name: 'status', 
+        type: 'select', 
+        label: 'Status', 
+        required: true,
+        options: [
+          { value: 'New', display: 'New' },
+          { value: 'In Progress', display: 'In Progress' },
+          { value: 'On Hold', display: 'On Hold' },
+          { value: 'Completed', display: 'Completed' },
+          { value: 'Cancelled', display: 'Cancelled' }
+        ]
+      },
+      { 
+        name: 'priority', 
+        type: 'select', 
+        label: 'Priority', 
+        required: true,
+        options: [
+          { value: 'Low', display: 'Low' },
+          { value: 'Medium', display: 'Medium' },
+          { value: 'High', display: 'High' },
+          { value: 'Critical', display: 'Critical' }
+        ]
+      },
+      { name: 'startDate', type: 'date', label: 'Start Date', required: false },
+      { name: 'dueDate', type: 'date', label: 'Due Date', required: false },
+      { name: 'completionPercentage', type: 'text', label: 'Completion %', required: false },
+      { name: 'estimatedHours', type: 'text', label: 'Estimated Hours', required: false },
+      { name: 'actualHours', type: 'text', label: 'Actual Hours', required: false },
+      { name: 'assigneeId', type: 'text', label: 'Assignee ID', required: false },
+      { name: 'projectId', type: 'text', label: 'Project ID', required: false },
+      { name: 'parentTaskId', type: 'text', label: 'Parent Task ID', required: false }
+    ];
+  }
+
   showTaskDetails(): void {
     if (!this.task) return;
     
@@ -85,7 +132,44 @@ export class TaskDetailComponent implements OnInit {
   }
 
   editTask(): void {
-    this.router.navigate(['/tasks/edit', this.taskId]);
+    if (!this.task) return;
+
+    const dialogRef = this.dialog.open(BaseDialogComponent, {
+      width: '600px',
+      data: {
+        title: 'Edit Task',
+        entity: this.task,
+        fields: this.editableFields,
+        mode: 'edit'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.updateTask(result);
+      }
+    });
+  }
+
+  updateTask(updatedTask: Partial<Task>): void {
+    this.loading = true;
+    
+    this.taskService.updateTask(this.taskId, updatedTask).subscribe({
+      next: (task) => {
+        this.task = task;
+        this.loading = false;
+        this.snackBar.open('Task updated successfully', 'Close', {
+          duration: 3000
+        });
+      },
+      error: (err) => {
+        this.error = 'Error updating task. Please try again later.';
+        this.loading = false;
+        this.snackBar.open('Failed to update task', 'Close', {
+          duration: 3000
+        });
+      }
+    });
   }
 
   deleteTask(): void {

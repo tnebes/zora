@@ -23,7 +23,8 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("Role API")]
-public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleDto, UpdateRoleDto, FullRoleDto, RoleResponseDto,
+public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleDto, UpdateRoleDto, FullRoleDto,
+    RoleResponseDto,
     DynamicQueryRoleParamsDto>
 {
     private readonly IRoleService _roleService;

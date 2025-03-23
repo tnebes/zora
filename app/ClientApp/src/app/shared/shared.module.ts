@@ -13,6 +13,8 @@ import {EntitySelectorDialogComponent} from './components/entity-display-dialog/
 import {MatTableModule} from "@angular/material/table";
 import {NotificationDialogComponent} from './components/notification-dialog/notification-dialog.component';
 import {MatIconModule} from '@angular/material/icon';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatNativeDateModule} from '@angular/material/core';
 
 
 @NgModule({
@@ -32,7 +34,9 @@ import {MatIconModule} from '@angular/material/icon';
         MatInputModule,
         MatSelectModule,
         MatTableModule,
-        MatIconModule
+        MatIconModule,
+        MatDatepickerModule,
+        MatNativeDateModule
     ],
     exports: [
         BaseDialogComponent,
@@ -46,6 +50,8 @@ import {MatIconModule} from '@angular/material/icon';
         MatSelectModule,
         MatIconModule,
         MatTableModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
         CommonModule
     ]
 })

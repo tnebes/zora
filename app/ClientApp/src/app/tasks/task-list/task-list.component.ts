@@ -13,6 +13,8 @@ import { Constants } from 'src/app/core/constants';
 import { QueryParams } from '../../core/models/query-params.interface';
 import { NotificationUtils } from '../../core/utils/notification.utils';
 import { ConfirmDialogComponent } from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { BaseDialogComponent, DialogField } from 'src/app/shared/components/base-dialog/base-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-task-list',
@@ -37,7 +39,8 @@ export class TaskListComponent implements OnInit, AfterViewInit {
     private readonly taskService: TaskService,
     private readonly router: Router,
     private readonly dialog: MatDialog,
-    private readonly queryService: QueryService
+    private readonly queryService: QueryService,
+    private readonly snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -73,15 +76,160 @@ export class TaskListComponent implements OnInit, AfterViewInit {
     this.router.navigate(['/tasks/detail', taskId]);
   }
 
-  public editTask(taskId: number): void {
-    this.router.navigate(['/tasks/edit', taskId]);
+  public editTask(task: Task, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const editableFields: DialogField[] = [
+      { name: 'name', type: 'text', label: 'Name', required: true },
+      { name: 'description', type: 'text', label: 'Description', required: false },
+      { 
+        name: 'status', 
+        type: 'select', 
+        label: 'Status', 
+        required: true,
+        options: [
+          { value: 'New', display: 'New' },
+          { value: 'In Progress', display: 'In Progress' },
+          { value: 'On Hold', display: 'On Hold' },
+          { value: 'Completed', display: 'Completed' },
+          { value: 'Cancelled', display: 'Cancelled' }
+        ]
+      },
+      { 
+        name: 'priority', 
+        type: 'select', 
+        label: 'Priority', 
+        required: true,
+        options: [
+          { value: 'Low', display: 'Low' },
+          { value: 'Medium', display: 'Medium' },
+          { value: 'High', display: 'High' },
+          { value: 'Critical', display: 'Critical' }
+        ]
+      },
+      { name: 'startDate', type: 'date', label: 'Start Date', required: false },
+      { name: 'dueDate', type: 'date', label: 'Due Date', required: false },
+      { name: 'completionPercentage', type: 'text', label: 'Completion %', required: false },
+      { name: 'estimatedHours', type: 'text', label: 'Estimated Hours', required: false },
+      { name: 'actualHours', type: 'text', label: 'Actual Hours', required: false },
+      { name: 'assigneeId', type: 'text', label: 'Assignee ID', required: false },
+      { name: 'projectId', type: 'text', label: 'Project ID', required: false },
+      { name: 'parentTaskId', type: 'text', label: 'Parent Task ID', required: false }
+    ];
+
+    const dialogRef = this.dialog.open(BaseDialogComponent, {
+      width: '600px',
+      data: {
+        title: 'Edit Task',
+        entity: task,
+        fields: editableFields,
+        mode: 'edit'
+      }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(
+        filter(result => !!result),
+        switchMap(result => this.taskService.updateTask(task.id, result)
+          .pipe(
+            catchError(error => {
+              this.snackBar.open('Failed to update task', 'Close', {
+                duration: 3000
+              });
+              return of(null);
+            })
+          )
+        )
+      )
+      .subscribe(updatedTask => {
+        if (updatedTask) {
+          this.loadTasks();
+          this.snackBar.open('Task updated successfully', 'Close', {
+            duration: 3000
+          });
+        }
+      });
   }
 
   public createTask(): void {
-    this.router.navigate(['/tasks/create']);
+    const editableFields: DialogField[] = [
+      { name: 'name', type: 'text', label: 'Name', required: true },
+      { name: 'description', type: 'text', label: 'Description', required: false },
+      { 
+        name: 'status', 
+        type: 'select', 
+        label: 'Status', 
+        required: true,
+        options: [
+          { value: 'New', display: 'New' },
+          { value: 'In Progress', display: 'In Progress' },
+          { value: 'On Hold', display: 'On Hold' },
+          { value: 'Completed', display: 'Completed' },
+          { value: 'Cancelled', display: 'Cancelled' }
+        ]
+      },
+      { 
+        name: 'priority', 
+        type: 'select', 
+        label: 'Priority', 
+        required: true,
+        options: [
+          { value: 'Low', display: 'Low' },
+          { value: 'Medium', display: 'Medium' },
+          { value: 'High', display: 'High' },
+          { value: 'Critical', display: 'Critical' }
+        ]
+      },
+      { name: 'startDate', type: 'date', label: 'Start Date', required: false },
+      { name: 'dueDate', type: 'date', label: 'Due Date', required: false },
+      { name: 'completionPercentage', type: 'text', label: 'Completion %', required: false },
+      { name: 'estimatedHours', type: 'text', label: 'Estimated Hours', required: false },
+      { name: 'actualHours', type: 'text', label: 'Actual Hours', required: false },
+      { name: 'assigneeId', type: 'text', label: 'Assignee ID', required: false },
+      { name: 'projectId', type: 'text', label: 'Project ID', required: false },
+      { name: 'parentTaskId', type: 'text', label: 'Parent Task ID', required: false }
+    ];
+
+    const dialogRef = this.dialog.open(BaseDialogComponent, {
+      width: '600px',
+      data: {
+        title: 'Create Task',
+        fields: editableFields,
+        mode: 'create'
+      }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(
+        filter(result => !!result),
+        switchMap(result => this.taskService.createTask(result)
+          .pipe(
+            catchError(error => {
+              this.snackBar.open('Failed to create task', 'Close', {
+                duration: 3000
+              });
+              return of(null);
+            })
+          )
+        )
+      )
+      .subscribe(newTask => {
+        if (newTask) {
+          this.loadTasks();
+          this.snackBar.open('Task created successfully', 'Close', {
+            duration: 3000
+          });
+        }
+      });
   }
 
-  public deleteTask(taskId: number): void {
+  public deleteTask(taskId: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: Constants.DIALOG_WIDTH,
       data: {

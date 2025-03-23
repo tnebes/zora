@@ -27,7 +27,8 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("Permission API")]
-public sealed class PermissionController : BaseCrudController<PermissionDto, CreatePermissionDto, UpdatePermissionDto, PermissionDto,
+public sealed class PermissionController : BaseCrudController<PermissionDto, CreatePermissionDto, UpdatePermissionDto,
+    PermissionDto,
     PermissionResponseDto, DynamicQueryPermissionParamsDto>
 {
     private readonly IMapper _mapper;

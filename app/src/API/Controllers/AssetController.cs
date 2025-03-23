@@ -23,7 +23,8 @@ namespace zora.API.Controllers;
 [Route("api/v1/assets")]
 [Produces("application/json")]
 [Description("Assets API")]
-public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, UpdateAssetDto, AssetDto, AssetResponseDto,
+public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, UpdateAssetDto, AssetDto,
+    AssetResponseDto,
     DynamicQueryAssetParamsDto>, IZoraService
 {
     /// <summary>

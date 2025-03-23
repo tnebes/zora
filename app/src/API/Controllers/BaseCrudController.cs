@@ -20,7 +20,8 @@ public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TReadD
     ICrudController<TEntity, TCreateDto, TUpdateDto, TReadDto, TResponseDto, TDynamicQueryDto>
     where TDynamicQueryDto : DynamicQueryParamsDto
 {
-    protected readonly ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TReadDto, TResponseDto, TDynamicQueryDto>>
+    protected readonly
+        ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TReadDto, TResponseDto, TDynamicQueryDto>>
         Logger;
 
     protected readonly IQueryService QueryService;

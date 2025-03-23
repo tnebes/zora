@@ -91,7 +91,7 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
         await DatabaseSeeder.SeedRolePermissionsAsync(this.DbContext, [rolePermission]);
 
         List<PermissionWorkItem> permissionWorkItems = tasks.Take(3).Select(task => new PermissionWorkItem
-        { PermissionId = permission.Id, WorkItemId = task.Id }).ToList();
+            { PermissionId = permission.Id, WorkItemId = task.Id }).ToList();
         await this.DbContext.PermissionWorkItems.AddRangeAsync(permissionWorkItems);
         await this.DbContext.SaveChangesAsync();
 
@@ -327,7 +327,7 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
         await this.DbContext.SaveChangesAsync();
 
         UserRole userRoleAssociation = new UserRole
-        { UserId = user.Id, RoleId = userRole.Id, Role = userRole, User = user };
+            { UserId = user.Id, RoleId = userRole.Id, Role = userRole, User = user };
         await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRoleAssociation]);
 
         List<RolePermission> rolePermissions = new List<RolePermission>
@@ -403,7 +403,7 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
         await this.DbContext.SaveChangesAsync();
 
         UserRole userRoleAssociation = new UserRole
-        { UserId = user.Id, RoleId = adminRole.Id, Role = adminRole, User = user };
+            { UserId = user.Id, RoleId = adminRole.Id, Role = adminRole, User = user };
         await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRoleAssociation]);
 
         List<PermissionWorkItem> permissionWorkItems = new List<PermissionWorkItem>
@@ -472,7 +472,7 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
         await this.DbContext.SaveChangesAsync();
 
         UserRole userRoleAssociation = new UserRole
-        { UserId = user.Id, RoleId = userRole.Id, Role = userRole, User = user };
+            { UserId = user.Id, RoleId = userRole.Id, Role = userRole, User = user };
         await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRoleAssociation]);
 
         RolePermission rolePermission = new RolePermission { RoleId = userRole.Id, PermissionId = nonePermission.Id };
@@ -627,7 +627,8 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
         result.ProjectId.Should().Be(task.ProjectId);
     }
 
-    [Fact(DisplayName = "GIVEN a user with MANAGE/ADMIN permissions for a task WHEN Update() is called THEN return the task")]
+    [Fact(DisplayName =
+        "GIVEN a user with MANAGE/ADMIN permissions for a task WHEN Update() is called THEN return the task")]
     public async Task UpdateTask_UserWithManageAdminPermission_ReturnsTask()
     {
         await this.ClearDatabaseAsync();

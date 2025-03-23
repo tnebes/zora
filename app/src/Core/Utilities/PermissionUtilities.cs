@@ -2,7 +2,6 @@
 
 using FluentResults;
 using zora.Core.Enums;
-using System.Linq;
 
 #endregion
 
@@ -91,7 +90,8 @@ public static class PermissionUtilities
         // If Admin permission is present, return all permissions
         if ((permissions & PermissionFlag.Admin) != 0)
         {
-            return PermissionFlag.Read | PermissionFlag.Write | PermissionFlag.Create | PermissionFlag.Delete | PermissionFlag.Admin;
+            return PermissionFlag.Read | PermissionFlag.Write | PermissionFlag.Create | PermissionFlag.Delete |
+                   PermissionFlag.Admin;
         }
 
         // Add READ if any higher-level permission is present
