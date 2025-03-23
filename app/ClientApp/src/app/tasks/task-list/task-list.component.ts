@@ -3,8 +3,8 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { Subject, catchError, of, merge } from 'rxjs';
-import { filter, startWith, switchMap } from 'rxjs/operators';
+import { Subject, catchError, of, merge, Observable } from 'rxjs';
+import { filter, startWith, switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { Task, TaskResponseDto } from '../models/task';
 import { TaskService } from '../../core/services/task.service';
@@ -42,24 +42,8 @@ export class TaskListComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.isLoading = true;
-    this.taskService.getTasks({
-      page: 1,
-      pageSize: this.defaultPageSize,
-      sortColumn: 'id',
-      sortDirection: 'asc'
-    })
-      .pipe(
-        catchError(error => {
-          console.error('Error fetching tasks:', error);
-          NotificationUtils.showError(this.dialog, 'Failed to fetch tasks', error);
-          return of({items: [], total: 0, page: 1, pageSize: this.defaultPageSize});
-        })
-      )
-      .subscribe((response: TaskResponseDto) => {
-        this.dataSource.data = response.items;
-        this.totalCount = response.total;
-        this.isLoading = false;
-      });
+    const params = this.getDefaultQueryParams();
+    this.fetchData(params);
   }
 
   ngAfterViewInit(): void {
@@ -74,7 +58,8 @@ export class TaskListComponent implements OnInit, AfterViewInit {
 
   public loadTasks(): void {
     if (this.paginator && this.sort) {
-      this.setupSearchAndSort();
+      const params = this.buildQueryParams();
+      this.fetchData(params);
     }
   }
 
@@ -82,16 +67,6 @@ export class TaskListComponent implements OnInit, AfterViewInit {
     const target = event.target as HTMLInputElement;
     this.currentSearchValue = target.value;
     this.searchTerm.next(this.currentSearchValue);
-  }
-
-  public onFilterChange(filterName: string, value: string): void {
-    if (value === '') {
-      delete this.filters[filterName];
-    } else {
-      this.filters[filterName] = value;
-    }
-    
-    this.loadTasks();
   }
 
   public viewTask(taskId: number): void {
@@ -133,6 +108,8 @@ export class TaskListComponent implements OnInit, AfterViewInit {
   }
 
   private setupSearchAndSort(): void {
+    this.setupSearchTermSubscription();
+
     merge(
       this.sort.sortChange,
       this.paginator.page
@@ -141,36 +118,79 @@ export class TaskListComponent implements OnInit, AfterViewInit {
         startWith({}),
         switchMap(() => {
           this.isLoading = true;
-          const params: QueryParams = {
-            page: this.paginator.pageIndex + 1,
-            pageSize: this.paginator.pageSize || this.defaultPageSize,
-            sortColumn: this.sort.active,
-            sortDirection: this.sort.direction as 'asc' | 'desc',
-            ...this.filters
-          };
-
-          return this.taskService.getTasks(params)
-            .pipe(
-              catchError(error => {
-                console.error('Error fetching tasks:', error);
-                NotificationUtils.showError(this.dialog, 'Failed to fetch tasks', error);
-                return of({items: [], total: 0, page: 1, pageSize: this.defaultPageSize});
-              })
-            );
+          const params = this.buildQueryParams();
+          return this.getTasksObservable(params);
         })
       )
-      .subscribe((response: TaskResponseDto) => {
-        this.dataSource.data = response.items;
-        this.totalCount = response.total;
-        this.isLoading = false;
-        
-        if (this.paginator) {
-          this.paginator.pageIndex = response.page - 1;
-        }
-        
-        if (this.sort) {
-          this.dataSource.sort = this.sort;
-        }
-      });
+      .subscribe(response => this.handleTaskResponse(response));
+  }
+
+  private setupSearchTermSubscription(): void {
+    this.searchTerm.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.filters.searchTerm = term;
+      
+      if (this.paginator) {
+        this.paginator.pageIndex = 0;
+      }
+      
+      this.loadTasks();
+    });
+  }
+
+  private buildQueryParams(): QueryParams {
+    return {
+      page: this.paginator.pageIndex + 1,
+      pageSize: this.paginator.pageSize || this.defaultPageSize,
+      sortColumn: this.sort.active || 'id',
+      sortDirection: this.sort.direction as 'asc' | 'desc' || 'asc',
+      ...this.filters
+    };
+  }
+
+  private getDefaultQueryParams(): QueryParams {
+    return {
+      page: 1,
+      pageSize: this.defaultPageSize,
+      sortColumn: 'id',
+      sortDirection: 'asc'
+    };
+  }
+
+  private getTasksObservable(params: QueryParams): Observable<TaskResponseDto> {
+    return (params.searchTerm && params.searchTerm.length >= 3)
+      ? this.taskService.searchTasks(params).pipe(
+          catchError(error => this.handleError(error, 'search'))
+        )
+      : this.taskService.getTasks(params).pipe(
+          catchError(error => this.handleError(error, 'fetch'))
+        );
+  }
+
+  private handleError(error: any, operation: string): Observable<TaskResponseDto> {
+    console.error(`Error ${operation}ing tasks:`, error);
+    NotificationUtils.showError(this.dialog, `Failed to ${operation} tasks`, error);
+    return of({items: [], total: 0, page: 1, pageSize: this.defaultPageSize});
+  }
+
+  private fetchData(params: QueryParams): void {
+    this.isLoading = true;
+    this.getTasksObservable(params).subscribe(response => this.handleTaskResponse(response));
+  }
+
+  private handleTaskResponse(response: TaskResponseDto): void {
+    this.dataSource.data = response.items;
+    this.totalCount = response.total;
+    this.isLoading = false;
+    
+    if (this.paginator) {
+      this.paginator.pageIndex = response.page - 1;
+    }
+    
+    if (this.sort) {
+      this.dataSource.sort = this.sort;
+    }
   }
 }

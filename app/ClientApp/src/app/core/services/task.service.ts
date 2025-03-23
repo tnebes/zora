@@ -23,6 +23,12 @@ export class TaskService {
     return this.http.get<TaskResponseDto>(this.apiUrl, { params });
   }
 
+  searchTasks(queryParams: QueryParams): Observable<TaskResponseDto> {
+    const params = this.queryService.getHttpParams(queryParams);
+    
+    return this.http.get<TaskResponseDto>(`${this.apiUrl}/search`, { params });
+  }
+
   getTask(id: number): Observable<Task> {
     return this.http.get<Task>(`${this.apiUrl}/${id}`);
   }

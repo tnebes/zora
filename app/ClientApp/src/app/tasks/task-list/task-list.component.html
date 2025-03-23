@@ -13,30 +13,6 @@
     </div>
   </div>
 
-  <div class="filters">
-    <mat-form-field appearance="outline">
-      <mat-label>Status</mat-label>
-      <mat-select (selectionChange)="onFilterChange('status', $event.value)">
-        <mat-option value="">All</mat-option>
-        <mat-option value="NotStarted">Not Started</mat-option>
-        <mat-option value="InProgress">In Progress</mat-option>
-        <mat-option value="Completed">Completed</mat-option>
-        <mat-option value="OnHold">On Hold</mat-option>
-      </mat-select>
-    </mat-form-field>
-    
-    <mat-form-field appearance="outline">
-      <mat-label>Priority</mat-label>
-      <mat-select (selectionChange)="onFilterChange('priority', $event.value)">
-        <mat-option value="">All</mat-option>
-        <mat-option value="Low">Low</mat-option>
-        <mat-option value="Medium">Medium</mat-option>
-        <mat-option value="High">High</mat-option>
-        <mat-option value="Critical">Critical</mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-
   <div class="loading-shade" *ngIf="isLoading">
     <div class="loading-text">Loading...</div>
   </div>
