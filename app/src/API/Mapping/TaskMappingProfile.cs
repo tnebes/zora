@@ -13,7 +13,8 @@ public sealed class TaskMappingProfile : Profile
 {
     public TaskMappingProfile()
     {
-        this.CreateMap<WorkItem, WorkItemDto>();
+        this.CreateMap<WorkItem, WorkItemDto>()
+            .ForMember(dest => dest.AssigneeName, opt => opt.MapFrom(src => src.Assignee != null ? src.Assignee.Username : null));
 
         this.CreateMap<ZoraTask, ReadTaskDto>()
             .IncludeBase<WorkItem, WorkItemDto>()
@@ -61,6 +62,7 @@ public sealed class TaskMappingProfile : Profile
             .ForMember(dest => dest.EstimatedHours, opt => opt.MapFrom(src => src.EstimatedHours))
             .ForMember(dest => dest.ActualHours, opt => opt.MapFrom(src => src.ActualHours))
             .ForMember(dest => dest.AssigneeId, opt => opt.MapFrom(src => src.AssigneeId))
+            .ForMember(dest => dest.AssigneeName, opt => opt.MapFrom(src => src.Assignee != null ? src.Assignee.Username : null))
             .ForMember(dest => dest.ProjectId, opt => opt.MapFrom(src => src.ProjectId))
             .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
             .ForMember(dest => dest.ParentTaskId, opt => opt.MapFrom(src => src.ParentTaskId));

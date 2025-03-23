@@ -16,4 +16,5 @@ public abstract class WorkItemDto
     public DateTime? UpdatedAt { get; set; }
     public long? UpdatedById { get; set; }
     public long? AssigneeId { get; set; }
+    public string? AssigneeName { get; set; }
 }

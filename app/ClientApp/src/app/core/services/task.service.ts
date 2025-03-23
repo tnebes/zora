@@ -44,4 +44,12 @@ export class TaskService {
   deleteTask(id: number): Observable<boolean> {
     return this.http.delete<boolean>(`${this.apiUrl}/${id}`);
   }
+  
+  assignToMe(taskId: number, assigneeId: string): Observable<Task> {
+    return this.http.post<Task>(`${this.apiUrl}/${taskId}/assign`, { assigneeId });
+  }
+  
+  completeTask(taskId: number): Observable<Task> {
+    return this.http.post<Task>(`${this.apiUrl}/${taskId}/complete`, { completed: true });
+  }
 }

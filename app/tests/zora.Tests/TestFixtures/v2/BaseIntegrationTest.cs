@@ -86,6 +86,12 @@ public abstract class BaseIntegrationTest : IAsyncLifetime, IDisposable
     protected async Task<HttpResponseMessage> UpdateTask(long taskId, UpdateTaskDto updateDto) =>
         await this.Client.PutAsJsonAsync($"/api/v1/tasks/{taskId}", updateDto);
 
+    protected async Task<HttpResponseMessage> AssignTask(long taskId, AssignTaskDto assignTaskDto) =>
+        await this.Client.PostAsJsonAsync($"/api/v1/tasks/{taskId}/assign", assignTaskDto);
+
+    protected async Task<HttpResponseMessage> CompleteTask(long taskId, CompleteTaskDto completeTaskDto) =>
+        await this.Client.PostAsJsonAsync($"/api/v1/tasks/{taskId}/complete", completeTaskDto);
+
     #endregion
 
     #region API Methods

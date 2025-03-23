@@ -24,6 +24,7 @@ export interface ViewOnlyDialogData<T> {
     title: string;
     entity: T;
     fields: DialogField[];
+    width?: string;
 }
 
 @Component({

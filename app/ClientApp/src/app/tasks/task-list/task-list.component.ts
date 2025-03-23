@@ -15,6 +15,8 @@ import { NotificationUtils } from '../../core/utils/notification.utils';
 import { ConfirmDialogComponent } from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
 import { BaseDialogComponent, DialogField } from 'src/app/shared/components/base-dialog/base-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthenticationService } from '../../core/services/authentication.service';
+import { AuthorisationService } from '../../core/services/authorisation.service';
 
 @Component({
   selector: 'app-task-list',
@@ -22,7 +24,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./task-list.component.css']
 })
 export class TaskListComponent implements OnInit, AfterViewInit {
-  public readonly displayedColumns: string[] = ['id', 'name', 'status', 'priority', 'dueDate', 'completionPercentage', 'actions'];
+  public readonly displayedColumns: string[] = ['id', 'name', 'status', 'assignee', 'priority', 'dueDate', 'completionPercentage', 'actions'];
   public readonly dataSource: MatTableDataSource<Task> = new MatTableDataSource<Task>([]);
   public searchTerm: Subject<string> = new Subject<string>();
   public isLoading: boolean = false;
@@ -31,6 +33,8 @@ export class TaskListComponent implements OnInit, AfterViewInit {
   public errorMessage: string = '';
   public readonly defaultPageSize: number = Constants.DEFAULT_PAGE_SIZE;
   public filters: { [key: string]: string } = {};
+  public currentUserId: string = '';
+  public isAdmin: boolean = false;
 
   @ViewChild(MatPaginator) public paginator!: MatPaginator;
   @ViewChild(MatSort) private readonly sort!: MatSort;
@@ -40,11 +44,21 @@ export class TaskListComponent implements OnInit, AfterViewInit {
     private readonly router: Router,
     private readonly dialog: MatDialog,
     private readonly queryService: QueryService,
-    private readonly snackBar: MatSnackBar
+    private readonly snackBar: MatSnackBar,
+    private readonly authService: AuthenticationService,
+    private readonly authorisationService: AuthorisationService
   ) { }
 
   ngOnInit(): void {
     this.isLoading = true;
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUserId = user?.id || '';
+    });
+    
+    this.authorisationService.isAdmin$.subscribe(isAdmin => {
+      this.isAdmin = isAdmin;
+    });
+    
     const params = this.getDefaultQueryParams();
     this.fetchData(params);
   }
@@ -74,6 +88,65 @@ export class TaskListComponent implements OnInit, AfterViewInit {
 
   public navigateToTaskDetail(taskId: number): void {
     this.router.navigate(['/tasks/detail', taskId]);
+  }
+
+  public canCompleteTask(task: Task): boolean {
+    return this.isAdmin || (task.assigneeId !== null && task.assigneeId?.toString() === this.currentUserId);
+  }
+
+  public assignToMe(task: Task, event: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    this.taskService.assignToMe(task.id, this.currentUserId)
+      .pipe(
+        catchError(error => {
+          this.snackBar.open('Failed to assign task', 'Close', {
+            duration: 3000
+          });
+          return of(null);
+        })
+      )
+      .subscribe(updatedTask => {
+        if (updatedTask) {
+          this.loadTasks();
+          this.snackBar.open('Task assigned successfully', 'Close', {
+            duration: 3000
+          });
+        }
+      });
+  }
+
+  public completeTask(task: Task, event: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    if (!this.canCompleteTask(task)) {
+      this.snackBar.open('You are not authorized to complete this task', 'Close', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    this.taskService.completeTask(task.id)
+      .pipe(
+        catchError(error => {
+          this.snackBar.open('Failed to complete task', 'Close', {
+            duration: 3000
+          });
+          return of(null);
+        })
+      )
+      .subscribe(updatedTask => {
+        if (updatedTask) {
+          this.loadTasks();
+          this.snackBar.open('Task completed successfully', 'Close', {
+            duration: 3000
+          });
+        }
+      });
   }
 
   public editTask(task: Task, event?: Event): void {
@@ -115,12 +188,13 @@ export class TaskListComponent implements OnInit, AfterViewInit {
       { name: 'estimatedHours', type: 'text', label: 'Estimated Hours', required: false },
       { name: 'actualHours', type: 'text', label: 'Actual Hours', required: false },
       { name: 'assigneeId', type: 'text', label: 'Assignee ID', required: false },
+      { name: 'assigneeName', type: 'text', label: 'Assignee Name', required: false },
       { name: 'projectId', type: 'text', label: 'Project ID', required: false },
       { name: 'parentTaskId', type: 'text', label: 'Parent Task ID', required: false }
     ];
 
     const dialogRef = this.dialog.open(BaseDialogComponent, {
-      width: '600px',
+      width: Constants.DEFAULT_DIALOG_WIDTH,
       data: {
         title: 'Edit Task',
         entity: task,
@@ -188,14 +262,16 @@ export class TaskListComponent implements OnInit, AfterViewInit {
       { name: 'estimatedHours', type: 'text', label: 'Estimated Hours', required: false },
       { name: 'actualHours', type: 'text', label: 'Actual Hours', required: false },
       { name: 'assigneeId', type: 'text', label: 'Assignee ID', required: false },
+      { name: 'assigneeName', type: 'text', label: 'Assignee Name', required: false },
       { name: 'projectId', type: 'text', label: 'Project ID', required: false },
       { name: 'parentTaskId', type: 'text', label: 'Parent Task ID', required: false }
     ];
 
     const dialogRef = this.dialog.open(BaseDialogComponent, {
-      width: '600px',
+      width: Constants.DEFAULT_DIALOG_WIDTH,
       data: {
         title: 'Create Task',
+        entity: {},
         fields: editableFields,
         mode: 'create'
       }

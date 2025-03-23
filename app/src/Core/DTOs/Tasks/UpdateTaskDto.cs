@@ -18,6 +18,8 @@ public sealed class UpdateTaskDto
 
     public decimal? ActualHours { get; set; }
 
+    public string? AssigneeName { get; set; }
+
     public long? AssigneeId { get; set; }
 
     public long? ProjectId { get; set; }

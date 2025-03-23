@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { BaseDialogComponent, DialogField } from '../../shared/components/base-dialog/base-dialog.component';
 import { ViewOnlyDialogComponent } from '../../shared/components/view-only-dialog/view-only-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Constants } from '../../core/constants';
 
 @Component({
   selector: 'app-task-detail',
@@ -122,7 +123,7 @@ export class TaskDetailComponent implements OnInit {
     if (!this.task) return;
     
     this.dialog.open(ViewOnlyDialogComponent, {
-      width: '600px',
+      width: Constants.VIEW_ONLY_DIALOG_WIDTH,
       data: {
         title: 'Task Details',
         entity: this.task,
@@ -135,7 +136,7 @@ export class TaskDetailComponent implements OnInit {
     if (!this.task) return;
 
     const dialogRef = this.dialog.open(BaseDialogComponent, {
-      width: '600px',
+      width: Constants.DEFAULT_DIALOG_WIDTH,
       data: {
         title: 'Edit Task',
         entity: this.task,

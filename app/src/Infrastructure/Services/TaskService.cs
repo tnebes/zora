@@ -281,4 +281,28 @@ public sealed class TaskService : ITaskService, IZoraService
             return Task.FromResult(Result.Fail<TaskResponseDto>("Error searching tasks"));
         }
     }
+
+    public async Task<Result<ZoraTask>> UpdateEntityAsync(ZoraTask task, long userId)
+    {
+        try
+        {
+            task.UpdatedAt = DateTime.UtcNow;
+            task.UpdatedById = userId;
+
+            Result<ZoraTask> updateResult = await this._taskRepository.UpdateAsync(task);
+
+            if (updateResult.IsFailed)
+            {
+                this._logger.LogError("Failed to update task. Errors: {Errors}", updateResult.Errors);
+                return Result.Fail<ZoraTask>(updateResult.Errors);
+            }
+
+            return Result.Ok(updateResult.Value);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error updating task with id {Id}", task.Id);
+            return Result.Fail<ZoraTask>($"Error updating task with id {task.Id}");
+        }
+    }
 }

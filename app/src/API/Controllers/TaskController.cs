@@ -31,6 +31,7 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
     private readonly ILogger<TaskController> _logger;
     private readonly IMapper _mapper;
     private readonly ITaskService _taskService;
+    private readonly IUserRoleService _userRoleService;
 
     public TaskController(
         IAssetService assetService,
@@ -40,7 +41,8 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
         IAuthorisationService authorisationService,
         ILogger<TaskController> logger,
         IMapper mapper,
-        ITaskService taskService)
+        ITaskService taskService,
+        IUserRoleService userRoleService)
         : base(logger, roleService, queryService)
     {
         this._assetService = assetService;
@@ -49,6 +51,7 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
         this._mapper = mapper;
         this._logger = logger;
         this._taskService = taskService;
+        this._userRoleService = userRoleService;
     }
 
     [HttpGet]
@@ -315,6 +318,121 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error searching tasks");
+            return this.BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("{id:long}/assign")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ReadTaskDto>> AssignTask(long id, [FromBody] AssignTaskDto assignTaskDto)
+    {
+        try
+        {
+            if (!this.User.Identity?.IsAuthenticated ?? true)
+            {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
+                return this.Unauthorized();
+            }
+
+            long userId = this.HttpContext.User.GetUserId();
+
+            PermissionRequestDto permissionRequest = new PermissionRequestDto
+            {
+                ResourceId = id,
+                ResourceType = ResourceType.Task,
+                RequestedPermission = PermissionFlag.Write,
+                UserId = userId
+            };
+
+            if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
+            {
+                this._logger.LogInformation("User {UserId} is not authorised to assign task {TaskId}", userId, id);
+                return this.Forbid();
+            }
+
+            Result<ZoraTask> taskResult = await this._taskService.GetByIdAsync(id, userId);
+            if (taskResult.IsFailed)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, taskResult.Errors);
+            }
+
+            ZoraTask task = taskResult.Value;
+
+            task.AssigneeId = assignTaskDto.AssigneeId;
+
+            Result<ZoraTask> updateResult = await this._taskService.UpdateEntityAsync(task, userId);
+            if (updateResult.IsFailed)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, updateResult.Errors);
+            }
+
+            ReadTaskDto taskDto = this._mapper.Map<ReadTaskDto>(updateResult.Value);
+            return this.Ok(taskDto);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error assigning task with id {Id}", id);
+            return this.BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("{id:long}/complete")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ReadTaskDto>> CompleteTask(long id, [FromBody] CompleteTaskDto completeTaskDto)
+    {
+        try
+        {
+            if (!this.User.Identity?.IsAuthenticated ?? true)
+            {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
+                return this.Unauthorized();
+            }
+
+            long userId = this.HttpContext.User.GetUserId();
+
+            Result<ZoraTask> taskResult = await this._taskService.GetByIdAsync(id, userId);
+            if (taskResult.IsFailed)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, taskResult.Errors);
+            }
+
+            ZoraTask task = taskResult.Value;
+
+            bool isAdmin = await this._userRoleService.IsAdminAsync(userId);
+            if (!isAdmin && (task.AssigneeId is null || task.AssigneeId != userId))
+            {
+                this._logger.LogInformation("User {UserId} is not authorised to complete task {TaskId}", userId, id);
+                return this.Forbid();
+            }
+
+            if (completeTaskDto.Completed)
+            {
+                task.Status = "Completed";
+                task.CompletionPercentage = 100;
+            }
+
+            Result<ZoraTask> updateResult = await this._taskService.UpdateEntityAsync(task, userId);
+            if (updateResult.IsFailed)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, updateResult.Errors);
+            }
+
+            ReadTaskDto taskDto = this._mapper.Map<ReadTaskDto>(updateResult.Value);
+            return this.Ok(taskDto);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error completing task with id {Id}", id);
             return this.BadRequest(ex.Message);
         }
     }

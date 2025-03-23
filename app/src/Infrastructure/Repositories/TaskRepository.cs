@@ -37,7 +37,9 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
                     Status = "Active",
                     CreatedAt = DateTime.UtcNow.AddDays(-5),
                     ProjectId = 1,
-                    Priority = "Medium"
+                    Priority = "Medium",
+                    AssigneeId = 1,
+                    Assignee = includeProperties ? new User { Id = 1, Username = "john.doe" } : null
                 },
                 new()
                 {
@@ -47,7 +49,9 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
                     Status = "Completed",
                     CreatedAt = DateTime.UtcNow.AddDays(-10),
                     ProjectId = 1,
-                    Priority = "High"
+                    Priority = "High",
+                    AssigneeId = 2,
+                    Assignee = includeProperties ? new User { Id = 2, Username = "jane.doe" } : null
                 }
             };
 
@@ -85,7 +89,18 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
     {
         try
         {
-            ZoraTask? task = await base.GetByIdAsync(id);
+            ZoraTask? task;
+            
+            if (includeProperties)
+            {
+                task = await this.DbContext.Set<ZoraTask>()
+                    .Include(t => t.Assignee)
+                    .FirstOrDefaultAsync(t => t.Id == id);
+            }
+            else
+            {
+                task = await base.GetByIdAsync(id);
+            }
 
             if (task == null)
             {

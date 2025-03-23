@@ -1,5 +1,6 @@
 #region
 
+using FluentResults;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Tasks;
@@ -8,8 +9,8 @@ using zora.Core.DTOs.Tasks;
 
 namespace zora.Core.Interfaces.Services;
 
-public interface ITaskService : IBaseServiceWithPermissionFilter<ZoraTask, CreateTaskDto, UpdateTaskDto, TaskResponseDto
-    ,
+public interface ITaskService : IBaseServiceWithPermissionFilter<ZoraTask, CreateTaskDto, UpdateTaskDto, TaskResponseDto,
     DynamicQueryTaskParamsDto>
 {
+    Task<Result<ZoraTask>> UpdateEntityAsync(ZoraTask task, long userId);
 }

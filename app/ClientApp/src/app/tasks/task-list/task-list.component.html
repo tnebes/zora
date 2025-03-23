@@ -32,6 +32,11 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
       <td mat-cell *matCellDef="let task"> {{task.status}} </td>
     </ng-container>
+    
+    <ng-container matColumnDef="assignee">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Assignee </th>
+      <td mat-cell *matCellDef="let task"> {{task.assigneeName || 'Unassigned'}} </td>
+    </ng-container>
 
     <ng-container matColumnDef="priority">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Priority </th>
@@ -54,6 +59,12 @@
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef> Actions </th>
       <td mat-cell *matCellDef="let task" (click)="$event.stopPropagation()">
+        <button mat-icon-button color="primary" matTooltip="Assign to me" (click)="assignToMe(task, $event)">
+          <mat-icon>person_add</mat-icon>
+        </button>
+        <button mat-icon-button color="accent" matTooltip="Complete" (click)="completeTask(task, $event)" *ngIf="canCompleteTask(task) && task.status !== 'Completed'">
+          <mat-icon>check_circle</mat-icon>
+        </button>
         <button mat-icon-button color="accent" matTooltip="Edit" (click)="editTask(task, $event)">
           <mat-icon>edit</mat-icon>
         </button>

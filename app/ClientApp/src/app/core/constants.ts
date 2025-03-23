@@ -52,6 +52,8 @@ export class Constants {
     // UI Constants
     static readonly DIALOG_WIDTH: string = '400px';
     static readonly ENTITY_DIALOG_WIDTH: string = '800px';
+    static readonly VIEW_ONLY_DIALOG_WIDTH: string = '600px';
+    static readonly DEFAULT_DIALOG_WIDTH: string = '600px';
     static readonly MAX_PAGE_SIZE: number = 1000;
     static readonly DEFAULT_PAGE_SIZE: number = 50;
 

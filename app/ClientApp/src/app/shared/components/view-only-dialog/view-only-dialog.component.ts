@@ -1,19 +1,27 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { DialogField, ViewOnlyDialogData } from '../base-dialog/base-dialog.component';
+import { ViewOnlyDialogData } from '../base-dialog/base-dialog.component';
+import { Constants } from '../../../core/constants';
 
 @Component({
     selector: 'app-view-only-dialog',
     templateUrl: './view-only-dialog.component.html',
     styleUrls: ['./view-only-dialog.component.scss']
 })
-export class ViewOnlyDialogComponent<T> {
+export class ViewOnlyDialogComponent<T> implements OnInit {
     private dateFieldNames = ['startDate', 'dueDate', 'createdAt', 'updatedAt'];
     
     constructor(
         public dialogRef: MatDialogRef<ViewOnlyDialogComponent<T>>,
         @Inject(MAT_DIALOG_DATA) public data: ViewOnlyDialogData<T>
-    ) {}
+    ) {
+        // Set the dialog width using the provided width or the default from Constants
+        this.dialogRef.updateSize(this.data.width || Constants.VIEW_ONLY_DIALOG_WIDTH);
+    }
+
+    ngOnInit(): void {
+        // Initialize component
+    }
 
     public fieldHasValue(fieldName: string): boolean {
         return this.data.entity && 

@@ -13,6 +13,7 @@ export interface Task {
     updatedAt?: string | null;
     updatedById?: number | null;
     assigneeId?: number;
+    assigneeName?: string;
     projectId?: number;
     priority?: string;
     parentTaskId?: number | null;
