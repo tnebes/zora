@@ -80,4 +80,24 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
     }
 
     public new IQueryable<ZoraTask> GetQueryable() => base.GetQueryable();
+
+    public async Task<Result<ZoraTask>> GetByIdAsync(long id, bool includeProperties)
+    {
+        try
+        {
+            ZoraTask? task = await base.GetByIdAsync(id);
+
+            if (task == null)
+            {
+                return Result.Fail<ZoraTask>($"Task with id {id} not found");
+            }
+
+            return Result.Ok(task);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error getting task by id {Id}", id);
+            return Result.Fail<ZoraTask>($"Error getting task by id {id}");
+        }
+    }
 }

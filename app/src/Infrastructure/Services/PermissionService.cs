@@ -371,6 +371,8 @@ public sealed class PermissionService : IPermissionService, IZoraService
             await this._permissionWorkItemRepository.GetByCompositeKeyAsync(permission.Id, request.ResourceId);
 
         return permissionWorkItemResult is { IsSuccess: true, Value: not null } &&
-               PermissionUtilities.DoesPermissionGrantAccess(permission.PermissionString, request.RequestedPermission);
+               PermissionUtilities.DoesPermissionGrantAccess(
+                   PermissionUtilities.StringToPermissionFlag(permission.PermissionString),
+                   request.RequestedPermission);
     }
 }

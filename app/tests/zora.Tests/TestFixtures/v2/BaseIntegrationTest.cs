@@ -79,7 +79,10 @@ public abstract class BaseIntegrationTest : IAsyncLifetime, IDisposable
     protected async Task<HttpResponseMessage> GetTasks(QueryParamsDto queryParams) =>
         await this.Client.GetAsync($"/api/v1/tasks{queryParams.ToQueryString()}");
 
-    # endregion
+    protected async Task<HttpResponseMessage> GetIndividualTask(long taskId) =>
+        await this.Client.GetAsync($"/api/v1/tasks/{taskId}");
+
+    #endregion
 
     #region API Methods
 

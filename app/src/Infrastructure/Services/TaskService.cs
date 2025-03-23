@@ -4,6 +4,7 @@ using AutoMapper;
 using FluentResults;
 using zora.Core.Attributes;
 using zora.Core.Domain;
+using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Tasks;
 using zora.Core.Enums;
@@ -79,31 +80,38 @@ public sealed class TaskService : ITaskService, IZoraService
         return Result.Ok(taskResponseDto);
     }
 
-    public Task<Result<ZoraTask>> GetByIdAsync(long id, long userId, bool includeProperties = false)
+    public async Task<Result<ZoraTask>> GetByIdAsync(long id, long userId, bool includeProperties = false)
     {
         try
         {
-            ZoraTask dummyTask = new ZoraTask
+            PermissionRequestDto permissionRequest = new PermissionRequestDto
             {
-                Id = id,
-                Name = $"Task {id}",
-                Description = "Dummy task description",
-                Status = "In Progress",
-                CreatedAt = DateTime.UtcNow.AddDays(-10),
-                UpdatedAt = DateTime.UtcNow.AddDays(-5),
-                CreatedById = userId,
-                UpdatedById = userId,
-                ProjectId = 1,
-                Priority = "Medium",
-                ParentTaskId = null
+                ResourceId = id,
+                ResourceType = ResourceType.Task,
+                RequestedPermission = PermissionFlag.Read,
+                UserId = userId
             };
 
-            return Task.FromResult(Result.Ok(dummyTask));
+            if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
+            {
+                this._logger.LogInformation("User {UserId} is not authorised to access task {TaskId}", userId, id);
+                return Result.Fail<ZoraTask>("User is not authorised to access task");
+            }
+
+            Result<ZoraTask> result = await this._taskRepository.GetByIdAsync(id, includeProperties);
+
+            if (result.IsFailed)
+            {
+                this._logger.LogError("Task Service failed to receive task. Errors: {Errors}", result.Errors);
+                return Result.Fail<ZoraTask>(result.Errors);
+            }
+
+            return Result.Ok(result.Value);
         }
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error getting task by id {Id}", id);
-            return Task.FromResult(Result.Fail<ZoraTask>($"Error getting task by id {id}"));
+            return Result.Fail<ZoraTask>($"Error getting task by id {id}");
         }
     }
 

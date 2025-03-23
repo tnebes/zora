@@ -300,9 +300,9 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
     {
         return workItemType switch
         {
-            WorkItemType.Task => await this.GetAncestorResult<Project>(resourceId),
+            WorkItemType.ZoraTask => await this.GetAncestorResult<Project>(resourceId),
             WorkItemType.Project => await this.GetAncestorResult<ZoraProgram>(resourceId),
-            WorkItemType.Program => null,
+            WorkItemType.ZoraProgram => null,
             var _ => null
         };
     }

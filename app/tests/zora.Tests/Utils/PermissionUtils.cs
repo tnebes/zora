@@ -78,7 +78,7 @@ public static class PermissionUtils
         {
             Name = "Valid Permission",
             Description = "A valid permission description",
-            PermissionString = permission.ToString()
+            PermissionString = permission.GetPermissionMask()
         };
     }
 

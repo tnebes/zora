@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.API.Extensions;
 using zora.Core.Domain;
+using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Tasks;
+using zora.Core.Enums;
 using zora.Core.Interfaces.Services;
 
 #endregion
@@ -88,7 +90,7 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<ZoraTask>> GetSingle(long id)
+    public async Task<ActionResult<ReadTaskDto>> GetSingle(long id)
     {
         try
         {
@@ -99,6 +101,21 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
             }
 
             long userId = this.HttpContext.User.GetUserId();
+
+            PermissionRequestDto permissionRequest = new PermissionRequestDto
+            {
+                ResourceId = id,
+                ResourceType = ResourceType.Task,
+                RequestedPermission = PermissionFlag.Read,
+                UserId = userId
+            };
+
+            if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
+            {
+                this._logger.LogInformation("User {UserId} is not authorised to access task {TaskId}", userId, id);
+                return this.Forbid();
+            }
+
             Result<ZoraTask> result = await this._taskService.GetByIdAsync(id, userId);
 
             if (result.IsFailed)
@@ -106,7 +123,11 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
                 return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
             }
 
-            return this.Ok(result.Value);
+            ZoraTask task = result.Value;
+
+            ReadTaskDto taskDto = this._mapper.Map<ReadTaskDto>(task);
+
+            return this.Ok(taskDto);
         }
         catch (Exception ex)
         {

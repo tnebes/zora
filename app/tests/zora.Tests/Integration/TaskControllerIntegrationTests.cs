@@ -5,6 +5,7 @@ using FluentAssertions;
 using zora.Core.Domain;
 using zora.Core.DTOs.Tasks;
 using zora.Core.Enums;
+using zora.Core.Utilities;
 using zora.Tests.TestFixtures.v2;
 using zora.Tests.Utils;
 
@@ -18,6 +19,52 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
     private readonly TaskUtils _taskUtils;
 
     public TaskControllerIntegrationTests() => this._taskUtils = new TaskUtils(this.DbContext);
+
+    [Fact(DisplayName =
+        "GIVEN different PermissionFlag values WHEN converted to string and back THEN original values are preserved")]
+    public void PermissionFlag_ConversionBetweenStringAndEnum_WorksCorrectly()
+    {
+        Dictionary<PermissionFlag, string> flagToMaskMapping = new Dictionary<PermissionFlag, string>
+        {
+            { PermissionFlag.None, "00000" },
+            { PermissionFlag.Read, "00001" },
+            { PermissionFlag.Write, "00010" },
+            { PermissionFlag.Create, "00100" },
+            { PermissionFlag.Delete, "01000" },
+            { PermissionFlag.Admin, "10000" }
+        };
+
+        foreach (KeyValuePair<PermissionFlag, string> mapping in flagToMaskMapping)
+        {
+            PermissionFlag flag = mapping.Key;
+            string expectedMask = mapping.Value;
+
+            string actualMask = flag.GetPermissionMask();
+            actualMask.Should().Be(expectedMask);
+
+            PermissionFlag convertedFlag = PermissionUtilities.StringToPermissionFlag(actualMask);
+            convertedFlag.Should().Be(flag);
+
+            string binaryString = PermissionUtilities.PermissionFlagToString(flag);
+            PermissionFlag fromBinaryString = PermissionUtilities.StringToPermissionFlag(binaryString);
+            fromBinaryString.Should().Be(flag);
+        }
+
+        PermissionFlag combined = PermissionFlag.Read | PermissionFlag.Write;
+        string combinedString = PermissionUtilities.PermissionFlagToString(combined);
+        combinedString.Should().Be("00011");
+
+        PermissionFlag reconstructed = PermissionUtilities.StringToPermissionFlag(combinedString);
+        reconstructed.Should().Be(combined);
+
+        PermissionFlag allFlags = PermissionFlag.Read | PermissionFlag.Write | PermissionFlag.Create |
+                                  PermissionFlag.Delete | PermissionFlag.Admin;
+        string allFlagsString = PermissionUtilities.PermissionFlagToString(allFlags);
+        allFlagsString.Should().Be("11111");
+
+        PermissionFlag reconstructedAllFlags = PermissionUtilities.StringToPermissionFlag(allFlagsString);
+        reconstructedAllFlags.Should().Be(allFlags);
+    }
 
     [Fact(DisplayName =
         "GIVEN 4 tasks of which 3 are visible to the user WHEN Get() is called THEN return 3 tasks for which the user has at least READ permissions with default page size.")]
@@ -383,5 +430,159 @@ public sealed class TaskControllerIntegrationTests : BaseIntegrationTest
 
         List<long> returnedTaskIds = result.Items.Select(t => t.Id).ToList();
         returnedTaskIds.Should().BeEquivalentTo(Enumerable.Range(1, 10).Select(i => (long)i));
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a user with no permissions for a task WHEN Get() is called THEN return 403")]
+    public async Task GetTasks_UserWithNoPermissions_Returns403()
+    {
+        await this.ClearDatabaseAsync();
+
+        User user = UserUtils.GetValidUser();
+        Role userRole = RoleUtils.GetValidRole();
+
+        ZoraTask task = this._taskUtils.GetValidTask();
+
+        await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
+        await DatabaseSeeder.SeedRolesAsync(this.DbContext, [userRole]);
+        await this.DbContext.Tasks.AddAsync(task);
+        await this.DbContext.SaveChangesAsync();
+
+        HttpResponseMessage response = await this.GetIndividualTask(task.Id);
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a user with permission NONE for a task WHEN Get() is called THEN return 403")]
+    public async Task GetTasks_UserWithNonePermission_Returns403()
+    {
+        await this.ClearDatabaseAsync();
+
+        User user = UserUtils.GetValidUser();
+        Role userRole = RoleUtils.GetValidRole();
+
+        Permission nonePermission = PermissionUtils.GetValidPermission(PermissionFlag.None);
+
+        ZoraTask task = this._taskUtils.GetValidTask();
+
+        await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
+        await DatabaseSeeder.SeedRolesAsync(this.DbContext, [userRole]);
+        await DatabaseSeeder.SeedPermissionsAsync(this.DbContext, [nonePermission]);
+        await this.DbContext.Tasks.AddAsync(task);
+        await this.DbContext.SaveChangesAsync();
+
+        UserRole userRoleAssociation = new UserRole
+            { UserId = user.Id, RoleId = userRole.Id, Role = userRole, User = user };
+        await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRoleAssociation]);
+
+        RolePermission rolePermission = new RolePermission { RoleId = userRole.Id, PermissionId = nonePermission.Id };
+        await DatabaseSeeder.SeedRolePermissionsAsync(this.DbContext, [rolePermission]);
+
+        HttpResponseMessage response = await this.GetIndividualTask(task.Id);
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a user with permission DELETE for a task WHEN Get() is called THEN return the task")]
+    public async Task GetTasks_UserWithDeletePermission_ReturnsTask()
+    {
+        await this.ClearDatabaseAsync();
+
+        User user = UserUtils.GetValidUser();
+        Role role = RoleUtils.GetValidRole();
+        Permission permission = PermissionUtils.GetValidPermission(PermissionFlag.Delete);
+        ZoraTask task = this._taskUtils.GetValidTask();
+
+        await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
+        await DatabaseSeeder.SeedRolesAsync(this.DbContext, [role]);
+        await DatabaseSeeder.SeedPermissionsAsync(this.DbContext, [permission]);
+        await this.DbContext.Tasks.AddAsync(task);
+        await this.DbContext.SaveChangesAsync();
+
+        UserRole userRole = new UserRole { UserId = user.Id, RoleId = role.Id, Role = role, User = user };
+        await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRole]);
+
+        RolePermission rolePermission = new RolePermission { RoleId = role.Id, PermissionId = permission.Id };
+        await DatabaseSeeder.SeedRolePermissionsAsync(this.DbContext, [rolePermission]);
+
+        PermissionWorkItem permissionWorkItem = new PermissionWorkItem
+        {
+            PermissionId = permission.Id,
+            WorkItemId = task.Id
+        };
+        await this.DbContext.PermissionWorkItems.AddAsync(permissionWorkItem);
+        await this.DbContext.SaveChangesAsync();
+
+        HttpResponseMessage response = await this.GetIndividualTask(task.Id);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        ReadTaskDto? result = await this.ReadResponseContent<ReadTaskDto>(response);
+        result.Should().NotBeNull();
+        result.Id.Should().Be(task.Id);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN an admin user without permissions for a task WHEN Get() is called THEN return the task")]
+    public async Task GetTasks_AdminUserWithoutPermissions_ReturnsTask()
+    {
+        await this.ClearDatabaseAsync();
+
+        User user = UserUtils.GetValidUser();
+        Role adminRole = RoleUtils.GetValidRole();
+        adminRole.Name = "Admin";
+
+        ZoraTask task = this._taskUtils.GetValidTask();
+
+        await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
+        await DatabaseSeeder.SeedRolesAsync(this.DbContext, [adminRole]);
+        await this.DbContext.Tasks.AddAsync(task);
+        await this.DbContext.SaveChangesAsync();
+
+        UserRole userRole = new UserRole { UserId = user.Id, RoleId = adminRole.Id, Role = adminRole, User = user };
+        await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRole]);
+
+        HttpResponseMessage response = await this.GetIndividualTask(task.Id);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        ReadTaskDto? result = await this.ReadResponseContent<ReadTaskDto>(response);
+        result.Should().NotBeNull();
+        result.Id.Should().Be(task.Id);
+    }
+
+    [Fact(DisplayName =
+        "GIVEN a user with MANAGE/ADMIN permissions for a task WHEN Get() is called THEN return the task")]
+    public async Task GetTasks_UserWithManageAdminPermission_ReturnsTask()
+    {
+        await this.ClearDatabaseAsync();
+
+        User user = UserUtils.GetValidUser();
+        Role role = RoleUtils.GetValidRole();
+        Permission permission = PermissionUtils.GetValidPermission(PermissionFlag.Admin);
+        ZoraTask task = this._taskUtils.GetValidTask();
+
+        await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
+        await DatabaseSeeder.SeedRolesAsync(this.DbContext, [role]);
+        await DatabaseSeeder.SeedPermissionsAsync(this.DbContext, [permission]);
+        await this.DbContext.Tasks.AddAsync(task);
+        await this.DbContext.SaveChangesAsync();
+
+        UserRole userRole = new UserRole { UserId = user.Id, RoleId = role.Id, Role = role, User = user };
+        await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRole]);
+
+        RolePermission rolePermission = new RolePermission { RoleId = role.Id, PermissionId = permission.Id };
+        await DatabaseSeeder.SeedRolePermissionsAsync(this.DbContext, [rolePermission]);
+
+        PermissionWorkItem permissionWorkItem = new PermissionWorkItem
+        {
+            PermissionId = permission.Id,
+            WorkItemId = task.Id
+        };
+        await this.DbContext.PermissionWorkItems.AddAsync(permissionWorkItem);
+        await this.DbContext.SaveChangesAsync();
+
+        HttpResponseMessage response = await this.GetIndividualTask(task.Id);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        ReadTaskDto? result = await this.ReadResponseContent<ReadTaskDto>(response);
+        result.Should().NotBeNull();
+        result.Id.Should().Be(task.Id);
     }
 }

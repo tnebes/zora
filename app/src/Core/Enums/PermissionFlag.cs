@@ -20,7 +20,6 @@ public static class PermissionFlagExtensions
     public static string GetPermissionMask(this PermissionFlag permissionFlag)
     {
         // fix for the none permission flag because it is 0 and log2(0) is undefined
-        // hehe i love maths
         if (permissionFlag == PermissionFlag.None)
         {
             return "00000";
@@ -29,7 +28,7 @@ public static class PermissionFlagExtensions
         int position = (int)Math.Log2((int)permissionFlag);
         char[] mask = new char[5];
         Array.Fill(mask, '0');
-        mask[position] = '1';
+        mask[4 - position] = '1';
         return new string(mask);
     }
 }
