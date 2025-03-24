@@ -6,6 +6,7 @@ using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
+using zora.Core.Utils;
 using zora.Infrastructure.Data;
 
 #endregion
@@ -144,11 +145,11 @@ public sealed class RoleRepository : BaseRepository<Role>, IRoleRepository, IZor
 
             int totalCount = await query.CountAsync();
 
-            int totalPages = (int)Math.Ceiling(totalCount / (double)findParams.PageSize);
-            int page = totalPages > 0 ? Math.Min(findParams.Page, totalPages) : 1;
+            int totalPages = PaginationUtils.CalculateTotalPages(totalCount, findParams.PageSize);
+            int page = PaginationUtils.AdjustPage(findParams.Page, totalPages);
 
             List<Role> roles = await query
-                .Skip((page - 1) * findParams.PageSize)
+                .Skip(PaginationUtils.CalculateSkip(page, findParams.PageSize))
                 .Take(findParams.PageSize)
                 .ToListAsync();
 

@@ -11,6 +11,7 @@ using zora.Core.Domain;
 using zora.Core.DTOs;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Users;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Services;
 
@@ -67,6 +68,7 @@ public sealed class AuthenticationController : ControllerBase
         {
             if (this.HttpContext.User.Identity?.IsAuthenticated ?? false)
             {
+                this.LogUnauthorisedAccess(this.RouteData.Values["action"]?.ToString() ?? string.Empty);
                 return this.BadRequest(new { Message = "User is already authenticated" });
             }
 
@@ -136,6 +138,7 @@ public sealed class AuthenticationController : ControllerBase
         {
             if (!this.HttpContext.User.Identity?.IsAuthenticated ?? false)
             {
+                this.LogUnauthorisedAccess(this.RouteData.Values["action"]?.ToString() ?? string.Empty);
                 return this.Unauthorized(new { Message = "User is not authenticated" });
             }
 
@@ -179,6 +182,7 @@ public sealed class AuthenticationController : ControllerBase
         {
             if (!this.HttpContext.User.Identity.IsAuthenticated)
             {
+                this.LogUnauthorisedAccess(this.RouteData.Values["action"]?.ToString() ?? string.Empty);
                 return this.Unauthorized();
             }
 
@@ -189,11 +193,13 @@ public sealed class AuthenticationController : ControllerBase
 
                 if (userId <= 0)
                 {
+                    this.LogUnauthorisedAccess(this.RouteData.Values["action"]?.ToString() ?? string.Empty);
                     return this.Unauthorized();
                 }
             }
             catch (UnauthorizedAccessException)
             {
+                this.LogUnauthorisedAccess(this.RouteData.Values["action"]?.ToString() ?? string.Empty);
                 return this.Unauthorized();
             }
 
@@ -223,5 +229,13 @@ public sealed class AuthenticationController : ControllerBase
             return this.StatusCode(StatusCodes.Status500InternalServerError,
                 new { Message = Constants.ERROR_500_MESSAGE });
         }
+    }
+
+    private void LogUnauthorisedAccess(string endpoint)
+    {
+        string ipAddress = this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown IP";
+        string userAgent = this.HttpContext.Request.Headers["User-Agent"].ToString() ?? "Unknown User-Agent";
+        this._logger.LogWarning("Unauthorized access attempt from {IpAddress} to {Endpoint}. User-Agent: {UserAgent}",
+            ipAddress, endpoint, userAgent);
     }
 }

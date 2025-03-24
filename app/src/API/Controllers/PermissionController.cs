@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core;
 using zora.Core.Domain;
+using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Services;
 using zora.Core.Utilities;
@@ -28,6 +28,7 @@ namespace zora.API.Controllers;
 [Consumes("application/json")]
 [Description("Permission API")]
 public sealed class PermissionController : BaseCrudController<PermissionDto, CreatePermissionDto, UpdatePermissionDto,
+    PermissionDto,
     PermissionResponseDto, DynamicQueryPermissionParamsDto>
 {
     private readonly IMapper _mapper;
@@ -63,6 +64,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -104,6 +106,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -154,6 +157,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -204,6 +208,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -275,6 +280,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 

@@ -1,5 +1,6 @@
 #region
 
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using zora.API.Interfaces;
 using zora.Core;
@@ -14,19 +15,20 @@ namespace zora.API.Controllers;
 ///     Base controller providing common CRUD operations.
 ///     Implements basic functionality for create, read, update, and delete operations.
 /// </summary>
-public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto> :
+public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TReadDto, TResponseDto, TDynamicQueryDto> :
     ControllerBase,
-    ICrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>
+    ICrudController<TEntity, TCreateDto, TUpdateDto, TReadDto, TResponseDto, TDynamicQueryDto>
     where TDynamicQueryDto : DynamicQueryParamsDto
 {
-    protected readonly ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>>
+    protected readonly
+        ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TReadDto, TResponseDto, TDynamicQueryDto>>
         Logger;
 
     protected readonly IQueryService QueryService;
     protected readonly IRoleService RoleService;
 
     protected BaseCrudController(
-        ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TResponseDto, TDynamicQueryDto>> logger,
+        ILogger<BaseCrudController<TEntity, TCreateDto, TUpdateDto, TReadDto, TResponseDto, TDynamicQueryDto>> logger,
         IRoleService roleService,
         IQueryService queryService)
     {
@@ -36,8 +38,8 @@ public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TRespo
     }
 
     public abstract Task<ActionResult<TResponseDto>> Get([FromQuery] QueryParamsDto queryParams);
-    public abstract Task<ActionResult<TEntity>> Create([FromBody] TCreateDto createDto);
-    public abstract Task<ActionResult<TEntity>> Update(long id, [FromBody] TUpdateDto updateDto);
+    public abstract Task<ActionResult<TReadDto>> Create([FromBody] TCreateDto createDto);
+    public abstract Task<ActionResult<TReadDto>> Update(long id, [FromBody] TUpdateDto updateDto);
     public abstract Task<ActionResult<bool>> Delete(long id);
     public abstract Task<ActionResult<TResponseDto>> Find(QueryParamsDto findParams);
 
@@ -47,6 +49,7 @@ public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TRespo
     {
         if (!this.RoleService.IsAdmin(this.HttpContext.User))
         {
+            this.LogUnauthorisedAccess(this.HttpContext.User);
             return this.Unauthorized();
         }
 
@@ -64,5 +67,14 @@ public abstract class BaseCrudController<TEntity, TCreateDto, TUpdateDto, TRespo
         {
             this.QueryService.NormaliseQueryParams(queryParams);
         }
+    }
+
+    protected void LogUnauthorisedAccess(ClaimsPrincipal user)
+    {
+        string ipAddress = this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown IP";
+        string userAgent = this.HttpContext.Request.Headers["User-Agent"].ToString() ?? "Unknown User-Agent";
+        string endpoint = this.RouteData.Values["action"]?.ToString() ?? string.Empty;
+        this.Logger.LogWarning("Unauthorized access attempt from {IpAddress} to {Endpoint}. User-Agent: {UserAgent}",
+            ipAddress, endpoint, userAgent);
     }
 }

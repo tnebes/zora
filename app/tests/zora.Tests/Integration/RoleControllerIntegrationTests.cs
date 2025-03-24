@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Roles;
 using zora.Core.Interfaces.Services;
 using zora.Tests.TestFixtures.v2;
 using zora.Tests.Utils;
@@ -95,7 +95,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a valid QueryParamsDto and an admin user WHEN GetRoles() is invoked THEN the controller returns an OK result with the expected paginated role list")]
     public async Task GetRoles_WithValidQueryParamsAndAdminUser_ReturnsOkWithPaginatedRoleList()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         List<Role> roles = RoleUtils.GetValidRoles().ToList();
         List<RoleDto> expectedRoles = this.Mapper.Map<List<RoleDto>>(roles);
@@ -118,7 +118,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Get method is called THEN return a 200 OK with paginated roles")]
     public async Task GetRoles_WithAdminUser_ReturnsOkWithPaginatedRoles()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         List<Role> roles = RoleUtils.GetValidRoles().ToList();
         List<RoleDto> expectedRoles = this.Mapper.Map<List<RoleDto>>(roles);
@@ -142,7 +142,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in non-admin user WHEN the Get method is called THEN return a 401 Unauthorized")]
     public async Task GetRoles_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         List<Role> roles = RoleUtils.GetValidRoles().ToList();
         await this.SeedRoles(roles);
@@ -160,7 +160,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Get method is called with query parameters THEN normalize the query parameters and return filtered results")]
     public async Task GetRoles_WithQueryParameters_NormalizeQueryParametersAndReturnFilteredResults()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         List<Role> roles = RoleUtils.GetValidRoles().ToList();
         List<RoleDto> expectedRoles = this.Mapper.Map<List<RoleDto>>(roles);
@@ -192,7 +192,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Create method is called with valid role data THEN return a 201 Created with the new role")]
     public async Task CreateRole_WithAdminUserAndValidData_ReturnsCreatedWithNewRole()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         this.SetupAdminAuthentication();
 
@@ -219,7 +219,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in non-admin user WHEN the Create method is called THEN return a 401 Unauthorized")]
     public async Task CreateRole_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         this.SetupRegularUserAuthentication();
 
@@ -241,7 +241,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Create method is called with invalid role data THEN return a 400 Bad Request")]
     public async Task CreateRole_WithAdminUserAndInvalidData_ReturnsBadRequest()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         this.SetupAdminAuthentication();
 
@@ -263,7 +263,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Create method is called with whitespace-only role name THEN return a 400 Bad Request")]
     public async Task CreateRole_WithWhitespaceRoleName_ReturnsBadRequest()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         this.SetupAdminAuthentication();
 
@@ -285,7 +285,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in non-admin user WHEN the Update method is called THEN return a 401 Unauthorized")]
     public async Task UpdateRole_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         Role role = new Role { Name = "TestRole" };
         await this.SeedRoles(new List<Role> { role });
@@ -311,7 +311,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Update method is called with a non-existent role ID THEN return a 404 Not Found")]
     public async Task UpdateRole_WithNonExistentRoleId_ReturnsNotFound()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         this.SetupAdminAuthentication();
 
@@ -333,7 +333,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Update method is called with whitespace-only role name THEN return a 400 Bad Request")]
     public async Task UpdateRole_WithWhitespaceRoleName_ReturnsBadRequest()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         Role role = new Role { Name = "TestRole" };
         await this.SeedRoles(new List<Role> { role });
@@ -359,7 +359,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Delete method is called with a valid role ID THEN return a 204 No Content")]
     public async Task DeleteRole_WithAdminUserAndValidRoleId_ReturnsNoContent()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         Role role = new Role { Name = "RoleToDelete" };
         await this.SeedRoles(new List<Role> { role });
@@ -387,7 +387,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in non-admin user WHEN the Delete method is called THEN return a 401 Unauthorized")]
     public async Task DeleteRole_WithNonAdminUser_ReturnsUnauthorized()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         Role role = new Role { Name = "RoleToNotDelete" };
         await this.SeedRoles(new List<Role> { role });
@@ -410,7 +410,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Delete method is called with a non-existent role ID THEN return a 404 Not Found")]
     public async Task DeleteRole_WithNonExistentRoleId_ReturnsNotFound()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         this.SetupAdminAuthentication();
 
@@ -425,7 +425,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Find method is called with valid search parameters THEN return a 200 OK with matching roles")]
     public async Task FindRoles_WithAdminUserAndValidParams_ReturnsOkWithMatchingRoles()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         List<Role> roles = RoleUtils.GetFindTestRoles().ToList();
         await this.SeedRoles(roles);
@@ -448,7 +448,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in non-admin user WHEN the Find method is called THEN return a 200 OK with normalized query parameters")]
     public async Task FindRoles_WithNonAdminUser_ReturnsOkWithNormalizedParams()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         List<Role> roles = RoleUtils.GetFindTestRoles().ToList();
         await this.SeedRoles(roles);
@@ -472,7 +472,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in user WHEN the Find method is called with invalid search parameters THEN return a 200 OK with normalized query parameters")]
     public async Task FindRoles_WithInvalidParams_ReturnsBadRequest()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         this.SetupAdminAuthentication();
 
@@ -506,7 +506,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in admin user WHEN the Search method is called with valid search parameters THEN return a 200 OK with matching roles")]
     public async Task SearchRoles_WithAdminUserAndValidParams_ReturnsOkWithMatchingRoles()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         List<Role> roles = RoleUtils.GetFindTestRoles().ToList();
         await this.SeedRoles(roles);
@@ -529,7 +529,7 @@ public sealed class RoleControllerIntegrationTests : BaseIntegrationTest
         "GIVEN a logged in non-admin user WHEN the Search method is called THEN return a 200 OK with normalized query parameters")]
     public async Task SearchRoles_WithNonAdminUser_ReturnsOkWithNormalizedParams()
     {
-        await this.ClearDatabase();
+        await this.ClearDatabaseAsync();
 
         List<Role> roles = RoleUtils.GetFindTestRoles().ToList();
         await this.SeedRoles(roles);

@@ -5,7 +5,7 @@ using FluentAssertions;
 using Moq;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Users;
 using zora.Tests.TestFixtures.v1;
 using zora.Tests.Utils;
 
@@ -92,7 +92,7 @@ public sealed class UserControllerIntegrationTests : BaseIntegrationTest
         QueryParamsDto queryParams = QueryUtils.QueryParamUtils.GetValidQueryParams();
 
         this.Fixture.MockUserRepository.Setup(repo => repo.GetUsersAsync(It.IsAny<QueryParamsDto>(), It.IsAny<bool>()))
-            .ThrowsAsync(new Exception("Something went wrong"));
+            .ThrowsAsync(new Exception("Test exception"));
 
         HttpResponseMessage response = await this.GetUsers(queryParams);
 
@@ -152,7 +152,7 @@ public sealed class UserControllerIntegrationTests : BaseIntegrationTest
         DynamicQueryUserParamsDto queryParams = QueryUtils.DynamicQueryParamsUtils.GetValidDynamicQueryUserParams();
         this.Fixture.MockUserRepository
             .Setup(repo => repo.SearchAsync(It.IsAny<DynamicQueryUserParamsDto>(), It.IsAny<bool>()))
-            .ThrowsAsync(new Exception("Something went wrong"));
+            .ThrowsAsync(new Exception("Test exception"));
         HttpResponseMessage response = await this.SearchUsers(queryParams);
 
         await this.AssertResponseStatusCode(response, HttpStatusCode.BadRequest);
@@ -221,7 +221,7 @@ public sealed class UserControllerIntegrationTests : BaseIntegrationTest
         this.Fixture.Users = expectedUsers;
         long userId = 1;
         this.Fixture.MockUserRepository.Setup(repo => repo.SoftDelete(It.IsAny<User>()))
-            .ThrowsAsync(new Exception("Something went wrong"));
+            .ThrowsAsync(new Exception("Test exception"));
         HttpResponseMessage response = await this.DeleteUser(userId);
         this.Fixture.Users.Should().HaveCount(3);
 
@@ -235,6 +235,10 @@ public sealed class UserControllerIntegrationTests : BaseIntegrationTest
         this.SetupAdminAuthentication();
         List<User> expectedUsers = UserUtils.GetValidUsers().ToList();
         this.Fixture.Users = expectedUsers;
+
+        List<Role> roles = RoleUtils.GetValidRoles().ToList();
+        this.Fixture.Roles = roles;
+        await this.SeedRoles(roles);
 
         long userId = 1;
         User userToUpdate = expectedUsers.First(u => u.Id == userId);

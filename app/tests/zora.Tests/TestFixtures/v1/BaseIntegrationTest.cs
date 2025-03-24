@@ -9,7 +9,7 @@ using FluentAssertions;
 using zora.API.Mapping;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Users;
 using zora.Tests.Utils;
 
 #endregion
@@ -108,6 +108,8 @@ public abstract class BaseIntegrationTest
         StringContent content = new(json, Encoding.UTF8, "application/json");
         return await this.Client.PostAsync("/api/v1/users", content);
     }
+
+    protected async Task SeedRoles(List<Role> roles) => this.Fixture.Roles = roles;
 
     protected async Task<HttpResponseMessage> FindUsers(QueryParamsDto queryParams) =>
         await this.Client.GetAsync($"/api/v1/users/find{queryParams.ToQueryString()}");

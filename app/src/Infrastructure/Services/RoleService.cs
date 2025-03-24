@@ -6,7 +6,7 @@ using FluentResults;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Roles;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
@@ -54,6 +54,10 @@ public sealed class RoleService : IRoleService, IZoraService
     }
 
     public bool IsAdmin(ClaimsPrincipal httpContextUser) => this.IsRole(httpContextUser, Constants.ADMIN);
+
+    public async Task<IEnumerable<Role>>
+        GetRolesByIdsAsync(IEnumerable<long> roleIds, bool includeProperties = false) =>
+        await this._roleRepository.GetRolesByIdsAsync(roleIds, includeProperties);
 
     public async Task<bool> AssignRoles(User user, IEnumerable<long> roleIds)
     {

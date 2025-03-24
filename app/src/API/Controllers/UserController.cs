@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Users;
 using zora.Core.Interfaces.Services;
 using Constants = zora.Core.Constants;
 
@@ -23,7 +23,7 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("User API")]
-public sealed class UserController : BaseCrudController<FullUserDto, CreateMinimumUserDto, UpdateUserDto,
+public sealed class UserController : BaseCrudController<FullUserDto, CreateMinimumUserDto, UpdateUserDto, FullUserDto,
     UserResponseDto<FullUserDto>, DynamicQueryUserParamsDto>
 {
     private readonly IUserService _userService;
@@ -145,6 +145,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
             }
 
             this.Logger.LogWarning("User with ID {Id} is not authorised to delete user with ID {UserId}", id, user.Id);
+            this.LogUnauthorisedAccess(this.HttpContext.User);
             return this.Unauthorized();
         }
         catch (Exception ex)
@@ -175,6 +176,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
             {
                 this.Logger.LogWarning("User {Username} is not authorised to create a new user",
                     this.User.Identity?.Name);
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -232,6 +234,7 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
             {
                 this.Logger.LogWarning("User {Username} is not authorized to update user with ID {UserId}",
                     this.User.Identity?.Name, id);
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 

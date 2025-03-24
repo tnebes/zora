@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Roles;
 using zora.Core.Interfaces.Services;
 
 #endregion
@@ -23,7 +23,8 @@ namespace zora.API.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Description("Role API")]
-public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleDto, UpdateRoleDto, RoleResponseDto,
+public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleDto, UpdateRoleDto, FullRoleDto,
+    RoleResponseDto,
     DynamicQueryRoleParamsDto>
 {
     private readonly IRoleService _roleService;
@@ -53,6 +54,8 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
             ActionResult authResult = this.HandleAdminAuthorization();
             if (authResult is UnauthorizedResult)
             {
+                string ipAddress = this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown IP";
+                this.Logger.LogWarning("Unauthorized access from {IpAddress} attempt to roles endpoint.", ipAddress);
                 return this.Unauthorized();
             }
 
@@ -92,6 +95,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         {
             if (!this.RoleService.IsAdmin(this.HttpContext.User))
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -138,6 +142,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         {
             if (!this.RoleService.IsAdmin(this.HttpContext.User))
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 
@@ -182,6 +187,7 @@ public sealed class RoleController : BaseCrudController<FullRoleDto, CreateRoleD
         {
             if (!this.RoleService.IsAdmin(this.HttpContext.User))
             {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
                 return this.Unauthorized();
             }
 

@@ -2,8 +2,8 @@
 
 using FluentResults;
 using zora.Core.Domain;
+using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
 
 #endregion
 

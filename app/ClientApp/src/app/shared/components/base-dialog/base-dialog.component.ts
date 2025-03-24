@@ -4,12 +4,13 @@ import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 
 export interface DialogField {
     name: string;
-    type: 'text' | 'email' | 'password' | 'select' | 'multiselect' | 'file';
+    type: 'text' | 'email' | 'password' | 'select' | 'multiselect' | 'file' | 'date';
     label: string;
     required?: boolean;
     options?: Array<{ value: any; display: string }>;
     validators?: Array<any>;
     accept?: string;
+    isDate?: boolean;
 }
 
 export interface BaseDialogData<T> {
@@ -17,6 +18,13 @@ export interface BaseDialogData<T> {
     entity?: T;
     fields: DialogField[];
     mode: 'create' | 'edit';
+}
+
+export interface ViewOnlyDialogData<T> {
+    title: string;
+    entity: T;
+    fields: DialogField[];
+    width?: string;
 }
 
 @Component({
@@ -45,10 +53,15 @@ export class BaseDialogComponent<T> {
                 validators.push(Validators.required);
             }
 
-            const initialValue = this.data.entity ?
+            let initialValue = this.data.entity ?
                 (this.data.entity as any)[field.name] :
                 field.type === 'multiselect' ? [] :
                     field.type === 'file' ? null : '';
+
+            // Handle date fields
+            if ((field.type === 'date' || field.isDate) && initialValue) {
+                initialValue = new Date(initialValue);
+            }
 
             group[field.name] = [initialValue, validators];
         });
@@ -82,7 +95,16 @@ export class BaseDialogComponent<T> {
                 });
                 this.dialogRef.close(formData);
             } else {
-                this.dialogRef.close(this.form.value);
+                const formValue = {...this.form.value};
+                
+                // Process date values before submitting
+                this.data.fields.forEach(field => {
+                    if ((field.type === 'date' || field.isDate) && formValue[field.name] instanceof Date) {
+                        formValue[field.name] = formValue[field.name].toISOString();
+                    }
+                });
+                
+                this.dialogRef.close(formValue);
             }
         }
     }

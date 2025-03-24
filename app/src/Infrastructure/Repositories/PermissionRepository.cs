@@ -6,6 +6,7 @@ using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
+using zora.Core.Utils;
 using zora.Infrastructure.Data;
 
 #endregion
@@ -113,12 +114,12 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
                     .AsSplitQuery();
             }
 
-            int totalPages = (int)Math.Ceiling(totalCount / (double)queryParams.PageSize);
-            int page = totalPages > 0 ? Math.Min(queryParams.Page, totalPages) : 1;
+            int totalPages = PaginationUtils.CalculateTotalPages(totalCount, queryParams.PageSize);
+            int page = PaginationUtils.AdjustPage(queryParams.Page, totalPages);
 
             List<Permission> permissions = await query
                 .OrderBy(p => p.Id)
-                .Skip((page - 1) * queryParams.PageSize)
+                .Skip(PaginationUtils.CalculateSkip(page, queryParams.PageSize))
                 .Take(queryParams.PageSize)
                 .ToListAsync();
 
@@ -147,11 +148,11 @@ public sealed class PermissionRepository : BaseRepository<Permission>, IPermissi
 
             int totalCount = await query.CountAsync();
 
-            int totalPages = (int)Math.Ceiling(totalCount / (double)findParams.PageSize);
-            int page = totalPages > 0 ? Math.Min(findParams.Page, totalPages) : 1;
+            int totalPages = PaginationUtils.CalculateTotalPages(totalCount, findParams.PageSize);
+            int page = PaginationUtils.AdjustPage(findParams.Page, totalPages);
 
             List<Permission> permissions = await query
-                .Skip((page - 1) * findParams.PageSize)
+                .Skip(PaginationUtils.CalculateSkip(page, findParams.PageSize))
                 .Take(findParams.PageSize)
                 .ToListAsync();
 

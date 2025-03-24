@@ -4,7 +4,7 @@ using System.ComponentModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core.DTOs;
-using zora.Core.DTOs.Requests;
+using zora.Core.DTOs.Permissions;
 using zora.Core.Interfaces.Services;
 
 #endregion

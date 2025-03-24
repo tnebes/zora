@@ -5,8 +5,8 @@ using FluentResults;
 using zora.Core;
 using zora.Core.Attributes;
 using zora.Core.Domain;
+using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
@@ -371,6 +371,8 @@ public sealed class PermissionService : IPermissionService, IZoraService
             await this._permissionWorkItemRepository.GetByCompositeKeyAsync(permission.Id, request.ResourceId);
 
         return permissionWorkItemResult is { IsSuccess: true, Value: not null } &&
-               PermissionUtilities.DoesPermissionGrantAccess(permission.PermissionString, request.RequestedPermission);
+               PermissionUtilities.DoesPermissionGrantAccess(
+                   PermissionUtilities.StringToPermissionFlag(permission.PermissionString),
+                   request.RequestedPermission);
     }
 }

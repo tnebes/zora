@@ -8,7 +8,7 @@ using zora.API.Extensions;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs;
-using zora.Core.DTOs.Requests;
+using zora.Core.DTOs.Permissions;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Services;
 using zora.Core.Requirements;
@@ -107,6 +107,26 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
         }
     }
 
+    public async Task<IQueryable<T>> FilterByPermission<T>(IQueryable<T> query, long userId,
+        PermissionFlag permissionFlag) where T : WorkItem
+    {
+        if (await this._userRoleService.IsAdminAsync(userId))
+        {
+            return query;
+        }
+
+        return typeof(T) switch
+        {
+            var t when t == typeof(ZoraTask) => (IQueryable<T>)this.FilterTasksByPermission((IQueryable<ZoraTask>)query,
+                userId, permissionFlag),
+            var t when t == typeof(Project) => (IQueryable<T>)this.FilterProjectsByPermission(
+                (IQueryable<Project>)query, userId, permissionFlag),
+            var t when t == typeof(ZoraProgram) => (IQueryable<T>)this.FilterProgramsByPermission(
+                (IQueryable<ZoraProgram>)query, userId, permissionFlag),
+            var _ => throw new ArgumentException($"Unsupported type: {typeof(T).Name}")
+        };
+    }
+
     public async Task HandleAsync(AuthorizationHandlerContext context)
     {
         foreach (IAuthorizationRequirement requirement in context.Requirements)
@@ -150,6 +170,64 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
                 this._logger.LogError(ex, "Error during authorization handling");
             }
         }
+    }
+
+    private IQueryable<ZoraTask> FilterTasksByPermission(IQueryable<ZoraTask> tasksQuery, long userId,
+        PermissionFlag permissionFlag)
+    {
+        string permissionMask = permissionFlag.GetPermissionMask();
+
+        return tasksQuery.Where(task =>
+            task.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString != PermissionFlag.None.ToString() &&
+                string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId))) ||
+            (task.ProjectId != null && task.Project.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
+                string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId)))) ||
+            (task.ProjectId != null && task.Project.ProgramId != null &&
+             task.Project.Program.PermissionWorkItems.Any(pwi =>
+                 pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
+                 string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
+                 pwi.Permission.RolePermissions.Any(rp =>
+                     rp.Role.UserRoles.Any(ur => ur.UserId == userId))))
+        );
+    }
+
+    private IQueryable<Project> FilterProjectsByPermission(IQueryable<Project> projectsQuery, long userId,
+        PermissionFlag permissionFlag)
+    {
+        string permissionMask = permissionFlag.GetPermissionMask();
+
+        return projectsQuery.Where(project =>
+            project.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
+                string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId))) ||
+            (project.ProgramId != null && project.Program.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
+                string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId))))
+        );
+    }
+
+    private IQueryable<ZoraProgram> FilterProgramsByPermission(IQueryable<ZoraProgram> programsQuery, long userId,
+        PermissionFlag permissionFlag)
+    {
+        string permissionMask = permissionFlag.GetPermissionMask();
+
+        return programsQuery.Where(program =>
+            program.PermissionWorkItems.Any(pwi =>
+                pwi.Permission.PermissionString != PermissionFlag.None.GetPermissionMask() &&
+                string.Compare(pwi.Permission.PermissionString, permissionMask) >= 0 &&
+                pwi.Permission.RolePermissions.Any(rp =>
+                    rp.Role.UserRoles.Any(ur => ur.UserId == userId)))
+        );
     }
 
     private static string GetCacheKey(PermissionRequestDto request) =>
@@ -222,9 +300,9 @@ public sealed class AuthorisationService : IAuthorizationHandler, IAuthorisation
     {
         return workItemType switch
         {
-            WorkItemType.Task => await this.GetAncestorResult<Project>(resourceId),
+            WorkItemType.ZoraTask => await this.GetAncestorResult<Project>(resourceId),
             WorkItemType.Project => await this.GetAncestorResult<ZoraProgram>(resourceId),
-            WorkItemType.Program => null,
+            WorkItemType.ZoraProgram => null,
             var _ => null
         };
     }

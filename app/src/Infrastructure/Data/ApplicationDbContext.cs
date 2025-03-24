@@ -41,6 +41,7 @@ public sealed class ApplicationDbContext : DbContext, IDbContext, IZoraService
     public DbSet<WorkItemRelationship> WorkItemRelationships { get; set; } = null!;
     public DbSet<RolePermission> RolePermissions { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
+    public DbSet<PermissionWorkItem> PermissionWorkItems { get; set; }
 
     public async Task<SqlConnection> CreateConnectionAsync()
     {

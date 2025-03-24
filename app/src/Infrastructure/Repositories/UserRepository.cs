@@ -7,6 +7,7 @@ using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
+using zora.Core.Utils;
 using zora.Infrastructure.Data;
 
 #endregion
@@ -153,11 +154,11 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
 
             int totalCount = await query.CountAsync();
 
-            int totalPages = (int)Math.Ceiling(totalCount / (double)findParams.PageSize);
-            int page = totalPages > 0 ? Math.Min(findParams.Page, totalPages) : 1;
+            int totalPages = PaginationUtils.CalculateTotalPages(totalCount, findParams.PageSize);
+            int page = PaginationUtils.AdjustPage(findParams.Page, totalPages);
 
             List<User> users = await query
-                .Skip((page - 1) * findParams.PageSize)
+                .Skip(PaginationUtils.CalculateSkip(page, findParams.PageSize))
                 .Take(findParams.PageSize)
                 .ToListAsync();
 
@@ -165,8 +166,8 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
         }
         catch (Exception ex)
         {
-            this.Logger.LogError(ex, "Failed to find users");
-            return Result.Fail<(IEnumerable<User>, int)>(new Error("Failed to find users"));
+            this.Logger.LogError(ex, "Error finding users");
+            return Result.Fail<(IEnumerable<User>, int)>(new Error("Error finding users"));
         }
         finally
         {

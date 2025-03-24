@@ -11,15 +11,19 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using zora.Core.Domain;
+using zora.Core.DTOs.Assets;
+using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Roles;
+using zora.Core.DTOs.Tasks;
+using zora.Core.DTOs.Users;
 using zora.Infrastructure.Data;
 
 #endregion
 
 namespace zora.Tests.TestFixtures.v2;
 
-public abstract class BaseIntegrationTest : IDisposable
+public abstract class BaseIntegrationTest : IAsyncLifetime, IDisposable
 {
     private readonly IServiceScope _serviceScope;
     private readonly WebApplicationFactory<Program> Factory;
@@ -36,6 +40,14 @@ public abstract class BaseIntegrationTest : IDisposable
         this.DbContext = this._serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         this.InitializeMapper();
+    }
+
+    public async Task InitializeAsync() => await this.ClearDatabaseAsync();
+
+    public async Task DisposeAsync()
+    {
+        await this.ClearDatabaseAsync();
+        this.Dispose();
     }
 
     public void Dispose()
@@ -62,6 +74,25 @@ public abstract class BaseIntegrationTest : IDisposable
         this.Client = this.Factory.CreateClient();
         this.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Test", "User");
     }
+
+    # region Task API Methods
+
+    protected async Task<HttpResponseMessage> GetTasks(QueryParamsDto queryParams) =>
+        await this.Client.GetAsync($"/api/v1/tasks{queryParams.ToQueryString()}");
+
+    protected async Task<HttpResponseMessage> GetIndividualTask(long taskId) =>
+        await this.Client.GetAsync($"/api/v1/tasks/{taskId}");
+
+    protected async Task<HttpResponseMessage> UpdateTask(long taskId, UpdateTaskDto updateDto) =>
+        await this.Client.PutAsJsonAsync($"/api/v1/tasks/{taskId}", updateDto);
+
+    protected async Task<HttpResponseMessage> AssignTask(long taskId, AssignTaskDto assignTaskDto) =>
+        await this.Client.PostAsJsonAsync($"/api/v1/tasks/{taskId}/assign", assignTaskDto);
+
+    protected async Task<HttpResponseMessage> CompleteTask(long taskId, CompleteTaskDto completeTaskDto) =>
+        await this.Client.PostAsJsonAsync($"/api/v1/tasks/{taskId}/complete", completeTaskDto);
+
+    #endregion
 
     #region API Methods
 
@@ -313,13 +344,16 @@ public abstract class BaseIntegrationTest : IDisposable
         await this.DbContext.SaveChangesAsync();
     }
 
-    protected async Task ClearDatabase()
+    protected async Task ClearDatabaseAsync()
     {
+        this.DbContext.PermissionWorkItems.RemoveRange(await this.DbContext.PermissionWorkItems.ToListAsync());
         this.DbContext.RolePermissions.RemoveRange(await this.DbContext.RolePermissions.ToListAsync());
         this.DbContext.UserRoles.RemoveRange(await this.DbContext.UserRoles.ToListAsync());
+        this.DbContext.Tasks.RemoveRange(await this.DbContext.Tasks.ToListAsync());
         this.DbContext.Permissions.RemoveRange(await this.DbContext.Permissions.ToListAsync());
         this.DbContext.Roles.RemoveRange(await this.DbContext.Roles.ToListAsync());
         this.DbContext.Users.RemoveRange(await this.DbContext.Users.ToListAsync());
+        this.DbContext.Assets.RemoveRange(await this.DbContext.Assets.ToListAsync());
         await this.DbContext.SaveChangesAsync();
     }
 

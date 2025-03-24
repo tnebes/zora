@@ -27,7 +27,7 @@ import {AdminGuard} from './core/guards/admin.guard';
         LoginModule,
         AppRoutingModule,
         BrowserAnimationsModule,
-        ControlPanelModule
+        ControlPanelModule,
     ],
     providers: [
         {

@@ -65,4 +65,16 @@ public static class RoleUtils
 
         return roles;
     }
+
+    public static Role GetValidRole()
+    {
+        return new Role
+        {
+            Name = "Test Role"
+        };
+    }
+
+    public static void AssignRoleToUser(long userId, long roleId)
+    {
+    }
 }

@@ -21,12 +21,24 @@ namespace zora.Tests.TestFixtures.v1;
 public sealed class MockedRepositoryFixture : WebApplicationFactory<Program>
 {
     private List<Permission> _permissions = [];
+    private List<Role> _roles = [];
     private List<User> _users = [];
 
     public Mock<IUserRepository> MockUserRepository { get; } = new();
     public Mock<IPermissionRepository> MockPermissionRepository { get; } = new();
+    public Mock<IRoleRepository> MockRoleRepository { get; } = new();
 
     public IEnumerable<Claim> Claims { get; set; } = AuthenticationUtils.AnonymousUserClaims;
+
+    public List<Role> Roles
+    {
+        get => this._roles;
+        set
+        {
+            this._roles = value;
+            RoleRepositoryMockBuilder.SetupRoleRepository(this);
+        }
+    }
 
     public List<User> Users
     {
@@ -55,6 +67,7 @@ public sealed class MockedRepositoryFixture : WebApplicationFactory<Program>
             services.AddSingleton(this);
             services.AddSingleton(this.MockUserRepository.Object);
             services.AddSingleton(this.MockPermissionRepository.Object);
+            services.AddSingleton(this.MockRoleRepository.Object);
 
             List<ServiceDescriptor> descriptorsToRemove = services
                 .Where(d => d.ServiceType == typeof(IAuthenticationHandler) ||

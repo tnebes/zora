@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using zora.Core;
 using zora.Core.Domain;
+using zora.Core.Utils;
 using zora.Infrastructure.Data;
 
 #endregion
@@ -94,10 +95,10 @@ public abstract class BaseRepository<T> where T : BaseEntity
     {
         int totalCount = await query.CountAsync();
 
-        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-        int adjustedPage = totalPages > 0 ? Math.Min(page, totalPages) : 1;
+        int totalPages = PaginationUtils.CalculateTotalPages(totalCount, pageSize);
+        int adjustedPage = PaginationUtils.AdjustPage(page, totalPages);
 
-        IQueryable<T> entities = query.Skip((adjustedPage - 1) * pageSize).Take(pageSize);
+        IQueryable<T> entities = query.Skip(PaginationUtils.CalculateSkip(adjustedPage, pageSize)).Take(pageSize);
         return (entities, totalCount);
     }
 

@@ -1,7 +1,8 @@
 #region
 
 using zora.Core.Domain;
-using zora.Core.DTOs.Requests;
+using zora.Core.DTOs.Permissions;
+using zora.Core.Enums;
 
 #endregion
 
@@ -69,6 +70,16 @@ public static class PermissionUtils
         ];
 
         return permissions;
+    }
+
+    internal static Permission GetValidPermission(PermissionFlag permission)
+    {
+        return new Permission
+        {
+            Name = "Valid Permission",
+            Description = "A valid permission description",
+            PermissionString = permission.GetPermissionMask()
+        };
     }
 
     internal static UpdatePermissionDto GetValidUpdatePermissionDto()

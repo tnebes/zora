@@ -3,8 +3,8 @@ namespace zora.Core.Enums;
 public enum WorkItemType
 {
     WorkItem,
-    Task,
+    ZoraTask,
     Project,
-    Program,
+    ZoraProgram,
     NotDefined
 }

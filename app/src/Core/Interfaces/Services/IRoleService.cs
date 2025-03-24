@@ -3,7 +3,7 @@
 using System.Security.Claims;
 using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
-using zora.Core.DTOs.Responses;
+using zora.Core.DTOs.Roles;
 
 #endregion
 
@@ -16,4 +16,5 @@ public interface
     bool IsAdmin(ClaimsPrincipal httpContextUser);
     Task<bool> AssignRoles(User user, IEnumerable<long> roleIds);
     FullRoleDto MapToFullDto(Role role);
+    Task<IEnumerable<Role>> GetRolesByIdsAsync(IEnumerable<long> roleIds, bool includeProperties = false);
 }
