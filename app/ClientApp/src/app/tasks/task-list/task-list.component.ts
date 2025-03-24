@@ -53,6 +53,7 @@ export class TaskListComponent implements OnInit, AfterViewInit {
     this.isLoading = true;
     this.authService.currentUser$.subscribe(user => {
       this.currentUserId = user?.id || '';
+      this.loadTasks();
     });
     
     this.authorisationService.isAdmin$.subscribe(isAdmin => {
@@ -94,10 +95,22 @@ export class TaskListComponent implements OnInit, AfterViewInit {
     return this.isAdmin || (task.assigneeId !== null && task.assigneeId?.toString() === this.currentUserId);
   }
 
+  public isAssignedToMe(task: Task): boolean {
+    if (!this.currentUserId || task.assigneeId === undefined || task.assigneeId === null) {
+      return false;
+    }
+    
+    const currentUserIdNumber = Number(this.currentUserId);
+    return task.assigneeId === currentUserIdNumber;
+  }
+
   public assignToMe(task: Task, event: Event): void {
     if (event) {
       event.stopPropagation();
     }
+    
+    console.log('Assigning task to user with ID:', this.currentUserId, 'typeof:', typeof this.currentUserId);
+    console.log('Task assigneeId before:', task.assigneeId, 'typeof:', typeof task.assigneeId);
     
     this.taskService.assignToMe(task.id, this.currentUserId)
       .pipe(
@@ -110,6 +123,7 @@ export class TaskListComponent implements OnInit, AfterViewInit {
       )
       .subscribe(updatedTask => {
         if (updatedTask) {
+          console.log('Task assigneeId after:', updatedTask.assigneeId, 'typeof:', typeof updatedTask.assigneeId);
           this.loadTasks();
           this.snackBar.open('Task assigned successfully', 'Close', {
             duration: 3000

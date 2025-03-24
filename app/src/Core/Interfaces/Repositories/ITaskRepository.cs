@@ -14,4 +14,5 @@ public interface ITaskRepository : ISearchRepository<ZoraTask, DynamicQueryTaskP
     IQueryable<ZoraTask> GetQueryable();
     Task<Result<ZoraTask>> GetByIdAsync(long id, bool includeProperties);
     Task<Result<ZoraTask>> UpdateAsync(ZoraTask task);
+    Task<Result<bool>> DeleteAsync(ZoraTask task);
 }

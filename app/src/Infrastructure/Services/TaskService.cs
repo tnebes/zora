@@ -189,16 +189,47 @@ public sealed class TaskService : ITaskService, IZoraService
         }
     }
 
-    public Task<bool> DeleteAsync(long id, long userId)
+    public async Task<bool> DeleteAsync(long id, long userId)
     {
         try
         {
-            return Task.FromResult(true);
+            PermissionRequestDto permissionRequest = new PermissionRequestDto
+            {
+                ResourceId = id,
+                ResourceType = ResourceType.Task,
+                RequestedPermission = PermissionFlag.Delete,
+                UserId = userId
+            };
+
+            if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
+            {
+                this._logger.LogInformation("User {UserId} is not authorised to delete task {TaskId}", userId, id);
+                return false;
+            }
+
+            Result<ZoraTask> taskResult = await this._taskRepository.GetByIdAsync(id, true);
+
+            if (taskResult.IsFailed)
+            {
+                this._logger.LogError("Failed to retrieve task for deletion. Errors: {Errors}", taskResult.Errors);
+                return false;
+            }
+
+            ZoraTask taskToDelete = taskResult.Value;
+            Result<bool> deleteResult = await this._taskRepository.DeleteAsync(taskToDelete);
+
+            if (deleteResult.IsFailed)
+            {
+                this._logger.LogError("Failed to delete task. Errors: {Errors}", deleteResult.Errors);
+                return false;
+            }
+
+            return deleteResult.Value;
         }
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error deleting task with id {Id}", id);
-            return Task.FromResult(false);
+            return false;
         }
     }
 

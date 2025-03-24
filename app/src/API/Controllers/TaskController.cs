@@ -225,6 +225,7 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public override async Task<ActionResult<bool>> Delete(long id)
@@ -238,6 +239,25 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
             }
 
             long userId = this.HttpContext.User.GetUserId();
+
+            bool isAdmin = await this._userRoleService.IsAdminAsync(userId);
+            if (!isAdmin)
+            {
+                PermissionRequestDto permissionRequest = new PermissionRequestDto
+                {
+                    ResourceId = id,
+                    ResourceType = ResourceType.Task,
+                    RequestedPermission = PermissionFlag.Delete,
+                    UserId = userId
+                };
+
+                if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
+                {
+                    this._logger.LogInformation("User {UserId} is not authorised to delete task {TaskId}", userId, id);
+                    return this.Forbid();
+                }
+            }
+
             bool result = await this._taskService.DeleteAsync(id, userId);
 
             if (!result)

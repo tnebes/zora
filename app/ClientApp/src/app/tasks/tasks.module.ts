@@ -22,6 +22,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { SharedModule } from '../shared/shared.module';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -54,6 +56,8 @@ import { AuthGuard } from '../core/guards/auth.guard';
     MatCardModule,
     MatTooltipModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatDividerModule,
     MatSnackBarModule,
     SharedModule
   ],

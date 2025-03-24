@@ -89,18 +89,14 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
     {
         try
         {
-            ZoraTask? task;
+            IQueryable<ZoraTask> query = this.FilteredDbSet.Where(t => t.Id == id);
             
             if (includeProperties)
             {
-                task = await this.DbContext.Set<ZoraTask>()
-                    .Include(t => t.Assignee)
-                    .FirstOrDefaultAsync(t => t.Id == id);
+                query = query.Include(t => t.Assignee);
             }
-            else
-            {
-                task = await base.GetByIdAsync(id);
-            }
+            
+            ZoraTask? task = await query.FirstOrDefaultAsync();
 
             if (task == null)
             {
@@ -128,6 +124,22 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
         {
             this.Logger.LogError(ex, "Error updating task with id {Id}", task.Id);
             return Result.Fail<ZoraTask>($"Error updating task with id {task.Id}");
+        }
+    }
+
+    public async Task<Result<bool>> DeleteAsync(ZoraTask task)
+    {
+        try
+        {
+            task.Deleted = true;
+            this.DbContext.Entry(task).State = EntityState.Modified;
+            await this.DbContext.SaveChangesAsync();
+            return Result.Ok(true);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error deleting task with id {Id}", task.Id);
+            return Result.Fail<bool>($"Error deleting task with id {task.Id}");
         }
     }
 }
