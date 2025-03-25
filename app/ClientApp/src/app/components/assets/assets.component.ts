@@ -28,6 +28,7 @@ export class AssetsComponent implements OnInit, AfterViewInit {
     public totalItems: number = 0;
     public currentSearchValue: string = '';
     public errorMessage: string = '';
+    public downloadingAssets: Set<number> = new Set<number>();
 
     @ViewChild(MatPaginator) private readonly paginator!: MatPaginator;
     @ViewChild(MatSort) private readonly sort!: MatSort;
@@ -172,6 +173,36 @@ export class AssetsComponent implements OnInit, AfterViewInit {
                 this.loadAssets();
                 NotificationUtils.showSuccess(this.dialog, `Asset "${asset.name}" has been deleted successfully`);
             });
+    }
+
+    public onDownload(asset: AssetResponse): void {
+        if (this.downloadingAssets.has(asset.id)) {
+            return;
+        }
+
+        this.downloadingAssets.add(asset.id);
+        this.assetService.download(asset.id).subscribe({
+            next: (blob: Blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const originalExtension = asset.assetPath.split('.').pop() || '';
+                const fileName = asset.name.includes('.') ? asset.name : `${asset.name}.${originalExtension}`;
+                link.download = fileName;
+                link.click();
+                window.URL.revokeObjectURL(url);
+                this.downloadingAssets.delete(asset.id);
+            },
+            error: (error) => {
+                this.downloadingAssets.delete(asset.id);
+                console.error('Error downloading asset:', error);
+                NotificationUtils.showError(this.dialog, `Failed to download asset "${asset.name}"`, error);
+            }
+        });
+    }
+
+    public isDownloading(assetId: number): boolean {
+        return this.downloadingAssets.has(assetId);
     }
 
     private setupSearchAndSort(): void {

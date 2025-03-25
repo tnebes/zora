@@ -52,6 +52,9 @@
                 <button mat-icon-button class="view" (click)="onView(asset)">
                     <mat-icon>visibility</mat-icon>
                 </button>
+                <button mat-icon-button class="download" (click)="onDownload(asset)" [disabled]="isDownloading(asset.id)">
+                    <mat-icon>{{ isDownloading(asset.id) ? 'hourglass_empty' : 'download' }}</mat-icon>
+                </button>
             </mat-cell>
         </ng-container>
 

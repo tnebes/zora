@@ -61,4 +61,10 @@ export class AssetService {
         const params = new HttpParams().set('searchTerm', searchTerm);
         return this.http.get<AssetResponseDto>(`${Constants.ASSETS_FIND}`, {params});
     }
+
+    public download(id: number): Observable<Blob> {
+        return this.http.get(`${this.apiUrl}/${id}/download`, {
+            responseType: 'blob'
+        });
+    }
 }

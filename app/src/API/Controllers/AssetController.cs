@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.Core.Domain;
 using zora.Core.DTOs.Assets;
+using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
 using zora.Core.Interfaces.Services;
+using zora.Core.Enums;
 
 #endregion
 
@@ -34,6 +36,9 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
 
     private readonly IJwtService _jwtService;
     private readonly IMapper _mapper;
+    private readonly IPermissionService _permissionService;
+    private readonly IUserRoleService _userRoleService;
+    private readonly IAssetPathService _assetPathService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="AssetController" /> class.
@@ -42,6 +47,9 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     /// <param name="queryService">The service for handling queries.</param>
     /// <param name="roleService">The service for managing roles.</param>
     /// <param name="jwtService">The service for managing JWT tokens.</param>
+    /// <param name="permissionService">The service for managing permissions.</param>
+    /// <param name="userRoleService">The service for managing user roles.</param>
+    /// <param name="assetPathService">The service for managing asset paths.</param>
     /// <param name="logger">The logger.</param>
     /// <param name="mapper">The AutoMapper instance.</param>
     public AssetController(
@@ -49,6 +57,9 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         IQueryService queryService,
         IRoleService roleService,
         IJwtService jwtService,
+        IPermissionService permissionService,
+        IUserRoleService userRoleService,
+        IAssetPathService assetPathService,
         ILogger<AssetController> logger,
         IMapper mapper)
         : base(logger, roleService, queryService)
@@ -56,6 +67,9 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         this._assetService = assetService;
         this._jwtService = jwtService;
         this._mapper = mapper;
+        this._permissionService = permissionService;
+        this._userRoleService = userRoleService;
+        this._assetPathService = assetPathService;
     }
 
     /// <summary>
@@ -115,6 +129,13 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     {
         try
         {
+            if (createDto.Asset == null || string.IsNullOrEmpty(createDto.Asset.FileName) || 
+                !Path.HasExtension(createDto.Asset.FileName))
+            {
+                this.Logger.LogError("Asset file is missing or has no extension");
+                return this.BadRequest("Asset file must be provided and must have a file extension.");
+            }
+
             Result<CreateAssetDto> assetValidationResult = this._assetService.ValidateCreateAssetDto(createDto);
 
             if (assetValidationResult.IsFailed)
@@ -165,6 +186,13 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             {
                 this.LogUnauthorisedAccess(this.User);
                 return this.Unauthorized();
+            }
+
+            if (updateDto.File != null && (string.IsNullOrEmpty(updateDto.File.FileName) || 
+                !Path.HasExtension(updateDto.File.FileName)))
+            {
+                this.Logger.LogError("Updated asset file has no extension");
+                return this.BadRequest("Asset file must have a file extension.");
             }
 
             Result<UpdateAssetDto> dtoResult = this._assetService.ValidateUpdateAssetDto(updateDto);
@@ -339,5 +367,116 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             this.Logger.LogError(ex, "Error searching assets");
             return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
+    }
+
+    [HttpGet("{id:long}/download")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Tags("Assets")]
+    [Description("Downloads an asset file if user has read permission on associated task")]
+    public async Task<IActionResult> Download(long id)
+    {
+        try
+        {
+            Result<Asset> assetResult = await this._assetService.GetByIdAsync(id);
+            
+            if (assetResult.IsFailed)
+            {
+                this.Logger.LogWarning("Asset not found with ID: {Id}", id);
+                return this.NotFound($"Asset with ID {id} not found.");
+            }
+
+            Asset asset = assetResult.Value;
+            
+            if (string.IsNullOrEmpty(asset.AssetPath) || !Path.HasExtension(asset.AssetPath))
+            {
+                this.Logger.LogError("Asset {Id} has invalid path or missing extension: {Path}", id, asset.AssetPath);
+                return this.NotFound("Asset file is invalid or missing extension.");
+            }
+
+            long userId = this._jwtService.GetCurrentUserId(this.User);
+
+            if (await this._userRoleService.IsAdminAsync(userId))
+            {
+                string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(), Path.GetFileName(asset.AssetPath));
+                this.Logger.LogInformation("Admin user {UserId} attempting to download asset. Full path: {Path}, Base path: {BasePath}, Asset path: {AssetPath}", 
+                    userId, fullPath, this._assetPathService.GetAssetsBasePath(), asset.AssetPath);
+                
+                if (!System.IO.File.Exists(fullPath))
+                {
+                    this.Logger.LogError("Asset file not found at path: {Path}. Working directory: {WorkingDir}, Base directory: {BaseDir}", 
+                        fullPath, 
+                        Environment.CurrentDirectory,
+                        AppDomain.CurrentDomain.BaseDirectory);
+                    return this.NotFound("Asset file not found on server.");
+                }
+
+                string fileName = Path.GetFileName(asset.AssetPath);
+                string contentType = this.GetContentType(fileName);
+                
+                return this.PhysicalFile(fullPath, contentType, fileName);
+            }
+
+            foreach (WorkItemAsset workItemAsset in asset.WorkItemAssets)
+            {
+                if (workItemAsset.WorkItem is ZoraTask task)
+                {
+                    PermissionRequestDto permissionRequest = new PermissionRequestDto
+                    {
+                        UserId = userId,
+                        ResourceId = task.Id,
+                        RequestedPermission = PermissionFlag.Read
+                    };
+
+                    bool hasPermission = await this._permissionService.HasDirectPermissionAsync(permissionRequest);
+                    
+                    if (hasPermission)
+                    {
+                        string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(), Path.GetFileName(asset.AssetPath));
+                        
+                        if (!System.IO.File.Exists(fullPath))
+                        {
+                            this.Logger.LogError("Asset file not found at path: {Path}", fullPath);
+                            return this.NotFound("Asset file not found on server.");
+                        }
+
+                        string fileName = Path.GetFileName(asset.AssetPath);
+                        string contentType = this.GetContentType(fileName);
+                        
+                        return this.PhysicalFile(fullPath, contentType, fileName);
+                    }
+                }
+            }
+
+            this.Logger.LogWarning("User {UserId} does not have permission to download asset {AssetId}", userId, id);
+            return this.Forbid();
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error downloading asset with ID {Id}", id);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
+    private string GetContentType(string fileName)
+    {
+        string extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".txt" => "text/plain",
+            ".pdf" => "application/pdf",
+            ".doc" => "application/msword",
+            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".xls" => "application/vnd.ms-excel",
+            ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".png" => "image/png",
+            ".jpg" => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            ".gif" => "image/gif",
+            _ => "application/octet-stream"
+        };
     }
 }
