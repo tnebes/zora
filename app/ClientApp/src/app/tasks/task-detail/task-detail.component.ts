@@ -12,6 +12,7 @@ import { NotificationUtils } from '../../core/utils/notification.utils';
 import { filter, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-task-detail',
@@ -31,7 +32,8 @@ export class TaskDetailComponent implements OnInit {
     private router: Router,
     private taskService: TaskService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
@@ -73,9 +75,7 @@ export class TaskDetailComponent implements OnInit {
       { name: 'completionPercentage', type: 'text', label: 'Completion %', required: false },
       { name: 'estimatedHours', type: 'text', label: 'Estimated Hours', required: false },
       { name: 'actualHours', type: 'text', label: 'Actual Hours', required: false },
-      { name: 'assigneeId', type: 'text', label: 'Assignee ID', required: false },
-      { name: 'projectId', type: 'text', label: 'Project ID', required: false },
-      { name: 'parentTaskId', type: 'text', label: 'Parent Task ID', required: false },
+      { name: 'assigneeName', type: 'text', label: 'Assignee', required: false },
       { name: 'createdAt', type: 'text', label: 'Created At', required: false, isDate: true },
       { name: 'updatedAt', type: 'text', label: 'Updated At', required: false, isDate: true }
     ];
@@ -84,7 +84,6 @@ export class TaskDetailComponent implements OnInit {
   setupEditableFields(): void {
     if (!this.task) return;
 
-    // Only include fields that should be editable
     this.editableFields = [
       { name: 'name', type: 'text', label: 'Name', required: true },
       { name: 'description', type: 'text', label: 'Description', required: false },
@@ -118,9 +117,18 @@ export class TaskDetailComponent implements OnInit {
       { name: 'completionPercentage', type: 'text', label: 'Completion %', required: false },
       { name: 'estimatedHours', type: 'text', label: 'Estimated Hours', required: false },
       { name: 'actualHours', type: 'text', label: 'Actual Hours', required: false },
-      { name: 'assigneeId', type: 'text', label: 'Assignee ID', required: false },
-      { name: 'projectId', type: 'text', label: 'Project ID', required: false },
-      { name: 'parentTaskId', type: 'text', label: 'Parent Task ID', required: false }
+      { 
+        name: 'assigneeId', 
+        type: 'select', 
+        label: 'Assignee', 
+        required: false,
+        options: [],
+        searchable: true,
+        searchService: this.userService,
+        searchMethod: 'searchUsersByTerm',
+        displayField: 'username',
+        valueField: 'id'
+      }
     ];
   }
 

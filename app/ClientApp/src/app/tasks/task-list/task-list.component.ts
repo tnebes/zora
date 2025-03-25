@@ -215,9 +215,7 @@ export class TaskListComponent implements OnInit, AfterViewInit {
         searchMethod: 'searchUsersByTerm',
         displayField: 'username',
         valueField: 'id'
-      },
-      { name: 'projectId', type: 'text', label: 'Project ID', required: false },
-      { name: 'parentTaskId', type: 'text', label: 'Parent Task ID', required: false }
+      }
     ];
 
     const dialogRef = this.dialog.open(BaseDialogComponent, {
@@ -326,19 +324,12 @@ export class TaskListComponent implements OnInit, AfterViewInit {
       }
     ];
 
-    // Hidden fields - adding them to be saved but not shown to the user
-    const hiddenData = {
-      projectId: undefined,
-      parentTaskId: undefined
-    };
-
     const dialogRef = this.dialog.open(BaseDialogComponent<CreateTaskDto>, {
       width: Constants.ENTITY_DIALOG_WIDTH,
       data: {
         title: 'Create Task',
         fields: editableFields,
-        mode: 'create',
-        hiddenData: hiddenData
+        mode: 'create'
       }
     });
 
@@ -351,9 +342,7 @@ export class TaskListComponent implements OnInit, AfterViewInit {
           completionPercentage: result.completionPercentage ? Number(result.completionPercentage) : 0,
           estimatedHours: result.estimatedHours ? Number(result.estimatedHours) : undefined,
           actualHours: result.actualHours ? Number(result.actualHours) : undefined,
-          assigneeId: result.assigneeId ? Number(result.assigneeId) : undefined,
-          projectId: result.projectId ? Number(result.projectId) : undefined,
-          parentTaskId: result.parentTaskId ? Number(result.parentTaskId) : undefined
+          assigneeId: result.assigneeId ? Number(result.assigneeId) : undefined
         })),
         switchMap(result => this.taskService.createTask(result))
       )

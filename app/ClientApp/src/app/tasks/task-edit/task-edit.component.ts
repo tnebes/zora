@@ -27,7 +27,6 @@ export class TaskEditComponent implements OnInit {
     { value: 'OnHold', display: 'On Hold' },
     { value: 'Completed', display: 'Completed' }
   ];
-  projects: EntityOption[] = [];
   users: EntityOption[] = [];
 
   constructor(
@@ -41,7 +40,6 @@ export class TaskEditComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // In a real application, fetch programs, projects and users from API
     this.loadRelatedEntities();
 
     this.route.paramMap.subscribe(params => {
@@ -65,20 +63,11 @@ export class TaskEditComponent implements OnInit {
       completionPercentage: [0, [Validators.min(0), Validators.max(100)]],
       estimatedHours: [null, Validators.min(0)],
       actualHours: [null, Validators.min(0)],
-      assigneeId: [null],
-      projectId: [null],
-      parentTaskId: [null]
+      assigneeId: [null]
     });
   }
 
   loadRelatedEntities(): void {
-    // Mock data - in a real application, you would load these from API
-    this.projects = [
-      { value: 1, display: 'Project X' },
-      { value: 2, display: 'Project Y' },
-      { value: 11, display: 'Project Z' }
-    ];
-    
     this.users = [
       { value: 1, display: 'User 1' },
       { value: 2, display: 'User 2' },
@@ -102,9 +91,7 @@ export class TaskEditComponent implements OnInit {
           completionPercentage: task.completionPercentage,
           estimatedHours: task.estimatedHours,
           actualHours: task.actualHours,
-          assigneeId: task.assigneeId,
-          projectId: task.projectId,
-          parentTaskId: task.parentTaskId
+          assigneeId: task.assigneeId
         });
         this.loading = false;
       },
