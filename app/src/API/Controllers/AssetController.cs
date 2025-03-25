@@ -461,6 +461,103 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         }
     }
 
+    [HttpGet("{id:long}/preview")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Tags("Assets")]
+    [Description("Gets a preview/thumbnail of an asset if user has read permission")]
+    public async Task<IActionResult> GetPreview(long id)
+    {
+        try
+        {
+            Result<Asset> assetResult = await this._assetService.GetByIdAsync(id);
+            
+            if (assetResult.IsFailed)
+            {
+                this.Logger.LogWarning("Asset not found with ID: {Id}", id);
+                return this.NotFound($"Asset with ID {id} not found.");
+            }
+
+            Asset asset = assetResult.Value;
+            
+            if (string.IsNullOrEmpty(asset.AssetPath) || !Path.HasExtension(asset.AssetPath))
+            {
+                this.Logger.LogError("Asset {Id} has invalid path or missing extension: {Path}", id, asset.AssetPath);
+                return this.NotFound("Asset file is invalid or missing extension.");
+            }
+
+            long userId = this._jwtService.GetCurrentUserId(this.User);
+
+            if (await this._userRoleService.IsAdminAsync(userId))
+            {
+                string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(), Path.GetFileName(asset.AssetPath));
+                
+                if (!System.IO.File.Exists(fullPath))
+                {
+                    this.Logger.LogError("Asset file not found at path: {Path}", fullPath);
+                    return this.NotFound("Asset file not found on server.");
+                }
+
+                string fileName = Path.GetFileName(asset.AssetPath);
+                string contentType = this.GetContentType(fileName);
+
+                if (!contentType.StartsWith("image/"))
+                {
+                    return this.BadRequest("Preview is only available for image files");
+                }
+                
+                return this.PhysicalFile(fullPath, contentType);
+            }
+
+            foreach (WorkItemAsset workItemAsset in asset.WorkItemAssets)
+            {
+                if (workItemAsset.WorkItem is ZoraTask task)
+                {
+                    PermissionRequestDto permissionRequest = new PermissionRequestDto
+                    {
+                        UserId = userId,
+                        ResourceId = task.Id,
+                        RequestedPermission = PermissionFlag.Read
+                    };
+
+                    bool hasPermission = await this._permissionService.HasDirectPermissionAsync(permissionRequest);
+                    
+                    if (hasPermission)
+                    {
+                        string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(), Path.GetFileName(asset.AssetPath));
+                        
+                        if (!System.IO.File.Exists(fullPath))
+                        {
+                            this.Logger.LogError("Asset file not found at path: {Path}", fullPath);
+                            return this.NotFound("Asset file not found on server.");
+                        }
+
+                        string fileName = Path.GetFileName(asset.AssetPath);
+                        string contentType = this.GetContentType(fileName);
+
+                        if (!contentType.StartsWith("image/"))
+                        {
+                            return this.BadRequest("Preview is only available for image files");
+                        }
+                        
+                        return this.PhysicalFile(fullPath, contentType);
+                    }
+                }
+            }
+
+            this.Logger.LogWarning("User {UserId} does not have permission to preview asset {AssetId}", userId, id);
+            return this.Forbid();
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error getting preview for asset with ID {Id}", id);
+            return this.StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
     private string GetContentType(string fileName)
     {
         string extension = Path.GetExtension(fileName).ToLowerInvariant();
