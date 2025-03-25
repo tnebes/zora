@@ -3,6 +3,7 @@
 using System.Net;
 using FluentAssertions;
 using zora.Core.Domain;
+using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Tasks;
 using zora.Core.Enums;
 using zora.Core.Utilities;
@@ -18,7 +19,11 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
 {
     private readonly TaskUtils _taskUtils;
 
-    public TaskControllerIntegrationTests() => this._taskUtils = new TaskUtils(this.DbContext);
+    public TaskControllerIntegrationTests()
+    {
+        this._taskUtils = new TaskUtils(this.DbContext);
+        this.SetupRegularUserAuthentication();
+    }
 
     [Fact(DisplayName = "GIVEN a task and an admin user WHEN AssignTask() is called THEN the task is assigned to the specified user")]
     public async Task AssignTask_AdminUser_TaskIsAssigned()
@@ -258,9 +263,9 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
 
         List<ZoraTask> tasks = new()
         {
-            new ZoraTask 
-            { 
-                Name = "Important Task", 
+            new ZoraTask
+            {
+                Name = "Important Task",
                 Description = "High priority task",
                 Status = "New",
                 Priority = "High",
@@ -269,9 +274,9 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             },
-            new ZoraTask 
-            { 
-                Name = "Regular Task", 
+            new ZoraTask
+            {
+                Name = "Regular Task",
                 Description = "Medium priority task",
                 Status = "In Progress",
                 Priority = "Medium",
@@ -333,9 +338,9 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
 
         List<ZoraTask> tasks = new()
         {
-            new ZoraTask 
-            { 
-                Name = "Task 1", 
+            new ZoraTask
+            {
+                Name = "Important Task",
                 Description = "High priority task",
                 Status = "New",
                 Priority = "High",
@@ -344,9 +349,9 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             },
-            new ZoraTask 
-            { 
-                Name = "Task 2", 
+            new ZoraTask
+            {
+                Name = "Regular Task",
                 Description = "Medium priority task",
                 Status = "In Progress",
                 Priority = "Medium",
@@ -395,24 +400,5 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
         result.Total.Should().Be(1);
         result.Items.Should().HaveCount(1);
         result.Items.First().Priority.Should().Be("High");
-    }
-
-    private async Task<HttpResponseMessage> SearchTasks(DynamicQueryTaskParamsDto searchParams)
-    {
-        string url = $"/api/v1/tasks/search?searchTerm={searchParams.SearchTerm}&page={searchParams.Page}&pageSize={searchParams.PageSize}";
-        if (!string.IsNullOrEmpty(searchParams.Priority))
-        {
-            url += $"&priority={searchParams.Priority}";
-        }
-        if (!string.IsNullOrEmpty(searchParams.Status))
-        {
-            url += $"&status={searchParams.Status}";
-        }
-        if (searchParams.AssigneeId.HasValue)
-        {
-            url += $"&assigneeId={searchParams.AssigneeId}";
-        }
-        
-        return await this.Client.GetAsync(url);
     }
 }
