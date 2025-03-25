@@ -68,7 +68,7 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
                 return this.Unauthorized();
             }
 
-            
+
             this.NormalizeQueryParamsForAdmin(queryParams);
 
             Result<PermissionResponseDto> permissionResponseResult =
@@ -301,12 +301,14 @@ public sealed class PermissionController : BaseCrudController<PermissionDto, Cre
         {
             queryParams.Page = Math.Max(1, queryParams.Page);
             queryParams.PageSize = queryParams.PageSize <= 0 ? Constants.DEFAULT_PAGE_SIZE : queryParams.PageSize;
-            this.Logger.LogInformation("Admin user accessing permissions with page size {PageSize}", queryParams.PageSize);
+            this.Logger.LogInformation("Admin user accessing permissions with page size {PageSize}",
+                queryParams.PageSize);
         }
         else
         {
             this.QueryService.NormaliseQueryParams(queryParams);
-            this.Logger.LogInformation("Regular user accessing permissions with clamped page size {PageSize}", queryParams.PageSize);
+            this.Logger.LogInformation("Regular user accessing permissions with clamped page size {PageSize}",
+                queryParams.PageSize);
         }
     }
 }

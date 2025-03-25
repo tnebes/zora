@@ -100,19 +100,23 @@ public abstract class BaseIntegrationTest : IAsyncLifetime, IDisposable
 
     protected async Task<HttpResponseMessage> SearchTasks(DynamicQueryTaskParamsDto searchParams)
     {
-        string url = $"/api/v1/tasks/search?searchTerm={searchParams.SearchTerm}&page={searchParams.Page}&pageSize={searchParams.PageSize}";
+        string url =
+            $"/api/v1/tasks/search?searchTerm={searchParams.SearchTerm}&page={searchParams.Page}&pageSize={searchParams.PageSize}";
         if (!string.IsNullOrEmpty(searchParams.Priority))
         {
             url += $"&priority={searchParams.Priority}";
         }
+
         if (!string.IsNullOrEmpty(searchParams.Status))
         {
             url += $"&status={searchParams.Status}";
         }
+
         if (searchParams.AssigneeId.HasValue)
         {
             url += $"&assigneeId={searchParams.AssigneeId}";
         }
+
         return await this.Client.GetAsync(url);
     }
 

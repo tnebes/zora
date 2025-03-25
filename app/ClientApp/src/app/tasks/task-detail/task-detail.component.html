@@ -13,7 +13,6 @@
     <div class="task-header">
       <div class="task-title-section">
         <h1 class="task-title">{{task.name}}</h1>
-        <div class="task-id">Task ID: {{task.id}}</div>
       </div>
       <div class="task-badges">
         <span class="task-badge priority-badge" [ngClass]="{'high-priority': task.priority === 'High' || task.priority === 'Critical', 

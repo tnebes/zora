@@ -22,7 +22,8 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
     {
     }
 
-    public async Task<Result<(IEnumerable<ZoraTask>, int TotalCount)>> SearchAsync(DynamicQueryTaskParamsDto searchParams,
+    public async Task<Result<(IEnumerable<ZoraTask>, int TotalCount)>> SearchAsync(
+        DynamicQueryTaskParamsDto searchParams,
         bool includeProperties = false)
     {
         try
@@ -94,33 +95,6 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
             this.Logger.LogError(ex, "Error searching tasks");
             return Result.Fail<(IEnumerable<ZoraTask>, int)>(Constants.ERROR_500_MESSAGE);
         }
-    }
-
-    private static IQueryable<ZoraTask> ApplySorting(IQueryable<ZoraTask> query, string sortColumn, string? sortDirection)
-    {
-        bool isDescending = sortDirection?.ToLower() == "desc";
-
-        return sortColumn.ToLower() switch
-        {
-            "id" => isDescending ? query.OrderByDescending(t => t.Id) : query.OrderBy(t => t.Id),
-            "name" => isDescending ? query.OrderByDescending(t => t.Name) : query.OrderBy(t => t.Name),
-            "status" => isDescending ? query.OrderByDescending(t => t.Status) : query.OrderBy(t => t.Status),
-            "priority" => isDescending ? query.OrderByDescending(t => t.Priority) : query.OrderBy(t => t.Priority),
-            "assignee" => isDescending 
-                ? query.OrderByDescending(t => t.Assignee != null ? t.Assignee.Username : string.Empty) 
-                : query.OrderBy(t => t.Assignee != null ? t.Assignee.Username : string.Empty),
-            "duedate" => isDescending ? query.OrderByDescending(t => t.DueDate) : query.OrderBy(t => t.DueDate),
-            "completionpercentage" => isDescending ? query.OrderByDescending(t => t.CompletionPercentage) : query.OrderBy(t => t.CompletionPercentage),
-            "createdat" => isDescending ? query.OrderByDescending(t => t.CreatedAt) : query.OrderBy(t => t.CreatedAt),
-            "updatedat" => isDescending ? query.OrderByDescending(t => t.UpdatedAt) : query.OrderBy(t => t.UpdatedAt),
-            "createdby" => isDescending 
-                ? query.OrderByDescending(t => t.CreatedBy != null ? t.CreatedBy.Username : string.Empty) 
-                : query.OrderBy(t => t.CreatedBy != null ? t.CreatedBy.Username : string.Empty),
-            "updatedby" => isDescending 
-                ? query.OrderByDescending(t => t.UpdatedBy != null ? t.UpdatedBy.Username : string.Empty) 
-                : query.OrderBy(t => t.UpdatedBy != null ? t.UpdatedBy.Username : string.Empty),
-            _ => query.OrderByDescending(t => t.UpdatedAt)
-        };
     }
 
     public async Task<Result<(IEnumerable<ZoraTask>, int total)>> GetPagedAsync(IQueryable<ZoraTask> query, int page,
@@ -215,5 +189,35 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
             this.Logger.LogError(ex, "Error creating task");
             return Result.Fail<ZoraTask>($"Error creating task: {ex.Message}");
         }
+    }
+
+    private static IQueryable<ZoraTask> ApplySorting(IQueryable<ZoraTask> query, string sortColumn,
+        string? sortDirection)
+    {
+        bool isDescending = sortDirection?.ToLower() == "desc";
+
+        return sortColumn.ToLower() switch
+        {
+            "id" => isDescending ? query.OrderByDescending(t => t.Id) : query.OrderBy(t => t.Id),
+            "name" => isDescending ? query.OrderByDescending(t => t.Name) : query.OrderBy(t => t.Name),
+            "status" => isDescending ? query.OrderByDescending(t => t.Status) : query.OrderBy(t => t.Status),
+            "priority" => isDescending ? query.OrderByDescending(t => t.Priority) : query.OrderBy(t => t.Priority),
+            "assignee" => isDescending
+                ? query.OrderByDescending(t => t.Assignee != null ? t.Assignee.Username : string.Empty)
+                : query.OrderBy(t => t.Assignee != null ? t.Assignee.Username : string.Empty),
+            "duedate" => isDescending ? query.OrderByDescending(t => t.DueDate) : query.OrderBy(t => t.DueDate),
+            "completionpercentage" => isDescending
+                ? query.OrderByDescending(t => t.CompletionPercentage)
+                : query.OrderBy(t => t.CompletionPercentage),
+            "createdat" => isDescending ? query.OrderByDescending(t => t.CreatedAt) : query.OrderBy(t => t.CreatedAt),
+            "updatedat" => isDescending ? query.OrderByDescending(t => t.UpdatedAt) : query.OrderBy(t => t.UpdatedAt),
+            "createdby" => isDescending
+                ? query.OrderByDescending(t => t.CreatedBy != null ? t.CreatedBy.Username : string.Empty)
+                : query.OrderBy(t => t.CreatedBy != null ? t.CreatedBy.Username : string.Empty),
+            "updatedby" => isDescending
+                ? query.OrderByDescending(t => t.UpdatedBy != null ? t.UpdatedBy.Username : string.Empty)
+                : query.OrderBy(t => t.UpdatedBy != null ? t.UpdatedBy.Username : string.Empty),
+            _ => query.OrderByDescending(t => t.UpdatedAt)
+        };
     }
 }

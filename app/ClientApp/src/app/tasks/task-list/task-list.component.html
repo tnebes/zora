@@ -89,7 +89,7 @@
         <button mat-icon-button color="primary" matTooltip="Assign to me" (click)="assignToMe(task, $event)" *ngIf="!isAssignedToMe(task)">
           <mat-icon>person_add</mat-icon>
         </button>
-        <button mat-icon-button color="accent" matTooltip="Complete" (click)="completeTask(task, $event)" *ngIf="canCompleteTask(task) && task.status !== 'Completed'">
+        <button mat-icon-button color="green" matTooltip="Complete" (click)="completeTask(task, $event)" *ngIf="canCompleteTask(task) && task.status !== 'Completed'">
           <mat-icon>check_circle</mat-icon>
         </button>
         <button mat-icon-button color="accent" matTooltip="Edit" (click)="editTask(task, $event)">

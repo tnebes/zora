@@ -1,3 +1,5 @@
+#region
+
 using System.Net;
 using FluentAssertions;
 using zora.Core.Domain;
@@ -5,6 +7,8 @@ using zora.Core.DTOs.Tasks;
 using zora.Core.Enums;
 using zora.Core.Utilities;
 using zora.Tests.Utils;
+
+#endregion
 
 namespace zora.Tests.Integration;
 
@@ -214,7 +218,8 @@ public sealed partial class TaskControllerIntegrationTests
         result.Items.Should().HaveCount(1);
     }
 
-    [Fact(DisplayName = "GIVEN a user with permission 01001 (Delete and Write) WHEN Get() is called THEN return a task")]
+    [Fact(DisplayName =
+        "GIVEN a user with permission 01001 (Delete and Write) WHEN Get() is called THEN return a task")]
     public async Task GetTasks_LoggedInUserWithPermission01001_ReturnsTask()
     {
         await this.ClearDatabaseAsync();

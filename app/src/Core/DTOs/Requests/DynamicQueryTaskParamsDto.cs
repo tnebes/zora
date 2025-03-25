@@ -1,5 +1,9 @@
+#region
+
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
+
+#endregion
 
 namespace zora.Core.DTOs.Requests;
 

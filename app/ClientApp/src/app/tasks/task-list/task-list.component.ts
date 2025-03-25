@@ -112,9 +112,6 @@ export class TaskListComponent implements OnInit, AfterViewInit {
       event.stopPropagation();
     }
     
-    console.log('Assigning task to user with ID:', this.currentUserId, 'typeof:', typeof this.currentUserId);
-    console.log('Task assigneeId before:', task.assigneeId, 'typeof:', typeof task.assigneeId);
-    
     this.taskService.assignToMe(task.id, this.currentUserId)
       .pipe(
         catchError(error => {
@@ -126,7 +123,6 @@ export class TaskListComponent implements OnInit, AfterViewInit {
       )
       .subscribe(updatedTask => {
         if (updatedTask) {
-          console.log('Task assigneeId after:', updatedTask.assigneeId, 'typeof:', typeof updatedTask.assigneeId);
           this.loadTasks();
           this.snackBar.open('Task assigned successfully', 'Close', {
             duration: 3000

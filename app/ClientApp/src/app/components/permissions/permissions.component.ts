@@ -90,15 +90,11 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
         
-        // Reset to first page when sorting changes
         this.sort.sortChange.subscribe(() => {
             this.paginator.pageIndex = 0;
         });
         
-        // Add direct subscription to page size changes
         this.paginator.page.subscribe(event => {
-            console.log('Paginator event triggered:', event);
-            // Force reload on any pagination event
             this.setupSearchAndSort();
         });
         
@@ -110,7 +106,6 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
     }
 
     private setupSearchAndSort(): void {
-        // Unsubscribe from previous subscriptions if any
         if (this.dataSubscription) {
             this.dataSubscription.unsubscribe();
         }
@@ -129,12 +124,6 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                 switchMap(() => {
                     this.isLoading = true;
                     
-                    console.log('Paginator event:', {
-                        pageIndex: this.paginator.pageIndex,
-                        pageSize: this.paginator.pageSize,
-                        length: this.paginator.length
-                    });
-                    
                     const params: QueryParams = {
                         page: this.paginator.pageIndex + 1,
                         pageSize: this.paginator.pageSize,
@@ -143,8 +132,6 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                         sortDirection: this.sort.direction as 'asc' | 'desc'
                     };
                     
-                    console.log('API request params:', params);
-
                     return this.currentSearchValue && this.currentSearchValue.length >= 3
                         ? this.permissionService.findPermissionsByTerm(this.currentSearchValue)
                         : this.permissionService.getPermissions(this.queryService.normaliseQueryParams(params));
@@ -156,13 +143,6 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                 })
             )
             .subscribe((response: any) => {
-                console.log('API response:', {
-                    total: response.total,
-                    itemCount: response.items.length,
-                    page: response.page,
-                    pageSize: response.pageSize
-                });
-                
                 this.dataSource.data = response.items;
                 this.totalItems = response.total;
                 this.isLoading = false;

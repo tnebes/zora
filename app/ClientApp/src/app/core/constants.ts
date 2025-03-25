@@ -8,7 +8,7 @@ export class Constants {
     // Base URL
     static readonly BASE_API_URL: string = `${environment.apiUrl}/v1`
     static readonly SWAGGER_URL: string = environment.production ? 'draucode.com/swagger' : 'https://localhost:5001/swagger/index.html';
-    static readonly ERA_URL: string = 'https://github.com/tnebes/zora/blob/master/media/zora_diagram.png';
+    static readonly ERA_URL: string = 'https://raw.githubusercontent.com/tnebes/zora/refs/heads/master/media/zora_diagram.png';
     // Authentication & Authorization
     static readonly AUTHENTICATION: string = `${Constants.BASE_API_URL}/authentication`;
     static readonly AUTHORISATION: string = `${Constants.BASE_API_URL}/authorisation`;

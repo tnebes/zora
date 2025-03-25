@@ -273,9 +273,11 @@ public sealed class TaskService : ITaskService, IZoraService
         try
         {
             IQueryable<ZoraTask> query = this._taskRepository.GetQueryable();
-            IQueryable<ZoraTask> filteredQuery = await this._authorisationService.FilterByPermission(query, userId, PermissionFlag.Read);
+            IQueryable<ZoraTask> filteredQuery =
+                await this._authorisationService.FilterByPermission(query, userId, PermissionFlag.Read);
 
-            Result<(IEnumerable<ZoraTask>, int total)> searchResult = await this._taskRepository.SearchAsync(searchParams, true);
+            Result<(IEnumerable<ZoraTask>, int total)> searchResult =
+                await this._taskRepository.SearchAsync(searchParams, true);
 
             if (searchResult.IsFailed)
             {

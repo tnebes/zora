@@ -1,9 +1,13 @@
+#region
+
 using System.Net;
 using FluentAssertions;
 using zora.Core.Domain;
 using zora.Core.DTOs.Tasks;
 using zora.Core.Enums;
 using zora.Tests.Utils;
+
+#endregion
 
 namespace zora.Tests.Integration;
 
@@ -55,7 +59,8 @@ public sealed partial class TaskControllerIntegrationTests
         result.ProjectId.Should().Be(createDto.ProjectId);
     }
 
-    [Fact(DisplayName = "GIVEN a user with write permission WHEN Create() is called THEN return the created task", Skip = "Not implemented yet")]
+    [Fact(DisplayName = "GIVEN a user with write permission WHEN Create() is called THEN return the created task",
+        Skip = "Not implemented yet")]
     public async Task CreateTask_UserWithWritePermission_ReturnsCreatedTask()
     {
         await this.ClearDatabaseAsync();
@@ -105,7 +110,8 @@ public sealed partial class TaskControllerIntegrationTests
         result.ProjectId.Should().Be(createDto.ProjectId);
     }
 
-    [Fact(DisplayName = "GIVEN a user with read permission WHEN Create() is called THEN forbidden", Skip = "Not implemented yet")]
+    [Fact(DisplayName = "GIVEN a user with read permission WHEN Create() is called THEN forbidden",
+        Skip = "Not implemented yet")]
     public async Task CreateTask_UserWithReadPermission_ReturnsForbidden()
     {
         await this.ClearDatabaseAsync();
