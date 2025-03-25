@@ -95,6 +95,9 @@ public abstract class BaseIntegrationTest : IAsyncLifetime, IDisposable
     protected async Task<HttpResponseMessage> DeleteTask(long taskId) =>
         await this.Client.DeleteAsync($"/api/v1/tasks/{taskId}");
 
+    protected async Task<HttpResponseMessage> CreateTask(CreateTaskDto createTaskDto) =>
+        await this.Client.PostAsJsonAsync("/api/v1/tasks", createTaskDto);
+
     #endregion
 
     #region API Methods

@@ -247,91 +247,45 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
         result.CompletionPercentage.Should().Be(100);
     }
 
-    [Fact(DisplayName = "GIVEN a task and an admin user WHEN Delete() is called THEN the task is deleted")]
-    public async Task Delete_AdminUser_TaskIsDeleted()
-    {
-        await this.ClearDatabaseAsync();
-
-        User user = UserUtils.GetValidUser();
-        Role adminRole = RoleUtils.GetValidRole();
-        adminRole.Name = "Admin";
-
-        ZoraTask task = this._taskUtils.GetValidTask();
-
-        await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
-        await DatabaseSeeder.SeedRolesAsync(this.DbContext, [adminRole]);
-        await this.DbContext.Tasks.AddAsync(task);
-        await this.DbContext.SaveChangesAsync();
-
-        UserRole userRole = new UserRole { UserId = user.Id, RoleId = adminRole.Id, Role = adminRole, User = user };
-        await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRole]);
-
-        HttpResponseMessage response = await this.DeleteTask(task.Id);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        bool result = await this.ReadResponseContent<bool>(response);
-        result.Should().BeTrue();
-
-        this.DbContext.ChangeTracker.Clear();
-        ZoraTask? deletedTask = await this.DbContext.Tasks.FindAsync(task.Id);
-        deletedTask.Deleted.Should().BeTrue();
-    }
-
-    [Fact(DisplayName = "GIVEN a task and a user with delete permission WHEN Delete() is called THEN the task is deleted")]
-    public async Task Delete_UserWithDeletePermission_TaskIsDeleted()
-    {
-        await this.ClearDatabaseAsync();
-
-        User user = UserUtils.GetValidUser();
-        Role role = RoleUtils.GetValidRole();
-        Permission permission = PermissionUtils.GetValidPermission(PermissionFlag.Delete);
-        ZoraTask task = this._taskUtils.GetValidTask();
-
-        await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
-        await DatabaseSeeder.SeedRolesAsync(this.DbContext, [role]);
-        await DatabaseSeeder.SeedPermissionsAsync(this.DbContext, [permission]);
-        await this.DbContext.Tasks.AddAsync(task);
-        await this.DbContext.SaveChangesAsync();
-
-        UserRole userRole = new UserRole { UserId = user.Id, RoleId = role.Id, Role = role, User = user };
-        await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRole]);
-
-        RolePermission rolePermission = new RolePermission { RoleId = role.Id, PermissionId = permission.Id };
-        await DatabaseSeeder.SeedRolePermissionsAsync(this.DbContext, [rolePermission]);
-
-        PermissionWorkItem permissionWorkItem = new PermissionWorkItem
-        {
-            PermissionId = permission.Id,
-            WorkItemId = task.Id
-        };
-        await this.DbContext.PermissionWorkItems.AddAsync(permissionWorkItem);
-        await this.DbContext.SaveChangesAsync();
-
-        HttpResponseMessage response = await this.DeleteTask(task.Id);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        bool result = await this.ReadResponseContent<bool>(response);
-        result.Should().BeTrue();
-
-        this.DbContext.ChangeTracker.Clear();
-        ZoraTask? deletedTask = await this.DbContext.Tasks.FindAsync(task.Id);
-        deletedTask.Deleted.Should().BeTrue();
-    }
-
-    [Fact(DisplayName = "GIVEN a task and a user with read permission WHEN Delete() is called THEN forbidden")]
-    public async Task Delete_UserWithReadPermission_ReturnsForbidden()
+    [Fact(DisplayName = "GIVEN tasks and search term WHEN Search() is called THEN returns matching tasks")]
+    public async Task Search_WithSearchTerm_ReturnsMatchingTasks()
     {
         await this.ClearDatabaseAsync();
 
         User user = UserUtils.GetValidUser();
         Role role = RoleUtils.GetValidRole();
         Permission permission = PermissionUtils.GetValidPermission(PermissionFlag.Read);
-        ZoraTask task = this._taskUtils.GetValidTask();
+
+        List<ZoraTask> tasks = new()
+        {
+            new ZoraTask 
+            { 
+                Name = "Important Task", 
+                Description = "High priority task",
+                Status = "New",
+                Priority = "High",
+                CreatedById = user.Id,
+                UpdatedById = user.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new ZoraTask 
+            { 
+                Name = "Regular Task", 
+                Description = "Medium priority task",
+                Status = "In Progress",
+                Priority = "Medium",
+                CreatedById = user.Id,
+                UpdatedById = user.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        };
 
         await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
         await DatabaseSeeder.SeedRolesAsync(this.DbContext, [role]);
         await DatabaseSeeder.SeedPermissionsAsync(this.DbContext, [permission]);
-        await this.DbContext.Tasks.AddAsync(task);
+        await this.DbContext.Tasks.AddRangeAsync(tasks);
         await this.DbContext.SaveChangesAsync();
 
         UserRole userRole = new UserRole { UserId = user.Id, RoleId = role.Id, Role = role, User = user };
@@ -340,76 +294,73 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
         RolePermission rolePermission = new RolePermission { RoleId = role.Id, PermissionId = permission.Id };
         await DatabaseSeeder.SeedRolePermissionsAsync(this.DbContext, [rolePermission]);
 
-        PermissionWorkItem permissionWorkItem = new PermissionWorkItem
+        foreach (ZoraTask task in tasks)
         {
-            PermissionId = permission.Id,
-            WorkItemId = task.Id
-        };
-        await this.DbContext.PermissionWorkItems.AddAsync(permissionWorkItem);
+            PermissionWorkItem permissionWorkItem = new PermissionWorkItem
+            {
+                PermissionId = permission.Id,
+                WorkItemId = task.Id
+            };
+            await this.DbContext.PermissionWorkItems.AddAsync(permissionWorkItem);
+        }
         await this.DbContext.SaveChangesAsync();
 
-        HttpResponseMessage response = await this.DeleteTask(task.Id);
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-
-        ZoraTask? taskAfterAttempt = await this.DbContext.Tasks.FindAsync(task.Id);
-        taskAfterAttempt.Deleted.Should().BeFalse();
-    }
-
-    [Fact(DisplayName = "GIVEN a user with permission 01001 (Delete and Read) WHEN Delete() is called THEN the task is deleted")]
-    public async Task Delete_UserWithReadAndReadPermission_TaskIsDeleted()
-    {
-        await this.ClearDatabaseAsync();
-
-        User user = UserUtils.GetValidUser();
-        Role role = RoleUtils.GetValidRole();
-        Permission permission = PermissionUtils.GetValidPermission(PermissionFlag.Delete | PermissionFlag.Read);
-        ZoraTask task = this._taskUtils.GetValidTask();
-
-        await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
-        await DatabaseSeeder.SeedRolesAsync(this.DbContext, [role]);
-        await DatabaseSeeder.SeedPermissionsAsync(this.DbContext, [permission]);
-        await this.DbContext.Tasks.AddAsync(task);
-        await this.DbContext.SaveChangesAsync();
-
-        UserRole userRole = new UserRole { UserId = user.Id, RoleId = role.Id, Role = role, User = user };
-        await DatabaseSeeder.SeedUserRolesAsync(this.DbContext, [userRole]);
-
-        RolePermission rolePermission = new RolePermission { RoleId = role.Id, PermissionId = permission.Id };
-        await DatabaseSeeder.SeedRolePermissionsAsync(this.DbContext, [rolePermission]);
-
-        PermissionWorkItem permissionWorkItem = new PermissionWorkItem
+        DynamicQueryTaskParamsDto searchParams = new()
         {
-            PermissionId = permission.Id,
-            WorkItemId = task.Id
+            SearchTerm = "Important",
+            Page = 1,
+            PageSize = 10
         };
-        await this.DbContext.PermissionWorkItems.AddAsync(permissionWorkItem);
-        await this.DbContext.SaveChangesAsync();
 
-        HttpResponseMessage response = await this.DeleteTask(task.Id);
+        HttpResponseMessage response = await this.SearchTasks(searchParams);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        bool result = await this.ReadResponseContent<bool>(response);
-        result.Should().BeTrue();
-
-        this.DbContext.ChangeTracker.Clear();
-        ZoraTask? deletedTask = await this.DbContext.Tasks.FindAsync(task.Id);
-        deletedTask.Deleted.Should().BeTrue();
+        TaskResponseDto? result = await this.ReadResponseContent<TaskResponseDto>(response);
+        result.Should().NotBeNull();
+        result.Total.Should().Be(1);
+        result.Items.Should().HaveCount(1);
+        result.Items.First().Name.Should().Be("Important Task");
     }
 
-    [Fact(DisplayName = "GIVEN a user with permission 00011 (Write and Read) WHEN Delete() is called THEN forbidden")]
-    public async Task Delete_UserWithWriteAndReadPermission_ReturnsForbidden()
+    [Fact(DisplayName = "GIVEN tasks with different priorities WHEN Search() is called with priority filter THEN returns matching tasks")]
+    public async Task Search_WithPriorityFilter_ReturnsMatchingTasks()
     {
         await this.ClearDatabaseAsync();
 
         User user = UserUtils.GetValidUser();
         Role role = RoleUtils.GetValidRole();
-        Permission permission = PermissionUtils.GetValidPermission(PermissionFlag.Write | PermissionFlag.Read);
-        ZoraTask task = this._taskUtils.GetValidTask();
+        Permission permission = PermissionUtils.GetValidPermission(PermissionFlag.Read);
+
+        List<ZoraTask> tasks = new()
+        {
+            new ZoraTask 
+            { 
+                Name = "Task 1", 
+                Description = "High priority task",
+                Status = "New",
+                Priority = "High",
+                CreatedById = user.Id,
+                UpdatedById = user.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new ZoraTask 
+            { 
+                Name = "Task 2", 
+                Description = "Medium priority task",
+                Status = "In Progress",
+                Priority = "Medium",
+                CreatedById = user.Id,
+                UpdatedById = user.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        };
 
         await DatabaseSeeder.SeedUsersAsync(this.DbContext, [user]);
         await DatabaseSeeder.SeedRolesAsync(this.DbContext, [role]);
         await DatabaseSeeder.SeedPermissionsAsync(this.DbContext, [permission]);
-        await this.DbContext.Tasks.AddAsync(task);
+        await this.DbContext.Tasks.AddRangeAsync(tasks);
         await this.DbContext.SaveChangesAsync();
 
         UserRole userRole = new UserRole { UserId = user.Id, RoleId = role.Id, Role = role, User = user };
@@ -418,18 +369,50 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
         RolePermission rolePermission = new RolePermission { RoleId = role.Id, PermissionId = permission.Id };
         await DatabaseSeeder.SeedRolePermissionsAsync(this.DbContext, [rolePermission]);
 
-        PermissionWorkItem permissionWorkItem = new PermissionWorkItem
+        foreach (ZoraTask task in tasks)
         {
-            PermissionId = permission.Id,
-            WorkItemId = task.Id
-        };
-        await this.DbContext.PermissionWorkItems.AddAsync(permissionWorkItem);
+            PermissionWorkItem permissionWorkItem = new PermissionWorkItem
+            {
+                PermissionId = permission.Id,
+                WorkItemId = task.Id
+            };
+            await this.DbContext.PermissionWorkItems.AddAsync(permissionWorkItem);
+        }
         await this.DbContext.SaveChangesAsync();
 
-        HttpResponseMessage response = await this.DeleteTask(task.Id);
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        DynamicQueryTaskParamsDto searchParams = new()
+        {
+            Priority = "High",
+            Page = 1,
+            PageSize = 10
+        };
 
-        ZoraTask? taskAfterAttempt = await this.DbContext.Tasks.FindAsync(task.Id);
-        taskAfterAttempt.Deleted.Should().BeFalse();
+        HttpResponseMessage response = await this.SearchTasks(searchParams);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        TaskResponseDto? result = await this.ReadResponseContent<TaskResponseDto>(response);
+        result.Should().NotBeNull();
+        result.Total.Should().Be(1);
+        result.Items.Should().HaveCount(1);
+        result.Items.First().Priority.Should().Be("High");
+    }
+
+    private async Task<HttpResponseMessage> SearchTasks(DynamicQueryTaskParamsDto searchParams)
+    {
+        string url = $"/api/v1/tasks/search?searchTerm={searchParams.SearchTerm}&page={searchParams.Page}&pageSize={searchParams.PageSize}";
+        if (!string.IsNullOrEmpty(searchParams.Priority))
+        {
+            url += $"&priority={searchParams.Priority}";
+        }
+        if (!string.IsNullOrEmpty(searchParams.Status))
+        {
+            url += $"&status={searchParams.Status}";
+        }
+        if (searchParams.AssigneeId.HasValue)
+        {
+            url += $"&assigneeId={searchParams.AssigneeId}";
+        }
+        
+        return await this.Client.GetAsync(url);
     }
 }

@@ -3,7 +3,7 @@
     <mat-dialog-content>
         <div class="form-fields">
             <ng-container *ngFor="let field of data.fields; let i = index">
-                <mat-form-field *ngIf="field.type !== 'multiselect' && field.type !== 'file' && field.type !== 'date' && !field.isDate">
+                <mat-form-field *ngIf="field.type === 'text' || field.type === 'email' || field.type === 'password' || (field.type === 'select' && !field.searchable)">
                     <mat-label>{{ field.label }}</mat-label>
 
                     <input *ngIf="field.type === 'text' || field.type === 'email' || field.type === 'password'"
@@ -12,7 +12,7 @@
                            [formControlName]="field.name"
                            [required]="field.required ?? false">
 
-                    <mat-select *ngIf="field.type === 'select'"
+                    <mat-select *ngIf="field.type === 'select' && !field.searchable"
                                 [formControlName]="field.name"
                                 [required]="field.required ?? false">
                         <mat-option *ngFor="let option of field.options"
@@ -21,6 +21,36 @@
                         </mat-option>
                     </mat-select>
 
+                    <mat-error *ngIf="form.get(field.name)?.errors">
+                        {{ getErrorMessage(field.name) }}
+                    </mat-error>
+                </mat-form-field>
+
+                <!-- Searchable select field -->
+                <mat-form-field *ngIf="field.type === 'select' && field.searchable">
+                    <mat-label>{{ field.label }}</mat-label>
+                    <mat-select [formControlName]="field.name"
+                               [required]="field.required ?? false"
+                               (focus)="onSearchableSelectFocus(field)">
+                        <div class="search-container">
+                            <mat-form-field class="search-input">
+                                <input matInput
+                                       placeholder="Search..."
+                                       #searchInput
+                                       (input)="onSearchInput(field, searchInput.value)">
+                                <button *ngIf="searchInput.value" 
+                                        matSuffix 
+                                        mat-icon-button 
+                                        (click)="searchInput.value=''; onSearchInput(field, '')">
+                                    <mat-icon>close</mat-icon>
+                                </button>
+                            </mat-form-field>
+                        </div>
+                        <mat-option *ngFor="let option of field.options"
+                                   [value]="option.value">
+                            {{option.display}}
+                        </mat-option>
+                    </mat-select>
                     <mat-error *ngIf="form.get(field.name)?.errors">
                         {{ getErrorMessage(field.name) }}
                     </mat-error>

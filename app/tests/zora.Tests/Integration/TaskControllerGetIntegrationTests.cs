@@ -293,7 +293,7 @@ public sealed partial class TaskControllerIntegrationTests
         result.Items.Should().HaveCount(1);
     }
 
-    [Fact(DisplayName = "GIVEN user is admin WHEN Get() is called THEN return all tasks")]
+    [Fact(DisplayName = "GIVEN an admin WHEN Get() is called THEN return all tasks")]
     public async Task GetTasks_LoggedInAdminUser_ReturnsAllTasks()
     {
         await this.ClearDatabaseAsync();
