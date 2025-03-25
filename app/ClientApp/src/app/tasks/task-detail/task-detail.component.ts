@@ -13,6 +13,11 @@ import { filter, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { UserService } from '../../core/services/user.service';
+import { AssetService } from '../../core/services/asset.service';
+import { AssetResponse } from '../../core/models/asset.interface';
+import { AssetDialogComponent } from '../../components/assets/asset-dialog/asset-dialog.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-task-detail',
@@ -26,6 +31,8 @@ export class TaskDetailComponent implements OnInit {
   error: string = '';
   dialogFields: DialogField[] = [];
   editableFields: DialogField[] = [];
+  assets: AssetResponse[] = [];
+  loadingAssets: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -33,7 +40,8 @@ export class TaskDetailComponent implements OnInit {
     private taskService: TaskService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private userService: UserService
+    private userService: UserService,
+    private assetService: AssetService
   ) { }
 
   ngOnInit(): void {
@@ -42,6 +50,7 @@ export class TaskDetailComponent implements OnInit {
       if (idParam) {
         this.taskId = +idParam;
         this.loadTask();
+        this.loadAssets();
       }
     });
   }
@@ -58,6 +67,20 @@ export class TaskDetailComponent implements OnInit {
       error: (err) => {
         this.error = 'Error loading task. Please try again later.';
         this.loading = false;
+      }
+    });
+  }
+
+  loadAssets(): void {
+    this.loadingAssets = true;
+    this.assetService.getAssetsByTaskId(this.taskId).subscribe({
+      next: (response) => {
+        this.assets = response.items;
+        this.loadingAssets = false;
+      },
+      error: (err) => {
+        this.error = 'Error loading assets. Please try again later.';
+        this.loadingAssets = false;
       }
     });
   }
@@ -214,5 +237,12 @@ export class TaskDetailComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/tasks']);
+  }
+
+  openAssetDialog(asset: AssetResponse): void {
+    this.dialog.open(AssetDialogComponent, {
+      width: Constants.DEFAULT_DIALOG_WIDTH,
+      data: asset
+    });
   }
 }

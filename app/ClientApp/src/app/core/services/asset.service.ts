@@ -67,4 +67,9 @@ export class AssetService {
             responseType: 'blob'
         });
     }
+
+    public getAssetsByTaskId(taskId: number): Observable<AssetResponseDto> {
+        const params = new HttpParams().set('workItemId', taskId.toString());
+        return this.http.get<AssetResponseDto>(`${Constants.ASSETS_SEARCH}`, { params });
+    }
 }

@@ -129,5 +129,21 @@
         </mat-card-actions>
       </mat-card>
     </div>
+
+    <div class="assets-section" *ngIf="!loading && task">
+      <h3>Assets</h3>
+      <div class="assets-container">
+        <mat-progress-spinner *ngIf="loadingAssets" diameter="40" mode="indeterminate"></mat-progress-spinner>
+        <div *ngIf="!loadingAssets && assets.length === 0" class="no-assets">
+          No assets attached to this task
+        </div>
+        <div *ngIf="!loadingAssets && assets.length > 0" class="assets-grid">
+          <div *ngFor="let asset of assets" class="asset-item" (click)="openAssetDialog(asset)">
+            <mat-icon>{{asset.assetPath.toLowerCase().endsWith('.jpg') || asset.assetPath.toLowerCase().endsWith('.png') || asset.assetPath.toLowerCase().endsWith('.gif') ? 'image' : 'insert_drive_file'}}</mat-icon>
+            <span class="asset-name">{{asset.name}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
