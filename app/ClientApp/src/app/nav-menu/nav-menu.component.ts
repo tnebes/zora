@@ -3,6 +3,7 @@ import {Router} from '@angular/router';
 import {Subject, takeUntil, Observable, map, switchMap, of, filter} from 'rxjs';
 import {AuthenticationService} from '../core/services/authentication.service';
 import {AuthorisationService} from '../core/services/authorisation.service';
+import {Constants} from '../core/constants';
 
 @Component({
     selector: 'app-nav-menu',
@@ -14,6 +15,8 @@ export class NavMenuComponent implements OnInit, OnDestroy {
     public isAuthenticated$: Observable<boolean>;
     public isAdmin$: Observable<boolean>;
     public currentUserId$: Observable<string>;
+    public readonly swaggerUrl: string = Constants.SWAGGER_URL;
+    public readonly eraUrl: string = Constants.ERA_URL;
 
     private readonly destroy$: Subject<void> = new Subject<void>();
 

@@ -302,4 +302,43 @@ public sealed class UserController : BaseCrudController<FullUserDto, CreateMinim
             return this.StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
+
+    [HttpGet("{id:long}")]
+    [ProducesResponseType(typeof(FullUserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType<int>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<int>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<int>(StatusCodes.Status500InternalServerError)]
+    [Tags("Users")]
+    [Description("Retrieves a user by ID")]
+    [Authorize]
+    public async Task<ActionResult<FullUserDto>> GetById([FromRoute] long id)
+    {
+        try
+        {
+            Result<User> result = await this._userService.GetByIdAsync(id);
+
+            if (result.IsFailed)
+            {
+                this.Logger.LogWarning("User with ID {UserId} not found", id);
+                return this.NotFound();
+            }
+
+            User user = result.Value;
+
+            if (this.RoleService.IsAdmin(this.User) || this._userService.ClaimIsUser(this.User, user.Username))
+            {
+                FullUserDto userDto = this._userService.ToDto<FullUserDto>(user);
+                return this.Ok(userDto);
+            }
+
+            this.Logger.LogWarning("User is not authorized to view user with ID {UserId}", id);
+            this.LogUnauthorisedAccess(this.HttpContext.User);
+            return this.Unauthorized();
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Failed to get user with ID {UserId}", id);
+            return this.StatusCode(StatusCodes.Status500InternalServerError);
+        }
+    }
 }

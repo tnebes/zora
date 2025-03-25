@@ -13,11 +13,15 @@ import {AuthInterceptor} from './core/services/authentication.interceptor';
 import {AuthAndAdminGuard} from './core/guards/auth-and-admin.guard';
 import {AdminGuard} from './core/guards/admin.guard';
 import {HomeModule} from './home/home.module';
+import { ProfileComponent } from './profile/profile.component';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 
 @NgModule({
     declarations: [
         AppComponent,
-        NavMenuComponent
+        NavMenuComponent,
+        ProfileComponent
     ],
     imports: [
         BrowserModule.withServerTransition({appId: 'ng-cli-universal'}),
@@ -27,7 +31,9 @@ import {HomeModule} from './home/home.module';
         AppRoutingModule,
         BrowserAnimationsModule,
         ControlPanelModule,
-        HomeModule
+        HomeModule,
+        MatCardModule,
+        MatIconModule
     ],
     providers: [
         {

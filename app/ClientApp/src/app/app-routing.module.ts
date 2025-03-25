@@ -3,6 +3,7 @@ import {RouterModule, Routes} from '@angular/router';
 import {HomeComponent} from './home/home.component';
 import {LoginComponent} from './login/login.component';
 import {AuthGuard} from './core/guards/auth.guard';
+import {ProfileComponent} from './profile/profile.component';
 
 const routes: Routes = [
     {path: '', component: HomeComponent, pathMatch: 'full'},
@@ -14,6 +15,11 @@ const routes: Routes = [
     {
         path: 'tasks',
         loadChildren: () => import('./tasks/tasks.module').then(m => m.TasksModule),
+        canActivate: [AuthGuard]
+    },
+    {
+        path: 'profile',
+        component: ProfileComponent,
         canActivate: [AuthGuard]
     }
 ];

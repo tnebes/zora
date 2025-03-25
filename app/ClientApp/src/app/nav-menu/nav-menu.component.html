@@ -6,25 +6,33 @@
                     aria-label="Toggle navigation" [attr.aria-expanded]="isExpanded" (click)="toggle()">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end" [ngClass]="{ show: isExpanded }">
-                <ul class="navbar-nav flex-grow">
-                    <li class="nav-item" [routerLinkActive]="['link-active']"
-                        [routerLinkActiveOptions]="{ exact: true }">
-                        <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
+            <div class="navbar-collapse collapse d-sm-inline-flex" [ngClass]="{ show: isExpanded }">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" [href]="swaggerUrl" target="_blank">
+                            <mat-icon>api</mat-icon>
+                            <span>API</span>
+                        </a>
                     </li>
 
+                    <li *ngIf="isAuthenticated$ | async" class="nav-item">
+                        <a class="nav-link text-dark" [href]="eraUrl" target="_blank">
+                            <mat-icon>schema</mat-icon>
+                            <span>ERA Diagram</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav">
                     <li *ngIf="!(isAuthenticated$ | async)" class="nav-item login" [routerLinkActive]="['link-active']">
                         <a class="nav-link" [routerLink]="['/login']">Login</a>
                     </li>
 
                     <ng-container *ngIf="isAuthenticated$ | async">
-                        <!-- <li class="nav-item" [routerLinkActive]="['link-active']">
-                            <a class="nav-link text-dark" [routerLink]="['/programs']">Programs</a>
+                        <li class="nav-item" [routerLinkActive]="['link-active']"
+                            [routerLinkActiveOptions]="{ exact: true }">
+                            <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
                         </li>
-
-                        <li class="nav-item" [routerLinkActive]="['link-active']">
-                            <a class="nav-link text-dark" [routerLink]="['/projects']">Projects</a>
-                        </li> -->
 
                         <li class="nav-item" [routerLinkActive]="['link-active']">
                             <a class="nav-link text-dark" [routerLink]="['/tasks']">Tasks</a>
@@ -39,10 +47,10 @@
                             <a class="nav-link" href="#" (click)="$event.preventDefault(); logout()">Logout</a>
                         </li>
 
-                        <li class="nav-item profile-item">
-                            <a class="nav-link text-dark" [routerLink]="['/user', currentUserId$ | async]">
-                                <i class="fas fa-user-circle"></i>
-                                Profile
+                        <li class="nav-item" [routerLinkActive]="['link-active']">
+                            <a class="nav-link text-dark" [routerLink]="['/profile']">
+                                <mat-icon>account_circle</mat-icon>
+                                <span>Profile</span>
                             </a>
                         </li>
                     </ng-container>
