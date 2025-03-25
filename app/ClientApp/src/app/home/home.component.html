@@ -3,20 +3,8 @@
         <div class="row">
             <div class="col-md-8 offset-md-2">
                 <h2 class="mb-4 greeting">{{ greeting }}, {{ currentUsername$ | async }}!</h2>
-                <div class="card mb-4 task-card">
-                    <div class="card-body">
-                        <h5 class="card-title">Task 1</h5>
-                        <p class="card-text">Complete project setup</p>
-                        <span class="badge high-priority">High Priority</span>
-                    </div>
-                </div>
-                <div class="card mb-4 task-card">
-                    <div class="card-body">
-                        <h5 class="card-title">Task 2</h5>
-                        <p class="card-text">Review documentation</p>
-                        <span class="badge medium-priority">Medium Priority</span>
-                    </div>
-                </div>
+                <h3 class="mb-3">Your Priority Tasks</h3>
+                <app-priority-tasks></app-priority-tasks>
             </div>
         </div>
     </div>

@@ -6,19 +6,18 @@ import {AppRoutingModule} from './app-routing.module';
 
 import {AppComponent} from './app.component';
 import {NavMenuComponent} from './nav-menu/nav-menu.component';
-import {HomeComponent} from './home/home.component';
 import {LoginModule} from './login/login.module';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {ControlPanelModule} from './control-panel/control-panel.module';
 import {AuthInterceptor} from './core/services/authentication.interceptor';
 import {AuthAndAdminGuard} from './core/guards/auth-and-admin.guard';
 import {AdminGuard} from './core/guards/admin.guard';
+import {HomeModule} from './home/home.module';
 
 @NgModule({
     declarations: [
         AppComponent,
-        NavMenuComponent,
-        HomeComponent,
+        NavMenuComponent
     ],
     imports: [
         BrowserModule.withServerTransition({appId: 'ng-cli-universal'}),
@@ -28,6 +27,7 @@ import {AdminGuard} from './core/guards/admin.guard';
         AppRoutingModule,
         BrowserAnimationsModule,
         ControlPanelModule,
+        HomeModule
     ],
     providers: [
         {
@@ -40,5 +40,4 @@ import {AdminGuard} from './core/guards/admin.guard';
     ],
     bootstrap: [AppComponent]
 })
-export class AppModule {
-}
+export class AppModule {}

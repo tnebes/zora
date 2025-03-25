@@ -1,0 +1,79 @@
+.priority-tasks {
+    margin-top: 2rem;
+}
+
+.task-cards {
+    display: grid;
+    gap: 1rem;
+}
+
+.task-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-info {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    align-items: center;
+}
+
+.priority-badge, .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.priority-badge.high-priority {
+    background-color: #ffebee;
+    color: #d32f2f;
+}
+
+.status-badge.status-completed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.status-progress {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.status-badge.status-hold {
+    background-color: #fff3e0;
+    color: #f57c00;
+}
+
+.status-badge.status-new {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.completion {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.no-tasks {
+    text-align: center;
+    padding: 2rem;
+    color: rgba(0, 0, 0, 0.38);
+}
+
+.no-tasks mat-icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1rem;
+} 

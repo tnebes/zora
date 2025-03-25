@@ -1,0 +1,39 @@
+<div class="priority-tasks">
+    <div class="task-cards">
+        <mat-card *ngFor="let task of tasks$ | async" class="task-card" (click)="navigateToTask(task.id)">
+            <mat-card-header>
+                <mat-card-title>{{ task.name }}</mat-card-title>
+                <mat-card-subtitle>Due: {{ task.dueDate | date }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <p>{{ task.description }}</p>
+                <div class="task-info">
+                    <span class="priority-badge" [ngClass]="{'high-priority': task.priority === 'High' || task.priority === 'Critical'}">
+                        <mat-icon>flag</mat-icon>
+                        {{ task.priority }}
+                    </span>
+                    <span class="status-badge" [ngClass]="{
+                        'status-completed': task.status === 'Completed',
+                        'status-progress': task.status === 'In Progress',
+                        'status-hold': task.status === 'On Hold',
+                        'status-new': task.status === 'New'
+                    }">
+                        <mat-icon>
+                            {{ task.status === 'Completed' ? 'check_circle' : 
+                               task.status === 'In Progress' ? 'trending_up' : 
+                               task.status === 'On Hold' ? 'pause_circle' : 
+                               'fiber_new' }}
+                        </mat-icon>
+                        {{ task.status }}
+                    </span>
+                </div>
+                <mat-progress-bar mode="determinate" [value]="task.completionPercentage"></mat-progress-bar>
+                <span class="completion">{{ task.completionPercentage }}% Complete</span>
+            </mat-card-content>
+        </mat-card>
+        <div *ngIf="!(tasks$ | async)?.length" class="no-tasks">
+            <mat-icon>task</mat-icon>
+            <p>No high priority tasks</p>
+        </div>
+    </div>
+</div> 
