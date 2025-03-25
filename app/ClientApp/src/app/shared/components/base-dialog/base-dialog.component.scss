@@ -17,3 +17,22 @@ mat-form-field {
     font-size: 0.875rem;
     color: rgba(0, 0, 0, 0.7);
 }
+
+.search-container {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: white;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+
+  .search-input {
+    width: 100%;
+    margin: 0;
+    
+    ::ng-deep .mat-mdc-form-field-infix {
+      width: auto;
+      padding: 0.5em 0;
+    }
+  }
+}

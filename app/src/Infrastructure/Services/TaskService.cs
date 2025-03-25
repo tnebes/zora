@@ -115,28 +115,30 @@ public sealed class TaskService : ITaskService, IZoraService
         }
     }
 
-    public Task<Result<ZoraTask>> CreateAsync(CreateTaskDto createDto, long userId)
+    public async Task<Result<ZoraTask>> CreateAsync(CreateTaskDto createDto, long userId)
     {
         try
         {
-            ZoraTask newTask = new ZoraTask
-            {
-                Id = new Random().Next(1, 1000),
-                Name = "New Task",
-                Description = "Dummy created task",
-                Status = "New",
-                CreatedAt = DateTime.UtcNow,
-                CreatedById = userId,
-                ProjectId = 1,
-                Priority = "Medium"
-            };
+            ZoraTask newTask = this._mapper.Map<ZoraTask>(createDto);
+            newTask.CreatedAt = DateTime.UtcNow;
+            newTask.CreatedById = userId;
+            newTask.UpdatedAt = DateTime.UtcNow;
+            newTask.UpdatedById = userId;
 
-            return Task.FromResult(Result.Ok(newTask));
+            Result<ZoraTask> createResult = await this._taskRepository.CreateAsync(newTask);
+
+            if (createResult.IsFailed)
+            {
+                this._logger.LogError("Failed to create task. Errors: {Errors}", createResult.Errors);
+                return Result.Fail<ZoraTask>(createResult.Errors);
+            }
+
+            return Result.Ok(createResult.Value);
         }
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error creating task");
-            return Task.FromResult(Result.Fail<ZoraTask>("Error creating task"));
+            return Result.Fail<ZoraTask>("Error creating task");
         }
     }
 
@@ -189,16 +191,47 @@ public sealed class TaskService : ITaskService, IZoraService
         }
     }
 
-    public Task<bool> DeleteAsync(long id, long userId)
+    public async Task<bool> DeleteAsync(long id, long userId)
     {
         try
         {
-            return Task.FromResult(true);
+            PermissionRequestDto permissionRequest = new PermissionRequestDto
+            {
+                ResourceId = id,
+                ResourceType = ResourceType.Task,
+                RequestedPermission = PermissionFlag.Delete,
+                UserId = userId
+            };
+
+            if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
+            {
+                this._logger.LogInformation("User {UserId} is not authorised to delete task {TaskId}", userId, id);
+                return false;
+            }
+
+            Result<ZoraTask> taskResult = await this._taskRepository.GetByIdAsync(id, true);
+
+            if (taskResult.IsFailed)
+            {
+                this._logger.LogError("Failed to retrieve task for deletion. Errors: {Errors}", taskResult.Errors);
+                return false;
+            }
+
+            ZoraTask taskToDelete = taskResult.Value;
+            Result<bool> deleteResult = await this._taskRepository.DeleteAsync(taskToDelete);
+
+            if (deleteResult.IsFailed)
+            {
+                this._logger.LogError("Failed to delete task. Errors: {Errors}", deleteResult.Errors);
+                return false;
+            }
+
+            return deleteResult.Value;
         }
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error deleting task with id {Id}", id);
-            return Task.FromResult(false);
+            return false;
         }
     }
 
@@ -235,50 +268,38 @@ public sealed class TaskService : ITaskService, IZoraService
         }
     }
 
-    public Task<Result<TaskResponseDto>> SearchAsync(DynamicQueryTaskParamsDto searchParams, long userId)
+    public async Task<Result<TaskResponseDto>> SearchAsync(DynamicQueryTaskParamsDto searchParams, long userId)
     {
         try
         {
-            List<ReadTaskDto> dummyTasks = new List<ReadTaskDto>
+            IQueryable<ZoraTask> query = this._taskRepository.GetQueryable();
+            IQueryable<ZoraTask> filteredQuery = await this._authorisationService.FilterByPermission(query, userId, PermissionFlag.Read);
+
+            Result<(IEnumerable<ZoraTask>, int total)> searchResult = await this._taskRepository.SearchAsync(searchParams, true);
+
+            if (searchResult.IsFailed)
             {
-                new()
-                {
-                    Id = 1,
-                    Name = "Search Result Task 1",
-                    Description = "Dummy search result 1",
-                    Status = "Active",
-                    CreatedAt = DateTime.UtcNow.AddDays(-5),
-                    CreatedById = userId,
-                    ProjectId = 1,
-                    Priority = "Medium"
-                },
-                new()
-                {
-                    Id = 2,
-                    Name = "Search Result Task 2",
-                    Description = "Dummy search result 2",
-                    Status = "Completed",
-                    CreatedAt = DateTime.UtcNow.AddDays(-10),
-                    CreatedById = userId,
-                    ProjectId = 1,
-                    Priority = "High"
-                }
-            };
+                this._logger.LogError("Failed to search tasks. Errors: {Errors}", searchResult.Errors);
+                return Result.Fail<TaskResponseDto>(searchResult.Errors);
+            }
+
+            (IEnumerable<ZoraTask> tasks, int total) = searchResult.Value;
+            IEnumerable<ReadTaskDto> taskDtos = this._mapper.Map<IEnumerable<ReadTaskDto>>(tasks);
 
             TaskResponseDto response = new TaskResponseDto
             {
-                Total = dummyTasks.Count,
+                Total = total,
                 Page = searchParams.Page,
                 PageSize = searchParams.PageSize,
-                Items = dummyTasks
+                Items = taskDtos
             };
 
-            return Task.FromResult(Result.Ok(response));
+            return Result.Ok(response);
         }
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error searching tasks");
-            return Task.FromResult(Result.Fail<TaskResponseDto>("Error searching tasks"));
+            return Result.Fail<TaskResponseDto>("Error searching tasks");
         }
     }
 

@@ -1,65 +1,133 @@
 <div class="task-detail-container">
-  <mat-card *ngIf="loading">
-    <mat-card-content>
-      <p>Loading task...</p>
-    </mat-card-content>
-  </mat-card>
+  <div *ngIf="loading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+    <p>Loading task details...</p>
+  </div>
 
-  <mat-card *ngIf="error">
-    <mat-card-content>
-      <p class="error-message">{{error}}</p>
-    </mat-card-content>
-  </mat-card>
+  <div *ngIf="error" class="error-container">
+    <mat-icon color="warn">error</mat-icon>
+    <p class="error-message">{{error}}</p>
+  </div>
 
-  <mat-card *ngIf="task && !loading">
-    <mat-card-header>
-      <mat-card-title>{{task.name}}</mat-card-title>
-      <mat-card-subtitle>ID: {{task.id}} | Status: {{task.status}}</mat-card-subtitle>
-    </mat-card-header>
-    
-    <mat-card-content>
-      <table class="task-details-table">
-        <tr>
-          <td><strong>Description:</strong></td>
-          <td>{{task.description}}</td>
-        </tr>
-        <tr>
-          <td><strong>Priority:</strong></td>
-          <td>{{task.priority}}</td>
-        </tr>
-        <tr>
-          <td><strong>Status:</strong></td>
-          <td>{{task.status}}</td>
-        </tr>
-        <tr>
-          <td><strong>Completion:</strong></td>
-          <td>{{task.completionPercentage}}%</td>
-        </tr>
-        <tr *ngIf="task.startDate">
-          <td><strong>Start Date:</strong></td>
-          <td>{{task.startDate | date:'medium'}}</td>
-        </tr>
-        <tr *ngIf="task.dueDate">
-          <td><strong>Due Date:</strong></td>
-          <td>{{task.dueDate | date:'medium'}}</td>
-        </tr>
-      </table>
-      
-      <button mat-button color="primary" (click)="showTaskDetails()">
-        <mat-icon>info</mat-icon> View Full Details
-      </button>
-    </mat-card-content>
-    
-    <mat-card-actions>
-      <button mat-button color="primary" (click)="goBack()">
-        <mat-icon>arrow_back</mat-icon> Back
-      </button>
-      <button mat-button color="accent" (click)="editTask()">
-        <mat-icon>edit</mat-icon> Edit
-      </button>
-      <button mat-button color="warn" (click)="deleteTask()">
-        <mat-icon>delete</mat-icon> Delete
-      </button>
-    </mat-card-actions>
-  </mat-card>
+  <div *ngIf="task && !loading" class="task-detail-content">
+    <div class="task-header">
+      <div class="task-title-section">
+        <h1 class="task-title">{{task.name}}</h1>
+        <div class="task-id">Task ID: {{task.id}}</div>
+      </div>
+      <div class="task-badges">
+        <span class="task-badge priority-badge" [ngClass]="{'high-priority': task.priority === 'High' || task.priority === 'Critical', 
+                        'medium-priority': task.priority === 'Medium', 
+                        'low-priority': task.priority === 'Low'}">
+          <mat-icon class="badge-icon">flag</mat-icon>
+          {{task.priority || 'No Priority'}}
+        </span>
+        <span class="task-badge status-badge" [ngClass]="{'status-completed': task.status === 'Completed',
+                          'status-progress': task.status === 'In Progress',
+                          'status-hold': task.status === 'On Hold',
+                          'status-new': task.status === 'New',
+                          'status-cancelled': task.status === 'Cancelled'}">
+          <mat-icon class="badge-icon">
+            {{task.status === 'Completed' ? 'check_circle' : 
+              task.status === 'In Progress' ? 'trending_up' : 
+              task.status === 'On Hold' ? 'pause_circle' : 
+              task.status === 'New' ? 'fiber_new' : 
+              task.status === 'Cancelled' ? 'cancel' : 'info'}}
+          </mat-icon>
+          {{task.status}}
+        </span>
+      </div>
+    </div>
+
+    <div class="cards-container">
+      <mat-card class="task-card main-card">
+        <mat-card-content>
+          <div class="task-description">
+            <h3><mat-icon>description</mat-icon> Description</h3>
+            <p>{{task.description || 'No description provided.'}}</p>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="task-details">
+            <div class="detail-section">
+              <h3><mat-icon>info</mat-icon> Task Details</h3>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="detail-label">Status</span>
+                  <span class="detail-value status-chip" [ngClass]="{
+                    'status-completed-chip': task.status === 'Completed',
+                    'status-progress-chip': task.status === 'In Progress',
+                    'status-hold-chip': task.status === 'On Hold',
+                    'status-new-chip': task.status === 'New',
+                    'status-cancelled-chip': task.status === 'Cancelled'
+                  }">{{task.status}}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Priority</span>
+                  <span class="detail-value priority-chip" [ngClass]="{
+                    'high-priority-chip': task.priority === 'High' || task.priority === 'Critical',
+                    'medium-priority-chip': task.priority === 'Medium',
+                    'low-priority-chip': task.priority === 'Low'
+                  }">{{task.priority || 'None'}}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Completion</span>
+                  <div class="completion-container">
+                    <mat-progress-bar mode="determinate" [value]="task.completionPercentage || 0" color="primary"></mat-progress-bar>
+                    <span>{{task.completionPercentage || 0}}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="detail-section">
+              <h3><mat-icon>schedule</mat-icon> Timeline</h3>
+              <div class="detail-grid">
+                <div class="detail-item" *ngIf="task.startDate">
+                  <span class="detail-label">Start Date</span>
+                  <span class="detail-value date-value">
+                    <mat-icon class="small-icon">today</mat-icon>
+                    {{task.startDate | date:'medium'}}
+                  </span>
+                </div>
+                <div class="detail-item" *ngIf="task.dueDate">
+                  <span class="detail-label">Due Date</span>
+                  <span class="detail-value date-value">
+                    <mat-icon class="small-icon">event</mat-icon>
+                    {{task.dueDate | date:'medium'}}
+                  </span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Created On</span>
+                  <span class="detail-value date-value">
+                    <mat-icon class="small-icon">create</mat-icon>
+                    {{task.createdAt | date:'medium'}}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions class="task-actions">
+          <button mat-button color="primary" (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon> Back
+          </button>
+          <div class="action-spacer"></div>
+          <button mat-stroked-button color="primary" (click)="showTaskDetails()">
+            <mat-icon>info</mat-icon> Full Details
+          </button>
+          <button mat-flat-button color="primary" (click)="editTask()">
+            <mat-icon>edit</mat-icon> Edit
+          </button>
+          <button mat-flat-button color="warn" (click)="deleteTask()">
+            <mat-icon>delete</mat-icon> Delete
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
 </div>

@@ -4,7 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Subject, catchError, of, merge, Observable } from 'rxjs';
-import { filter, startWith, switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { filter, startWith, switchMap, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { Task, TaskResponseDto } from '../models/task';
 import { TaskService } from '../../core/services/task.service';
@@ -17,6 +17,8 @@ import { BaseDialogComponent, DialogField } from 'src/app/shared/components/base
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthenticationService } from '../../core/services/authentication.service';
 import { AuthorisationService } from '../../core/services/authorisation.service';
+import { UserService } from '../../core/services/user.service';
+import { CreateTaskDto } from '../models/create-task.dto';
 
 @Component({
   selector: 'app-task-list',
@@ -46,13 +48,15 @@ export class TaskListComponent implements OnInit, AfterViewInit {
     private readonly queryService: QueryService,
     private readonly snackBar: MatSnackBar,
     private readonly authService: AuthenticationService,
-    private readonly authorisationService: AuthorisationService
+    private readonly authorisationService: AuthorisationService,
+    private readonly userService: UserService
   ) { }
 
   ngOnInit(): void {
     this.isLoading = true;
     this.authService.currentUser$.subscribe(user => {
       this.currentUserId = user?.id || '';
+      this.loadTasks();
     });
     
     this.authorisationService.isAdmin$.subscribe(isAdmin => {
@@ -94,10 +98,22 @@ export class TaskListComponent implements OnInit, AfterViewInit {
     return this.isAdmin || (task.assigneeId !== null && task.assigneeId?.toString() === this.currentUserId);
   }
 
+  public isAssignedToMe(task: Task): boolean {
+    if (!this.currentUserId || task.assigneeId === undefined || task.assigneeId === null) {
+      return false;
+    }
+    
+    const currentUserIdNumber = Number(this.currentUserId);
+    return task.assigneeId === currentUserIdNumber;
+  }
+
   public assignToMe(task: Task, event: Event): void {
     if (event) {
       event.stopPropagation();
     }
+    
+    console.log('Assigning task to user with ID:', this.currentUserId, 'typeof:', typeof this.currentUserId);
+    console.log('Task assigneeId before:', task.assigneeId, 'typeof:', typeof task.assigneeId);
     
     this.taskService.assignToMe(task.id, this.currentUserId)
       .pipe(
@@ -110,6 +126,7 @@ export class TaskListComponent implements OnInit, AfterViewInit {
       )
       .subscribe(updatedTask => {
         if (updatedTask) {
+          console.log('Task assigneeId after:', updatedTask.assigneeId, 'typeof:', typeof updatedTask.assigneeId);
           this.loadTasks();
           this.snackBar.open('Task assigned successfully', 'Close', {
             duration: 3000
@@ -187,8 +204,18 @@ export class TaskListComponent implements OnInit, AfterViewInit {
       { name: 'completionPercentage', type: 'text', label: 'Completion %', required: false },
       { name: 'estimatedHours', type: 'text', label: 'Estimated Hours', required: false },
       { name: 'actualHours', type: 'text', label: 'Actual Hours', required: false },
-      { name: 'assigneeId', type: 'text', label: 'Assignee ID', required: false },
-      { name: 'assigneeName', type: 'text', label: 'Assignee Name', required: false },
+      { 
+        name: 'assigneeId', 
+        type: 'select', 
+        label: 'Assignee', 
+        required: false,
+        options: [],
+        searchable: true,
+        searchService: this.userService,
+        searchMethod: 'searchUsersByTerm',
+        displayField: 'username',
+        valueField: 'id'
+      },
       { name: 'projectId', type: 'text', label: 'Project ID', required: false },
       { name: 'parentTaskId', type: 'text', label: 'Parent Task ID', required: false }
     ];
@@ -232,23 +259,11 @@ export class TaskListComponent implements OnInit, AfterViewInit {
       { name: 'name', type: 'text', label: 'Name', required: true },
       { name: 'description', type: 'text', label: 'Description', required: false },
       { 
-        name: 'status', 
-        type: 'select', 
-        label: 'Status', 
-        required: true,
-        options: [
-          { value: 'New', display: 'New' },
-          { value: 'In Progress', display: 'In Progress' },
-          { value: 'On Hold', display: 'On Hold' },
-          { value: 'Completed', display: 'Completed' },
-          { value: 'Cancelled', display: 'Cancelled' }
-        ]
-      },
-      { 
         name: 'priority', 
         type: 'select', 
         label: 'Priority', 
         required: true,
+        value: 'Medium',
         options: [
           { value: 'Low', display: 'Low' },
           { value: 'Medium', display: 'Medium' },
@@ -256,47 +271,100 @@ export class TaskListComponent implements OnInit, AfterViewInit {
           { value: 'Critical', display: 'Critical' }
         ]
       },
-      { name: 'startDate', type: 'date', label: 'Start Date', required: false },
-      { name: 'dueDate', type: 'date', label: 'Due Date', required: false },
-      { name: 'completionPercentage', type: 'text', label: 'Completion %', required: false },
-      { name: 'estimatedHours', type: 'text', label: 'Estimated Hours', required: false },
-      { name: 'actualHours', type: 'text', label: 'Actual Hours', required: false },
-      { name: 'assigneeId', type: 'text', label: 'Assignee ID', required: false },
-      { name: 'assigneeName', type: 'text', label: 'Assignee Name', required: false },
-      { name: 'projectId', type: 'text', label: 'Project ID', required: false },
-      { name: 'parentTaskId', type: 'text', label: 'Parent Task ID', required: false }
+      { 
+        name: 'startDate', 
+        type: 'date', 
+        label: 'Start Date', 
+        required: false,
+        value: new Date()
+      },
+      { 
+        name: 'dueDate', 
+        type: 'date', 
+        label: 'Due Date', 
+        required: false,
+        value: new Date(new Date().setDate(new Date().getDate() + 7))
+      },
+      { 
+        name: 'completionPercentage', 
+        type: 'text', 
+        label: 'Completion %', 
+        required: false,
+        value: '0',
+        pattern: '^[0-9]*$',
+        min: 0,
+        max: 100
+      },
+      { 
+        name: 'estimatedHours', 
+        type: 'text', 
+        label: 'Estimated Hours', 
+        required: false,
+        pattern: '^[0-9]*$',
+        min: 0
+      },
+      { 
+        name: 'actualHours', 
+        type: 'text', 
+        label: 'Actual Hours', 
+        required: false,
+        pattern: '^[0-9]*$',
+        min: 0
+      },
+      { 
+        name: 'assigneeId', 
+        type: 'select', 
+        label: 'Assignee', 
+        required: false,
+        value: this.currentUserId ? Number(this.currentUserId) : undefined,
+        options: [],
+        searchable: true,
+        searchService: this.userService,
+        searchMethod: 'searchUsersByTerm',
+        displayField: 'username',
+        valueField: 'id'
+      }
     ];
 
-    const dialogRef = this.dialog.open(BaseDialogComponent, {
-      width: Constants.DEFAULT_DIALOG_WIDTH,
+    // Hidden fields - adding them to be saved but not shown to the user
+    const hiddenData = {
+      projectId: undefined,
+      parentTaskId: undefined
+    };
+
+    const dialogRef = this.dialog.open(BaseDialogComponent<CreateTaskDto>, {
+      width: Constants.ENTITY_DIALOG_WIDTH,
       data: {
         title: 'Create Task',
-        entity: {},
         fields: editableFields,
-        mode: 'create'
+        mode: 'create',
+        hiddenData: hiddenData
       }
     });
 
     dialogRef.afterClosed()
       .pipe(
         filter(result => !!result),
-        switchMap(result => this.taskService.createTask(result)
-          .pipe(
-            catchError(error => {
-              this.snackBar.open('Failed to create task', 'Close', {
-                duration: 3000
-              });
-              return of(null);
-            })
-          )
-        )
+        map(result => ({
+          ...result,
+          status: 'New',
+          completionPercentage: result.completionPercentage ? Number(result.completionPercentage) : 0,
+          estimatedHours: result.estimatedHours ? Number(result.estimatedHours) : undefined,
+          actualHours: result.actualHours ? Number(result.actualHours) : undefined,
+          assigneeId: result.assigneeId ? Number(result.assigneeId) : undefined,
+          projectId: result.projectId ? Number(result.projectId) : undefined,
+          parentTaskId: result.parentTaskId ? Number(result.parentTaskId) : undefined
+        })),
+        switchMap(result => this.taskService.createTask(result))
       )
-      .subscribe(newTask => {
-        if (newTask) {
+      .subscribe({
+        next: () => {
           this.loadTasks();
-          this.snackBar.open('Task created successfully', 'Close', {
-            duration: 3000
-          });
+          NotificationUtils.showSuccess(this.dialog, 'Task has been created successfully');
+        },
+        error: (error) => {
+          console.error('Error creating task:', error);
+          NotificationUtils.showError(this.dialog, 'Failed to create task', error);
         }
       });
   }

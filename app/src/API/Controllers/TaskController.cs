@@ -21,6 +21,7 @@ namespace zora.API.Controllers;
 [Authorize]
 [Route("api/v1/tasks")]
 [Produces("application/json")]
+[Consumes("application/json")]
 [Description("Tasks API")]
 public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto, UpdateTaskDto, ReadTaskDto,
     TaskResponseDto, DynamicQueryTaskParamsDto>, IZoraService
@@ -155,6 +156,12 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
             }
 
             long userId = this.HttpContext.User.GetUserId();
+            bool isAdmin = await this._userRoleService.IsAdminAsync(userId);
+            if (!isAdmin)
+            {
+                return this.Forbid();
+            }
+
             Result<ZoraTask> result = await this._taskService.CreateAsync(createDto, userId);
 
             if (result.IsFailed)
@@ -162,7 +169,8 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
                 return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
             }
 
-            return this.CreatedAtAction(nameof(this.Get), new { id = result.Value.Id }, result.Value);
+            ReadTaskDto taskDto = this._mapper.Map<ReadTaskDto>(result.Value);
+            return this.CreatedAtAction(nameof(this.GetSingle), new { id = result.Value.Id }, taskDto);
         }
         catch (Exception ex)
         {
@@ -225,6 +233,7 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public override async Task<ActionResult<bool>> Delete(long id)
@@ -238,6 +247,25 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
             }
 
             long userId = this.HttpContext.User.GetUserId();
+
+            bool isAdmin = await this._userRoleService.IsAdminAsync(userId);
+            if (!isAdmin)
+            {
+                PermissionRequestDto permissionRequest = new PermissionRequestDto
+                {
+                    ResourceId = id,
+                    ResourceType = ResourceType.Task,
+                    RequestedPermission = PermissionFlag.Delete,
+                    UserId = userId
+                };
+
+                if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
+                {
+                    this._logger.LogInformation("User {UserId} is not authorised to delete task {TaskId}", userId, id);
+                    return this.Forbid();
+                }
+            }
+
             bool result = await this._taskService.DeleteAsync(id, userId);
 
             if (!result)
@@ -292,8 +320,9 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public override async Task<ActionResult<TaskResponseDto>> Search(DynamicQueryTaskParamsDto searchParams)
+    public override async Task<ActionResult<TaskResponseDto>> Search([FromQuery] DynamicQueryTaskParamsDto searchParams)
     {
         try
         {

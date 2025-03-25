@@ -78,8 +78,11 @@ export class UserService {
 
     public searchUsersByTerm(searchTerm: string): Observable<UserResponseDto<UserResponse>> {
         if (!searchTerm || searchTerm.length < 3) {
-            console.error('Search term must be at least 3 characters long');
-            throw new Error('Search term must be at least 3 characters long');
+            const params = new HttpParams()
+                .set('page', '1')
+                .set('pageSize', '10');
+                
+            return this.http.get<UserResponseDto<UserResponse>>(this.apiUrl, {params});
         }
 
         const params = new HttpParams()

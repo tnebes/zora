@@ -7,6 +7,11 @@ import { BaseDialogComponent, DialogField } from '../../shared/components/base-d
 import { ViewOnlyDialogComponent } from '../../shared/components/view-only-dialog/view-only-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Constants } from '../../core/constants';
+import { ConfirmDialogComponent } from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { NotificationUtils } from '../../core/utils/notification.utils';
+import { filter, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-task-detail',
@@ -174,16 +179,29 @@ export class TaskDetailComponent implements OnInit {
   }
 
   deleteTask(): void {
-    if (confirm('Are you sure you want to delete this task?')) {
-      this.taskService.deleteTask(this.taskId).subscribe({
-        next: () => {
-          this.router.navigate(['/tasks']);
-        },
-        error: (err) => {
-          this.error = 'Error deleting task. Please try again later.';
-        }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: Constants.DIALOG_WIDTH,
+      data: {
+        title: 'Confirm Delete',
+        message: 'Are you sure you want to delete this task?',
+        confirmButton: 'Delete',
+        cancelButton: 'Cancel'
+      }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(
+        filter((result: boolean) => result),
+        switchMap(() => this.taskService.deleteTask(this.taskId)),
+        catchError(error => {
+          NotificationUtils.showError(this.dialog, 'Failed to delete task', error);
+          return of(null);
+        })
+      )
+      .subscribe(() => {
+        NotificationUtils.showSuccess(this.dialog, 'Task has been deleted successfully');
+        this.router.navigate(['/tasks']);
       });
-    }
   }
 
   goBack(): void {

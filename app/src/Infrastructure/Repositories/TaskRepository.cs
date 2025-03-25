@@ -22,46 +22,105 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
     {
     }
 
-    public Task<Result<(IEnumerable<ZoraTask>, int TotalCount)>> SearchAsync(DynamicQueryTaskParamsDto searchParams,
+    public async Task<Result<(IEnumerable<ZoraTask>, int TotalCount)>> SearchAsync(DynamicQueryTaskParamsDto searchParams,
         bool includeProperties = false)
     {
         try
         {
-            List<ZoraTask> dummyTasks = new List<ZoraTask>
-            {
-                new()
-                {
-                    Id = 1,
-                    Name = "Task 1",
-                    Description = "Dummy repository task 1",
-                    Status = "Active",
-                    CreatedAt = DateTime.UtcNow.AddDays(-5),
-                    ProjectId = 1,
-                    Priority = "Medium",
-                    AssigneeId = 1,
-                    Assignee = includeProperties ? new User { Id = 1, Username = "john.doe" } : null
-                },
-                new()
-                {
-                    Id = 2,
-                    Name = "Task 2",
-                    Description = "Dummy repository task 2",
-                    Status = "Completed",
-                    CreatedAt = DateTime.UtcNow.AddDays(-10),
-                    ProjectId = 1,
-                    Priority = "High",
-                    AssigneeId = 2,
-                    Assignee = includeProperties ? new User { Id = 2, Username = "jane.doe" } : null
-                }
-            };
+            IQueryable<ZoraTask> query = this.FilteredDbSet;
 
-            return Task.FromResult(Result.Ok((dummyTasks.AsEnumerable(), dummyTasks.Count)));
+            if (includeProperties)
+            {
+                query = query
+                    .Include(t => t.Assignee)
+                    .Include(t => t.CreatedBy)
+                    .Include(t => t.UpdatedBy);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchParams.SearchTerm))
+            {
+                string searchTerm = $"%{searchParams.SearchTerm}%";
+                query = query.Where(t =>
+                    EF.Functions.Like(t.Name, searchTerm) ||
+                    EF.Functions.Like(t.Description, searchTerm) ||
+                    EF.Functions.Like(t.Status, searchTerm) ||
+                    EF.Functions.Like(t.Priority, searchTerm) ||
+                    (t.Assignee != null && EF.Functions.Like(t.Assignee.Username, searchTerm)) ||
+                    (t.CreatedBy != null && EF.Functions.Like(t.CreatedBy.Username, searchTerm)) ||
+                    (t.UpdatedBy != null && EF.Functions.Like(t.UpdatedBy.Username, searchTerm))
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchParams.Status))
+            {
+                query = query.Where(t => t.Status == searchParams.Status);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchParams.Priority))
+            {
+                query = query.Where(t => t.Priority == searchParams.Priority);
+            }
+
+            if (searchParams.AssigneeId.HasValue)
+            {
+                query = query.Where(t => t.AssigneeId == searchParams.AssigneeId);
+            }
+
+            if (searchParams.ProjectId.HasValue)
+            {
+                query = query.Where(t => t.ProjectId == searchParams.ProjectId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchParams.SortColumn))
+            {
+                query = ApplySorting(query, searchParams.SortColumn, searchParams.SortDirection);
+            }
+            else
+            {
+                query = query.OrderByDescending(t => t.UpdatedAt);
+            }
+
+            int totalCount = await query.CountAsync();
+            int skip = (searchParams.Page - 1) * searchParams.PageSize;
+            IEnumerable<ZoraTask> tasks = await query
+                .Skip(skip)
+                .Take(searchParams.PageSize)
+                .ToListAsync();
+
+            return Result.Ok((tasks, totalCount));
         }
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error searching tasks");
-            return Task.FromResult(Result.Fail<(IEnumerable<ZoraTask>, int)>(Constants.ERROR_500_MESSAGE));
+            return Result.Fail<(IEnumerable<ZoraTask>, int)>(Constants.ERROR_500_MESSAGE);
         }
+    }
+
+    private static IQueryable<ZoraTask> ApplySorting(IQueryable<ZoraTask> query, string sortColumn, string? sortDirection)
+    {
+        bool isDescending = sortDirection?.ToLower() == "desc";
+
+        return sortColumn.ToLower() switch
+        {
+            "id" => isDescending ? query.OrderByDescending(t => t.Id) : query.OrderBy(t => t.Id),
+            "name" => isDescending ? query.OrderByDescending(t => t.Name) : query.OrderBy(t => t.Name),
+            "status" => isDescending ? query.OrderByDescending(t => t.Status) : query.OrderBy(t => t.Status),
+            "priority" => isDescending ? query.OrderByDescending(t => t.Priority) : query.OrderBy(t => t.Priority),
+            "assignee" => isDescending 
+                ? query.OrderByDescending(t => t.Assignee != null ? t.Assignee.Username : string.Empty) 
+                : query.OrderBy(t => t.Assignee != null ? t.Assignee.Username : string.Empty),
+            "duedate" => isDescending ? query.OrderByDescending(t => t.DueDate) : query.OrderBy(t => t.DueDate),
+            "completionpercentage" => isDescending ? query.OrderByDescending(t => t.CompletionPercentage) : query.OrderBy(t => t.CompletionPercentage),
+            "createdat" => isDescending ? query.OrderByDescending(t => t.CreatedAt) : query.OrderBy(t => t.CreatedAt),
+            "updatedat" => isDescending ? query.OrderByDescending(t => t.UpdatedAt) : query.OrderBy(t => t.UpdatedAt),
+            "createdby" => isDescending 
+                ? query.OrderByDescending(t => t.CreatedBy != null ? t.CreatedBy.Username : string.Empty) 
+                : query.OrderBy(t => t.CreatedBy != null ? t.CreatedBy.Username : string.Empty),
+            "updatedby" => isDescending 
+                ? query.OrderByDescending(t => t.UpdatedBy != null ? t.UpdatedBy.Username : string.Empty) 
+                : query.OrderBy(t => t.UpdatedBy != null ? t.UpdatedBy.Username : string.Empty),
+            _ => query.OrderByDescending(t => t.UpdatedAt)
+        };
     }
 
     public async Task<Result<(IEnumerable<ZoraTask>, int total)>> GetPagedAsync(IQueryable<ZoraTask> query, int page,
@@ -89,18 +148,14 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
     {
         try
         {
-            ZoraTask? task;
-            
+            IQueryable<ZoraTask> query = this.FilteredDbSet.Where(t => t.Id == id);
+
             if (includeProperties)
             {
-                task = await this.DbContext.Set<ZoraTask>()
-                    .Include(t => t.Assignee)
-                    .FirstOrDefaultAsync(t => t.Id == id);
+                query = query.Include(t => t.Assignee);
             }
-            else
-            {
-                task = await base.GetByIdAsync(id);
-            }
+
+            ZoraTask? task = await query.FirstOrDefaultAsync();
 
             if (task == null)
             {
@@ -128,6 +183,37 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
         {
             this.Logger.LogError(ex, "Error updating task with id {Id}", task.Id);
             return Result.Fail<ZoraTask>($"Error updating task with id {task.Id}");
+        }
+    }
+
+    public async Task<Result<bool>> DeleteAsync(ZoraTask task)
+    {
+        try
+        {
+            task.Deleted = true;
+            this.DbContext.Entry(task).State = EntityState.Modified;
+            await this.DbContext.SaveChangesAsync();
+            return Result.Ok(true);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error deleting task with id {Id}", task.Id);
+            return Result.Fail<bool>($"Error deleting task with id {task.Id}");
+        }
+    }
+
+    public async Task<Result<ZoraTask>> CreateAsync(ZoraTask task)
+    {
+        try
+        {
+            await this.DbContext.Tasks.AddAsync(task);
+            await this.DbContext.SaveChangesAsync();
+            return Result.Ok(task);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Error creating task");
+            return Result.Fail<ZoraTask>($"Error creating task: {ex.Message}");
         }
     }
 }
