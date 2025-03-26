@@ -80,16 +80,22 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
     {
         try
         {
-            IQueryable<Asset> query = this.BuildBaseQuery(includeProperties);
+            IQueryable<Asset> query = this.BuildBaseQuery(true);
+            
+            if (paramsDto.WorkAssetId.HasValue && paramsDto.WorkAssetId.Value > 0)
+            {
+                query = query.Where(a => a.WorkItemAssets.Any(wi => wi.WorkItemId == paramsDto.WorkAssetId.Value));
+            }
+
             (IQueryable<Asset> filteredAssets, int totalCount) =
                 await this.GetPagedAsync(query, paramsDto.Page, paramsDto.PageSize);
             List<Asset> assets = await filteredAssets.ToListAsync();
-            return Result.Ok<(IEnumerable<Asset>, int)>((assets, totalCount));
+            return Result.Ok<(IEnumerable<Asset> Assets, int TotalCount)>((assets, totalCount));
         }
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error getting paged assets");
-            return Result.Fail<(IEnumerable<Asset>, int)>(Constants.ERROR_500_MESSAGE);
+            return Result.Fail<(IEnumerable<Asset> Assets, int TotalCount)>(Constants.ERROR_500_MESSAGE);
         }
     }
 

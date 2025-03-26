@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using zora.API.Extensions;
 using zora.Core.Domain;
+using zora.Core.DTOs.Assets;
 using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Tasks;
@@ -462,6 +463,56 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
         catch (Exception ex)
         {
             this._logger.LogError(ex, "Error completing task with id {Id}", id);
+            return this.BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("{id:long}/assets")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<AssetResponseDto>> GetTaskAssets(long id, [FromQuery] QueryParamsDto queryParams)
+    {
+        try
+        {
+            if (!this.User.Identity?.IsAuthenticated ?? true)
+            {
+                this.LogUnauthorisedAccess(this.HttpContext.User);
+                return this.Unauthorized();
+            }
+
+            long userId = this.HttpContext.User.GetUserId();
+
+            PermissionRequestDto permissionRequest = new PermissionRequestDto
+            {
+                ResourceId = id,
+                ResourceType = ResourceType.Task,
+                RequestedPermission = PermissionFlag.Read,
+                UserId = userId
+            };
+
+            if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
+            {
+                this._logger.LogInformation("User {UserId} is not authorised to access assets for task {TaskId}", userId, id);
+                return this.Forbid();
+            }
+
+            queryParams.WorkAssetId = id;
+            Result<AssetResponseDto> result = await this._assetService.GetDtoAsync(queryParams);
+
+            if (result.IsFailed)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
+            }
+
+            return this.Ok(result.Value);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting assets for task with id {Id}", id);
             return this.BadRequest(ex.Message);
         }
     }

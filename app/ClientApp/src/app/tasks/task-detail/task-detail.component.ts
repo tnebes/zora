@@ -18,6 +18,7 @@ import { AssetResponse } from '../../core/models/asset.interface';
 import { AssetUnifiedComponent } from '../../components/assets/asset-unified/asset-unified.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { QueryService } from '../../core/services/query.service';
 
 @Component({
   selector: 'app-task-detail',
@@ -41,7 +42,8 @@ export class TaskDetailComponent implements OnInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private userService: UserService,
-    private assetService: AssetService
+    private assetService: AssetService,
+    private queryService: QueryService
   ) { }
 
   ngOnInit(): void {
@@ -73,14 +75,24 @@ export class TaskDetailComponent implements OnInit {
 
   loadAssets(): void {
     this.loadingAssets = true;
-    this.assetService.getAssetsByTaskId(this.taskId).subscribe({
+    const params = {
+      page: 1,
+      pageSize: 50,
+      searchTerm: '',
+      sortColumn: 'createdAt',
+      sortDirection: 'desc' as 'desc' | 'asc'
+    };
+    
+    this.taskService.getTaskAssets(this.taskId, this.queryService.normaliseQueryParams(params)).subscribe({
       next: (response) => {
         this.assets = response.items;
         this.loadingAssets = false;
       },
       error: (err) => {
+        console.error('Error loading assets:', err);
         this.error = 'Error loading assets. Please try again later.';
         this.loadingAssets = false;
+        NotificationUtils.showError(this.dialog, 'Failed to load assets', err);
       }
     });
   }
@@ -253,19 +265,31 @@ export class TaskDetailComponent implements OnInit {
     if (!this.task) return;
     
     const dialogRef = this.dialog.open(AssetUnifiedComponent, {
-      width: '500px',
+      width: Constants.DEFAULT_DIALOG_WIDTH,
       data: {
         mode: 'upload',
         taskId: this.task.id
       }
     });
 
-    console.log('Opening upload dialog for task:', this.task.id);
-
-    dialogRef.afterClosed().subscribe((result: any) => {
-      console.log('Asset upload dialog closed with result:', result);
-      // Always reload assets when dialog is closed, regardless of result
-      this.loadAssets();
-    });
+    dialogRef.afterClosed()
+      .pipe(
+        filter(result => !!result),
+        catchError(error => {
+          console.error('Error in asset upload:', error);
+          NotificationUtils.showError(this.dialog, 'Failed to upload asset', error);
+          return of(null);
+        })
+      )
+      .subscribe({
+        next: (result) => {
+          console.log('Asset upload successful:', result);
+          this.loadAssets();
+        },
+        error: (error) => {
+          console.error('Error in asset upload subscription:', error);
+          NotificationUtils.showError(this.dialog, 'Failed to upload asset', error);
+        }
+      });
   }
 }

@@ -5,6 +5,7 @@ import { Task, TaskResponseDto } from '../../tasks/models/task';
 import { Constants } from '../constants';
 import { QueryParams } from '../models/query-params.interface';
 import { QueryService } from './query.service';
+import { AssetResponseDto } from '../models/asset.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -51,5 +52,10 @@ export class TaskService {
   
   completeTask(taskId: number): Observable<Task> {
     return this.http.post<Task>(`${this.apiUrl}/${taskId}/complete`, { completed: true });
+  }
+
+  getTaskAssets(taskId: number, queryParams: QueryParams): Observable<AssetResponseDto> {
+    const params = this.queryService.getHttpParams(queryParams);
+    return this.http.get<AssetResponseDto>(`${this.apiUrl}/${taskId}/assets`, { params });
   }
 }
