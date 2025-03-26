@@ -1,21 +1,22 @@
 export interface Task {
     id: number;
-    name: string;
+    title: string;
     description: string;
+    priority: string;
     status: string;
+    dueDate: Date;
+    completionPercentage: number;
+    assigneeId?: number;
+    name: string;
     startDate?: string;
-    dueDate?: string;
-    completionPercentage?: number;
     estimatedHours?: number;
     actualHours?: number;
     createdAt: string;
     createdById: number;
     updatedAt?: string | null;
     updatedById?: number | null;
-    assigneeId?: number;
     assigneeName?: string;
     projectId?: number;
-    priority?: string;
     parentTaskId?: number | null;
 }
 
