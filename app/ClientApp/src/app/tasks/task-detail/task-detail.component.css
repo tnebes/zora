@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: center;
   padding: 60px;
-  background-color: #ffffff;
+  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-top: 40px;
@@ -50,7 +50,7 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
-  background-color: #ffffff;
+  background-color: #fff;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -58,7 +58,7 @@
 
 .task-title {
   font-size: 28px;
-  margin: 0 0 8px 0;
+  margin: 0 0 8px;
   font-weight: 500;
   color: #333;
 }
@@ -90,50 +90,15 @@
   margin-right: 4px;
 }
 
-.high-priority {
-  background-color: #ef5350;
-  color: white;
-}
-
-.medium-priority {
-  background-color: #ffb74d;
-  color: #333;
-}
-
-.low-priority {
-  background-color: #66bb6a;
-  color: white;
-}
-
-.status-badge {
-  background-color: #e0e0e0;
-  color: #333;
-}
-
-.status-completed {
-  background-color: #4caf50;
-  color: white;
-}
-
-.status-progress {
-  background-color: #2196f3;
-  color: white;
-}
-
-.status-hold {
-  background-color: #ff9800;
-  color: white;
-}
-
-.status-new {
-  background-color: #9c27b0;
-  color: white;
-}
-
-.status-cancelled {
-  background-color: #757575;
-  color: white;
-}
+.high-priority { background-color: #ef5350; color: #fff; }
+.medium-priority { background-color: #ffb74d; color: #333; }
+.low-priority { background-color: #66bb6a; color: #fff; }
+.status-badge { background-color: #e0e0e0; color: #333; }
+.status-completed { background-color: #4caf50; color: #fff; }
+.status-progress { background-color: #2196f3; color: #fff; }
+.status-hold { background-color: #ff9800; color: #fff; }
+.status-new { background-color: #9c27b0; color: #fff; }
+.status-cancelled { background-color: #757575; color: #fff; }
 
 .cards-container {
   display: flex;
@@ -145,21 +110,19 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-bottom: 24px;
-  background-color: #ffffff;
+  background-color: #fff;
   overflow: hidden;
 }
 
-.main-card {
-  flex: 1;
-}
+.main-card { flex: 1; }
 
 .task-description {
-  margin: 32px 0 24px 0;
+  margin: 32px 0 24px;
 }
 
 .task-description h3 {
   font-size: 18px;
-  margin: 32px 0 24px 0;
+  margin: 32px 0 24px;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -181,17 +144,15 @@
   border-left: 4px solid #5c6bc0;
 }
 
-.task-details {
-  margin-top: 20px;
-}
+.task-details { margin-top: 20px; }
 
 .detail-section {
-  margin: 32px 0 36px 0;
+  margin: 32px 0 36px;
 }
 
 .detail-section h3 {
   font-size: 18px;
-  margin: 32px 0 24px 0;
+  margin: 32px 0 24px;
   padding-bottom: 0;
   font-weight: 500;
   display: flex;
@@ -250,19 +211,20 @@
 }
 
 .status-chip, .priority-chip {
+  display: inline-flex;
+  align-items: center;
   padding: 4px 12px;
   border-radius: 16px;
-  display: inline-block;
-  text-align: center;
+  font-size: 12px;
   font-weight: 500;
-  font-size: 14px;
+  text-transform: uppercase;
 }
 
 .status-completed-chip { background-color: #e8f5e9; color: #2e7d32; }
 .status-progress-chip { background-color: #e3f2fd; color: #1565c0; }
 .status-hold-chip { background-color: #fff3e0; color: #e65100; }
 .status-new-chip { background-color: #f3e5f5; color: #6a1b9a; }
-.status-cancelled-chip { background-color: #eeeeee; color: #616161; }
+.status-cancelled-chip { background-color: #eee; color: #616161; }
 
 .high-priority-chip { background-color: #ffebee; color: #c62828; }
 .medium-priority-chip { background-color: #fff8e1; color: #ff8f00; }
@@ -271,92 +233,82 @@
 .completion-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  margin: 24px 0;
 }
 
 mat-progress-bar {
   flex: 1;
   height: 8px;
   border-radius: 4px;
-  overflow: hidden;
 }
 
-mat-divider {
-  margin: 32px 0;
-}
+mat-divider { margin: 24px 0; }
 
 .task-actions {
-  padding: 20px 16px;
   display: flex;
-  align-items: center;
-  background-color: #f5f5f5;
-  border-top: 1px solid #e0e0e0;
-  margin-top: 12px;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 16px;
+  background-color: #fafafa;
 }
 
-.action-spacer {
-  flex: 1;
-}
+.action-spacer { flex: 1; }
 
 mat-card-actions button {
-  margin-left: 8px;
-  margin-bottom: 16px;
+  min-width: 120px;
 }
 
-mat-card-content {
-  padding-bottom: 16px;
-}
+mat-card-content { padding: 24px; }
 
 .assets-section {
-  margin-top: 24px;
-  padding: 16px;
-  background-color: white;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 32px;
 }
 
 .assets-section h3 {
-  margin: 0 0 16px 0;
-  color: rgba(0, 0, 0, 0.87);
+  font-size: 18px;
+  margin-bottom: 16px;
+  font-weight: 500;
 }
 
 .assets-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100px;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .no-assets {
-  color: rgba(0, 0, 0, 0.54);
-  padding: 16px;
+  text-align: center;
+  color: #757575;
+  padding: 32px;
 }
 
 .assets-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
-  width: 100%;
 }
 
 .asset-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 12px;
-  border-radius: 4px;
+  padding: 16px;
   background-color: #f5f5f5;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .asset-item:hover {
-  background-color: #eeeeee;
+  background-color: #e0e0e0;
 }
 
 .asset-name {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #333;
+  text-align: center;
+  word-break: break-word;
 }
