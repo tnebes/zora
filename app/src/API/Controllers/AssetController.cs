@@ -9,8 +9,8 @@ using zora.Core.Domain;
 using zora.Core.DTOs.Assets;
 using zora.Core.DTOs.Permissions;
 using zora.Core.DTOs.Requests;
-using zora.Core.Interfaces.Services;
 using zora.Core.Enums;
+using zora.Core.Interfaces.Services;
 
 #endregion
 
@@ -29,6 +29,8 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     AssetResponseDto,
     DynamicQueryAssetParamsDto>, IZoraService
 {
+    private readonly IAssetPathService _assetPathService;
+
     /// <summary>
     ///     Service for managing assets.
     /// </summary>
@@ -38,7 +40,6 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     private readonly IMapper _mapper;
     private readonly IPermissionService _permissionService;
     private readonly IUserRoleService _userRoleService;
-    private readonly IAssetPathService _assetPathService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="AssetController" /> class.
@@ -129,7 +130,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
     {
         try
         {
-            if (createDto.Asset == null || string.IsNullOrEmpty(createDto.Asset.FileName) || 
+            if (createDto.Asset == null || string.IsNullOrEmpty(createDto.Asset.FileName) ||
                 !Path.HasExtension(createDto.Asset.FileName))
             {
                 this.Logger.LogError("Asset file is missing or has no extension");
@@ -188,8 +189,8 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                 return this.Unauthorized();
             }
 
-            if (updateDto.File != null && (string.IsNullOrEmpty(updateDto.File.FileName) || 
-                !Path.HasExtension(updateDto.File.FileName)))
+            if (updateDto.File != null && (string.IsNullOrEmpty(updateDto.File.FileName) ||
+                                           !Path.HasExtension(updateDto.File.FileName)))
             {
                 this.Logger.LogError("Updated asset file has no extension");
                 return this.BadRequest("Asset file must have a file extension.");
@@ -382,7 +383,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         try
         {
             Result<Asset> assetResult = await this._assetService.GetByIdAsync(id);
-            
+
             if (assetResult.IsFailed)
             {
                 this.Logger.LogWarning("Asset not found with ID: {Id}", id);
@@ -390,7 +391,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             }
 
             Asset asset = assetResult.Value;
-            
+
             if (string.IsNullOrEmpty(asset.AssetPath) || !Path.HasExtension(asset.AssetPath))
             {
                 this.Logger.LogError("Asset {Id} has invalid path or missing extension: {Path}", id, asset.AssetPath);
@@ -401,14 +402,17 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
 
             if (await this._userRoleService.IsAdminAsync(userId))
             {
-                string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(), Path.GetFileName(asset.AssetPath));
-                this.Logger.LogInformation("Admin user {UserId} attempting to download asset. Full path: {Path}, Base path: {BasePath}, Asset path: {AssetPath}", 
+                string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(),
+                    Path.GetFileName(asset.AssetPath));
+                this.Logger.LogInformation(
+                    "Admin user {UserId} attempting to download asset. Full path: {Path}, Base path: {BasePath}, Asset path: {AssetPath}",
                     userId, fullPath, this._assetPathService.GetAssetsBasePath(), asset.AssetPath);
-                
+
                 if (!System.IO.File.Exists(fullPath))
                 {
-                    this.Logger.LogError("Asset file not found at path: {Path}. Working directory: {WorkingDir}, Base directory: {BaseDir}", 
-                        fullPath, 
+                    this.Logger.LogError(
+                        "Asset file not found at path: {Path}. Working directory: {WorkingDir}, Base directory: {BaseDir}",
+                        fullPath,
                         Environment.CurrentDirectory,
                         AppDomain.CurrentDomain.BaseDirectory);
                     return this.NotFound("Asset file not found on server.");
@@ -416,7 +420,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
 
                 string fileName = Path.GetFileName(asset.AssetPath);
                 string contentType = this.GetContentType(fileName);
-                
+
                 return this.PhysicalFile(fullPath, contentType, fileName);
             }
 
@@ -432,11 +436,12 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                     };
 
                     bool hasPermission = await this._permissionService.HasDirectPermissionAsync(permissionRequest);
-                    
+
                     if (hasPermission)
                     {
-                        string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(), Path.GetFileName(asset.AssetPath));
-                        
+                        string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(),
+                            Path.GetFileName(asset.AssetPath));
+
                         if (!System.IO.File.Exists(fullPath))
                         {
                             this.Logger.LogError("Asset file not found at path: {Path}", fullPath);
@@ -445,7 +450,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
 
                         string fileName = Path.GetFileName(asset.AssetPath);
                         string contentType = this.GetContentType(fileName);
-                        
+
                         return this.PhysicalFile(fullPath, contentType, fileName);
                     }
                 }
@@ -474,7 +479,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
         try
         {
             Result<Asset> assetResult = await this._assetService.GetByIdAsync(id);
-            
+
             if (assetResult.IsFailed)
             {
                 this.Logger.LogWarning("Asset not found with ID: {Id}", id);
@@ -482,7 +487,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
             }
 
             Asset asset = assetResult.Value;
-            
+
             if (string.IsNullOrEmpty(asset.AssetPath) || !Path.HasExtension(asset.AssetPath))
             {
                 this.Logger.LogError("Asset {Id} has invalid path or missing extension: {Path}", id, asset.AssetPath);
@@ -493,8 +498,9 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
 
             if (await this._userRoleService.IsAdminAsync(userId))
             {
-                string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(), Path.GetFileName(asset.AssetPath));
-                
+                string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(),
+                    Path.GetFileName(asset.AssetPath));
+
                 if (!System.IO.File.Exists(fullPath))
                 {
                     this.Logger.LogError("Asset file not found at path: {Path}", fullPath);
@@ -508,7 +514,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                 {
                     return this.BadRequest("Preview is only available for image files");
                 }
-                
+
                 return this.PhysicalFile(fullPath, contentType);
             }
 
@@ -524,11 +530,12 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                     };
 
                     bool hasPermission = await this._permissionService.HasDirectPermissionAsync(permissionRequest);
-                    
+
                     if (hasPermission)
                     {
-                        string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(), Path.GetFileName(asset.AssetPath));
-                        
+                        string fullPath = Path.Combine(this._assetPathService.GetAssetsBasePath(),
+                            Path.GetFileName(asset.AssetPath));
+
                         if (!System.IO.File.Exists(fullPath))
                         {
                             this.Logger.LogError("Asset file not found at path: {Path}", fullPath);
@@ -542,7 +549,7 @@ public sealed class AssetController : BaseCrudController<Asset, CreateAssetDto, 
                         {
                             return this.BadRequest("Preview is only available for image files");
                         }
-                        
+
                         return this.PhysicalFile(fullPath, contentType);
                     }
                 }

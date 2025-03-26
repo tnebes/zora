@@ -6,7 +6,6 @@ using zora.Core.Domain;
 using zora.Core.DTOs.Requests;
 using zora.Core.DTOs.Tasks;
 using zora.Core.Enums;
-using zora.Core.Utilities;
 using zora.Tests.TestFixtures.v2;
 using zora.Tests.Utils;
 
@@ -25,7 +24,8 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
         this.SetupRegularUserAuthentication();
     }
 
-    [Fact(DisplayName = "GIVEN a task and an admin user WHEN AssignTask() is called THEN the task is assigned to the specified user")]
+    [Fact(DisplayName =
+        "GIVEN a task and an admin user WHEN AssignTask() is called THEN the task is assigned to the specified user")]
     public async Task AssignTask_AdminUser_TaskIsAssigned()
     {
         await this.ClearDatabaseAsync();
@@ -56,7 +56,8 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
         result.AssigneeId.Should().Be(user.Id);
     }
 
-    [Fact(DisplayName = "GIVEN a task and a user with write permission WHEN AssignTask() is called THEN the task is assigned to the specified user")]
+    [Fact(DisplayName =
+        "GIVEN a task and a user with write permission WHEN AssignTask() is called THEN the task is assigned to the specified user")]
     public async Task AssignTask_UserWithWritePermission_TaskIsAssigned()
     {
         await this.ClearDatabaseAsync();
@@ -134,7 +135,8 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
-    [Fact(DisplayName = "GIVEN a task assigned to a user WHEN CompleteTask() is called by the assignee THEN the task is completed")]
+    [Fact(DisplayName =
+        "GIVEN a task assigned to a user WHEN CompleteTask() is called by the assignee THEN the task is completed")]
     public async Task CompleteTask_AssignedUser_TaskIsCompleted()
     {
         await this.ClearDatabaseAsync();
@@ -179,7 +181,8 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
         result.CompletionPercentage.Should().Be(100);
     }
 
-    [Fact(DisplayName = "GIVEN a task not assigned to a user WHEN CompleteTask() is called by a non-admin THEN forbidden")]
+    [Fact(DisplayName =
+        "GIVEN a task not assigned to a user WHEN CompleteTask() is called by a non-admin THEN forbidden")]
     public async Task CompleteTask_NonAssignedNonAdminUser_ReturnsForbidden()
     {
         await this.ClearDatabaseAsync();
@@ -217,7 +220,8 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
-    [Fact(DisplayName = "GIVEN a task assigned to a user WHEN CompleteTask() is called by an admin THEN the task is completed")]
+    [Fact(DisplayName =
+        "GIVEN a task assigned to a user WHEN CompleteTask() is called by an admin THEN the task is completed")]
     public async Task CompleteTask_AdminUser_TaskIsCompleted()
     {
         await this.ClearDatabaseAsync();
@@ -308,6 +312,7 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
             };
             await this.DbContext.PermissionWorkItems.AddAsync(permissionWorkItem);
         }
+
         await this.DbContext.SaveChangesAsync();
 
         DynamicQueryTaskParamsDto searchParams = new()
@@ -327,7 +332,8 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
         result.Items.First().Name.Should().Be("Important Task");
     }
 
-    [Fact(DisplayName = "GIVEN tasks with different priorities WHEN Search() is called with priority filter THEN returns matching tasks")]
+    [Fact(DisplayName =
+        "GIVEN tasks with different priorities WHEN Search() is called with priority filter THEN returns matching tasks")]
     public async Task Search_WithPriorityFilter_ReturnsMatchingTasks()
     {
         await this.ClearDatabaseAsync();
@@ -383,6 +389,7 @@ public sealed partial class TaskControllerIntegrationTests : BaseIntegrationTest
             };
             await this.DbContext.PermissionWorkItems.AddAsync(permissionWorkItem);
         }
+
         await this.DbContext.SaveChangesAsync();
 
         DynamicQueryTaskParamsDto searchParams = new()
