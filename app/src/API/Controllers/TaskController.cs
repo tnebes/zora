@@ -496,7 +496,8 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
 
             if (!await this._authorisationService.IsAuthorisedAsync(permissionRequest))
             {
-                this._logger.LogInformation("User {UserId} is not authorised to access assets for task {TaskId}", userId, id);
+                this._logger.LogInformation("User {UserId} is not authorised to access assets for task {TaskId}",
+                    userId, id);
                 return this.Forbid();
             }
 

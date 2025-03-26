@@ -50,11 +50,17 @@ public sealed class AssetMappingProfile : Profile
             .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
             .ForMember(dest => dest.WorkItemAssets,
-                opt => opt.MapFrom((src, dest) => {
-                    if (!src.WorkAssetId.HasValue) return null;
-                    
-                    return new List<WorkItemAsset> {
-                        new WorkItemAsset {
+                opt => opt.MapFrom((src, dest) =>
+                {
+                    if (!src.WorkAssetId.HasValue)
+                    {
+                        return null;
+                    }
+
+                    return new List<WorkItemAsset>
+                    {
+                        new()
+                        {
                             WorkItemId = src.WorkAssetId.Value,
                             Asset = dest
                         }

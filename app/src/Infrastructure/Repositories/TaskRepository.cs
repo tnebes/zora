@@ -201,15 +201,15 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
             "id" => isDescending ? query.OrderByDescending(t => t.Id) : query.OrderBy(t => t.Id),
             "name" => isDescending ? query.OrderByDescending(t => t.Name) : query.OrderBy(t => t.Name),
             "status" => isDescending ? query.OrderByDescending(t => t.Status) : query.OrderBy(t => t.Status),
-            "priority" => isDescending 
+            "priority" => isDescending
                 ? query.OrderByDescending(t => t.Priority == "Critical" ? 4 :
-                                             t.Priority == "High" ? 3 :
-                                             t.Priority == "Medium" ? 2 :
-                                             t.Priority == "Low" ? 1 : 0)
+                    t.Priority == "High" ? 3 :
+                    t.Priority == "Medium" ? 2 :
+                    t.Priority == "Low" ? 1 : 0)
                 : query.OrderBy(t => t.Priority == "Critical" ? 4 :
-                                    t.Priority == "High" ? 3 :
-                                    t.Priority == "Medium" ? 2 :
-                                    t.Priority == "Low" ? 1 : 0),
+                    t.Priority == "High" ? 3 :
+                    t.Priority == "Medium" ? 2 :
+                    t.Priority == "Low" ? 1 : 0),
             "assignee" => isDescending
                 ? query.OrderByDescending(t => t.Assignee != null ? t.Assignee.Username : string.Empty)
                 : query.OrderBy(t => t.Assignee != null ? t.Assignee.Username : string.Empty),

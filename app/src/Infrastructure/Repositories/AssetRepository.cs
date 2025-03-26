@@ -81,7 +81,7 @@ public sealed class AssetRepository : BaseRepository<Asset>, IAssetRepository, I
         try
         {
             IQueryable<Asset> query = this.BuildBaseQuery(true);
-            
+
             if (paramsDto.WorkAssetId.HasValue && paramsDto.WorkAssetId.Value > 0)
             {
                 query = query.Where(a => a.WorkItemAssets.Any(wi => wi.WorkItemId == paramsDto.WorkAssetId.Value));
