@@ -15,7 +15,7 @@ import { switchMap } from 'rxjs/operators';
 import { UserService } from '../../core/services/user.service';
 import { AssetService } from '../../core/services/asset.service';
 import { AssetResponse } from '../../core/models/asset.interface';
-import { AssetDialogComponent } from '../../components/assets/asset-dialog/asset-dialog.component';
+import { AssetUnifiedComponent } from '../../components/assets/asset-unified/asset-unified.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
@@ -240,9 +240,32 @@ export class TaskDetailComponent implements OnInit {
   }
 
   openAssetDialog(asset: AssetResponse): void {
-    this.dialog.open(AssetDialogComponent, {
+    this.dialog.open(AssetUnifiedComponent, {
       width: Constants.DEFAULT_DIALOG_WIDTH,
-      data: asset
+      data: {
+        mode: 'view',
+        asset: asset
+      }
+    });
+  }
+
+  openUploadDialog(): void {
+    if (!this.task) return;
+    
+    const dialogRef = this.dialog.open(AssetUnifiedComponent, {
+      width: '500px',
+      data: {
+        mode: 'upload',
+        taskId: this.task.id
+      }
+    });
+
+    console.log('Opening upload dialog for task:', this.task.id);
+
+    dialogRef.afterClosed().subscribe((result: any) => {
+      console.log('Asset upload dialog closed with result:', result);
+      // Always reload assets when dialog is closed, regardless of result
+      this.loadAssets();
     });
   }
 }

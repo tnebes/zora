@@ -13,7 +13,7 @@ import {Constants} from 'src/app/core/constants';
 import {ConfirmDialogComponent} from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
 import {NotificationUtils} from '../../core/utils/notification.utils';
 import {QueryParams} from '../../core/models/query-params.interface';
-import {AssetDialogComponent} from './asset-dialog/asset-dialog.component';
+import {AssetUnifiedComponent} from './asset-unified/asset-unified.component';
 
 @Component({
     selector: 'app-assets',
@@ -74,9 +74,12 @@ export class AssetsComponent implements OnInit, AfterViewInit {
     }
 
     public onView(asset: AssetResponse): void {
-        this.dialog.open(AssetDialogComponent, {
+        this.dialog.open(AssetUnifiedComponent, {
             width: '800px',
-            data: asset
+            data: {
+                mode: 'view',
+                asset: asset
+            }
         });
     }
 
@@ -87,64 +90,42 @@ export class AssetsComponent implements OnInit, AfterViewInit {
     }
 
     public onCreate(): void {
-        const dialogRef = this.dialog.open(BaseDialogComponent<CreateAsset>, {
+        const dialogRef = this.dialog.open(AssetUnifiedComponent, {
             width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
-                title: 'Create Asset',
-                fields: this.assetFields,
-                mode: 'create'
+                mode: 'upload'
             }
         });
 
         dialogRef.afterClosed()
             .pipe(
-                filter(result => !!result),
-                switchMap(result => this.assetService.create(result as CreateAsset))
+                filter(result => !!result)
             )
             .subscribe({
                 next: () => {
                     this.loadAssets();
                     NotificationUtils.showSuccess(this.dialog, 'Asset has been created successfully');
-                },
-                error: (error) => {
-                    console.error('Error creating asset:', error);
-                    NotificationUtils.showError(this.dialog, 'Failed to create asset', error);
                 }
             });
     }
 
     public onEdit(asset: AssetResponse): void {
-        const dialogRef = this.dialog.open(BaseDialogComponent<UpdateAsset>, {
+        const dialogRef = this.dialog.open(AssetUnifiedComponent, {
             width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
-                title: 'Edit Asset',
-                fields: this.assetFields.filter(field => field.name !== 'asset'),
                 mode: 'edit',
-                entity: {
-                    id: asset.id,
-                    name: asset.name,
-                    description: asset.description,
-                    assetPath: asset.assetPath
-                }
+                asset: asset
             }
         });
 
         dialogRef.afterClosed()
             .pipe(
-                filter(result => !!result),
-                switchMap(result => this.assetService.update({
-                    id: asset.id,
-                    ...result
-                }))
+                filter(result => !!result)
             )
             .subscribe({
                 next: () => {
                     this.loadAssets();
                     NotificationUtils.showSuccess(this.dialog, `Asset "${asset.name}" has been updated successfully`);
-                },
-                error: (error) => {
-                    console.error('Error updating asset:', error);
-                    NotificationUtils.showError(this.dialog, 'Failed to update asset', error);
                 }
             });
     }

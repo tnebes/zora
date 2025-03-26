@@ -1,0 +1,202 @@
+/* Common styles */
+.full-width {
+  width: 100%;
+}
+
+/* Upload mode styles */
+.file-upload {
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-upload input[type="file"] {
+  display: none;
+}
+
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.error-message {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* View mode styles */
+.preview-content, .metadata-content {
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.image-preview {
+  max-width: 100%;
+  max-height: 50vh;
+  object-fit: contain;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0;
+}
+
+.download-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.download-button-container {
+  margin-top: 8px;
+}
+
+.metadata-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metadata-item {
+  display: flex;
+  padding: 8px 0;
+}
+
+.metadata-label {
+  font-weight: 500;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.metadata-value {
+  flex-grow: 1;
+}
+
+.close-button {
+  margin-left: auto;
+}
+
+.metadata-content {
+  padding: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.metadata-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 8px;
+  padding: 8px;
+}
+
+.metadata-item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  min-width: 0;
+}
+
+.metadata-label {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metadata-value {
+  color: rgba(0, 0, 0, 0.87);
+  word-break: break-word;
+}
+
+mat-divider {
+  grid-column: 1 / -1;
+  margin: 8px 0;
+}
+
+.preview-content {
+  padding: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.image-preview {
+  max-width: 100%;
+  max-height: 50vh;
+  object-fit: contain;
+}
+
+.download-button-container {
+  margin-top: 16px;
+}
+
+.download-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.file-upload {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+
+  input[type="file"] {
+    display: none;
+  }
+}
+
+.error-message {
+  color: #f44336;
+  margin: 8px 0;
+}
+
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.close-button {
+  margin-right: 8px;
+} 

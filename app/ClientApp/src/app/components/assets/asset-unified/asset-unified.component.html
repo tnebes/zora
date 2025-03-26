@@ -1,0 +1,125 @@
+<ng-container *ngIf="isViewMode">
+  <h2 mat-dialog-title>{{data.asset?.name}}</h2>
+  <mat-tab-group>
+    <mat-tab label="Preview">
+      <mat-dialog-content class="preview-content">
+        <div *ngIf="isImage" class="image-container">
+          <div *ngIf="isLoadingPreview" class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Loading preview...</p>
+          </div>
+          <img *ngIf="!isLoadingPreview && previewUrl" [src]="previewUrl" [alt]="data.asset?.name" class="image-preview">
+          <div class="download-button-container">
+            <button mat-raised-button color="primary" (click)="downloadAsset()">
+              Download Original
+            </button>
+          </div>
+        </div>
+        <div *ngIf="!isImage" class="download-section">
+          <p>Preview not available for this file type</p>
+          <button mat-raised-button color="primary" (click)="downloadAsset()">
+            Download {{data.asset?.name}}
+          </button>
+        </div>
+      </mat-dialog-content>
+    </mat-tab>
+    <mat-tab label="Metadata">
+      <mat-dialog-content class="metadata-content">
+        <div class="metadata-grid">
+          <div class="metadata-item">
+            <span class="metadata-label">ID</span>
+            <span class="metadata-value">{{data.asset?.id}}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="metadata-item">
+            <span class="metadata-label">Name</span>
+            <span class="metadata-value">{{data.asset?.name}}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="metadata-item">
+            <span class="metadata-label">Description</span>
+            <span class="metadata-value">{{data.asset?.description || 'No description'}}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="metadata-item">
+            <span class="metadata-label">Asset Path</span>
+            <span class="metadata-value">{{data.asset?.assetPath}}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="metadata-item">
+            <span class="metadata-label">Created By</span>
+            <span class="metadata-value">{{createdByUser?.username || 'Loading...'}}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="metadata-item">
+            <span class="metadata-label">Created At</span>
+            <span class="metadata-value">{{data.asset?.createdAt | date:'medium'}}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="metadata-item">
+            <span class="metadata-label">Updated By</span>
+            <span class="metadata-value">{{updatedByUser?.username || 'Not updated'}}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="metadata-item">
+            <span class="metadata-label">Updated At</span>
+            <span class="metadata-value">{{data.asset?.updatedAt ? (data.asset?.updatedAt | date:'medium') : 'Not updated'}}</span>
+          </div>
+        </div>
+      </mat-dialog-content>
+    </mat-tab>
+  </mat-tab-group>
+  <mat-dialog-actions>
+    <button mat-raised-button mat-dialog-close class="close-button" color="primary">Close</button>
+  </mat-dialog-actions>
+</ng-container>
+
+<ng-container *ngIf="isUploadMode || isEditMode">
+  <h2 mat-dialog-title>{{ isEditMode ? 'Edit Asset' : 'Upload Asset' }}</h2>
+  <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" placeholder="Enter asset name">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description" placeholder="Enter asset description"></textarea>
+      </mat-form-field>
+
+      <div class="file-upload" *ngIf="isUploadMode">
+        <input type="file" (change)="onFileSelected($event)" #fileInput accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt">
+        <button type="button" mat-stroked-button (click)="fileInput.click()">
+          <mat-icon>attach_file</mat-icon>
+          Select File
+        </button>
+        <span *ngIf="selectedFile?.name">{{selectedFile?.name}}</span>
+      </div>
+
+      <div *ngIf="fileError" class="error-message">
+        {{fileError}}
+      </div>
+
+      <div *ngIf="uploading" class="upload-progress">
+        <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+        <span>{{ isEditMode ? 'Updating...' : 'Uploading...' }}</span>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-flat-button color="primary" type="submit" 
+        [disabled]="!uploadForm.valid || (isUploadMode && !selectedFile) || uploading || !!fileError">
+        {{ isEditMode ? 'Update' : 'Upload' }}
+      </button>
+    </mat-dialog-actions>
+  </form>
+</ng-container> 

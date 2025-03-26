@@ -5,6 +5,7 @@ import {AssetResponse, CreateAsset, UpdateAsset, AssetResponseDto} from "../mode
 import {QueryParams} from "../models/query-params.interface";
 import {Constants} from '../constants';
 import {QueryService} from './query.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
@@ -23,25 +24,7 @@ export class AssetService {
         return this.http.get<AssetResponseDto>(this.apiUrl, {params});
     }
 
-    public create(asset: CreateAsset | FormData): Observable<AssetResponse> {
-        if (asset instanceof FormData) {
-            return this.http.post<AssetResponse>(this.apiUrl, asset);
-        }
-
-        if (!asset?.name || !asset?.asset) {
-            throw new Error('Invalid asset data: name and file are required');
-        }
-
-        const formData = new FormData();
-        formData.append('name', asset.name);
-        if (asset.description) {
-            formData.append('description', asset.description);
-        }
-        if (asset.workAssetId) {
-            formData.append('workAssetId', asset.workAssetId.toString());
-        }
-        formData.append('asset', asset.asset, asset.asset.name);
-
+    public create(formData: FormData): Observable<AssetResponse> {
         return this.http.post<AssetResponse>(this.apiUrl, formData);
     }
 

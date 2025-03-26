@@ -130,7 +130,13 @@
     </div>
 
     <div class="assets-section" *ngIf="!loading && task">
-      <h3>Assets</h3>
+      <div class="assets-header">
+        <h3>Assets</h3>
+        <button mat-flat-button color="primary" (click)="openUploadDialog()">
+          <mat-icon>add</mat-icon>
+          Add Asset
+        </button>
+      </div>
       <div class="assets-container">
         <mat-progress-spinner *ngIf="loadingAssets" diameter="40" mode="indeterminate"></mat-progress-spinner>
         <div *ngIf="!loadingAssets && assets.length === 0" class="no-assets">

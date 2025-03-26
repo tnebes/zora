@@ -204,6 +204,33 @@ export class BaseDialogComponent<T> implements OnInit {
         const file = fileInput.files?.[0];
         if (file) {
             this.form.get(fieldName)?.setValue(file);
+            
+            // If this is the asset file field, set the name field if it's empty
+            if (fieldName === 'asset') {
+                const nameField = this.form.get('name');
+                const currentName = nameField?.value;
+                
+                console.log('Current name value before update:', currentName);
+                
+                if (!currentName || currentName === '') {
+                    const fileName = file.name;
+                    // Remove extension from filename
+                    const lastDotIndex = fileName.lastIndexOf('.');
+                    const nameWithoutExtension = lastDotIndex !== -1 ? 
+                        fileName.substring(0, lastDotIndex) : 
+                        fileName;
+                    
+                    console.log('File selected:', file.name);
+                    console.log('Setting name to:', nameWithoutExtension);
+                    
+                    nameField?.setValue(nameWithoutExtension);
+                    
+                    // Verify the name was set
+                    setTimeout(() => {
+                        console.log('Name after update:', this.form.get('name')?.value);
+                    }, 0);
+                }
+            }
         }
     }
 
