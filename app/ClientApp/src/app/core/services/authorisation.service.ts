@@ -25,7 +25,10 @@ export class AuthorisationService {
                 this.adminStatusSubject.next(isAdmin);
             }),
             catchError((error: HttpErrorResponse) => {
-                console.error('Admin status check failed:', error);
+                // Handle 403 silently as it simply means not an admin
+                if (error.status !== 403) {
+                    console.error('Admin status check failed:', error);
+                }
                 this.adminStatusSubject.next(false);
                 return of(false);
             })

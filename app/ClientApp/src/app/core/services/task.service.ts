@@ -7,6 +7,8 @@ import { QueryParams } from '../models/query-params.interface';
 import { QueryService } from './query.service';
 import { AssetResponseDto } from '../models/asset.interface';
 import { AuthenticationService } from './authentication.service';
+import { switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -19,16 +21,6 @@ export class TaskService {
     private readonly queryService: QueryService,
     private readonly authService: AuthenticationService
   ) { }
-
-  private getUserId(): string {
-    let userId = '';
-    this.authService.currentUser$.subscribe(user => {
-      if (user) {
-        userId = user.id.toString();
-      }
-    });
-    return userId;
-  }
 
   getTasks(queryParams: QueryParams): Observable<TaskResponseDto> {
     const params = this.queryService.getHttpParams(queryParams);
@@ -90,14 +82,22 @@ export class TaskService {
   }
 
   getPriorityTasks(): Observable<TaskResponseDto> {
-    const params = new HttpParams()
-      .set('page', '1')
-      .set('pageSize', '5')
-      .set('sortColumn', 'priority')
-      .set('sortDirection', 'desc')
-      .set('status', 'Active')
-      .set('userId', this.getUserId());
+    return this.authService.currentUser$.pipe(
+      switchMap(user => {
+        if (!user || !user.id) {
+          return of({ items: [], total: 0, page: 1, pageSize: 5 });
+        }
 
-    return this.http.get<TaskResponseDto>(`${this.apiUrl}/priority`, { params });
+        const params = new HttpParams()
+          .set('page', '1')
+          .set('pageSize', '5')
+          .set('sortColumn', 'priority')
+          .set('sortDirection', 'desc')
+          .set('status', 'Active')
+          .set('userId', user.id.toString());
+
+        return this.http.get<TaskResponseDto>(`${this.apiUrl}/priority`, { params });
+      })
+    );
   }
 }

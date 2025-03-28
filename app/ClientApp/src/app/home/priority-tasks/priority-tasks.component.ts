@@ -36,7 +36,6 @@ export class PriorityTasksComponent implements OnInit {
     }
 
     public getRandomMessage(): string {
-        const randomIndex = Math.floor(Math.random() * this.emptyTaskMessages.length);
-        return this.emptyTaskMessages[randomIndex];
+        return this.emptyTaskMessages[0];
     }
 } 
