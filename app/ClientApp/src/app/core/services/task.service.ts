@@ -62,4 +62,19 @@ export class TaskService {
     const params = this.queryService.getHttpParams(queryParams);
     return this.http.get<AssetResponseDto>(`${this.apiUrl}/${taskId}/assets`, { params });
   }
+
+  searchTasksByTerm(searchTerm: string): Observable<TaskResponseDto> {
+    if (!searchTerm || searchTerm.length < 3) {
+      const params = new HttpParams()
+        .set('page', '1')
+        .set('pageSize', '10');
+        
+      return this.http.get<TaskResponseDto>(this.apiUrl, { params });
+    }
+
+    const params = new HttpParams()
+      .set('searchTerm', searchTerm);
+
+    return this.http.get<TaskResponseDto>(`${this.apiUrl}/search`, { params });
+  }
 }

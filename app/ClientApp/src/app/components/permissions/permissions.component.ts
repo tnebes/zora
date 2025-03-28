@@ -81,7 +81,7 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
             validators: [],
             searchable: true,
             searchService: this.taskService,
-            searchMethod: 'searchTasks',
+            searchMethod: 'searchTasksByTerm',
             displayField: 'name',
             valueField: 'id'
         }
@@ -116,28 +116,6 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
         });
         
         this.loadPermissions();
-    }
-
-    private loadWorkItems(): void {
-        this.isWorkItemsLoading = true;
-        this.taskService.getTasks({ page: 1, pageSize: 1000 }).subscribe({
-            next: (response) => {
-                this.workItems = response.items;
-                const workItemField = this.permissionFields.find(f => f.name === 'selectedWorkItems');
-                if (workItemField) {
-                    workItemField.options = this.workItems.map(item => ({
-                        value: item.id,
-                        display: item.name
-                    }));
-                }
-                this.isWorkItemsLoading = false;
-            },
-            error: (error) => {
-                console.error('Error loading work items:', error);
-                NotificationUtils.showError(this.dialog, 'Failed to load work items', error);
-                this.isWorkItemsLoading = false;
-            }
-        });
     }
 
     public loadPermissions(): void {
@@ -192,6 +170,28 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
         const target = event.target as HTMLInputElement;
         this.currentSearchValue = target.value;
         this.searchTerm.next(this.currentSearchValue);
+    }
+
+    private loadWorkItems(): void {
+        this.isWorkItemsLoading = true;
+        this.taskService.getTasks({ page: 1, pageSize: 1000 }).subscribe({
+            next: (response) => {
+                this.workItems = response.items;
+                const workItemField = this.permissionFields.find(f => f.name === 'selectedWorkItems');
+                if (workItemField) {
+                    workItemField.options = this.workItems.map(item => ({
+                        value: item.id,
+                        display: item.name
+                    }));
+                }
+                this.isWorkItemsLoading = false;
+            },
+            error: (error) => {
+                console.error('Error loading work items:', error);
+                NotificationUtils.showError(this.dialog, 'Failed to load work items', error);
+                this.isWorkItemsLoading = false;
+            }
+        });
     }
 
     public onCreate(): void {

@@ -39,6 +39,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
     public readonly dataSource: MatTableDataSource<RoleResponse> = new MatTableDataSource();
     public searchTerm: Subject<string> = new Subject<string>();
     public isLoading: boolean = false;
+    public isPermissionsLoading: boolean = false;
     public totalItems: number = 0;
     public currentSearchValue: string = '';
 
@@ -58,7 +59,13 @@ export class RolesComponent implements OnInit, AfterViewInit {
             type: 'multiselect',
             label: 'Permissions',
             required: true,
-            options: [] // TODO: Add permissions options
+            options: [],
+            validators: [Validators.required],
+            searchable: true,
+            searchService: this.permissionService,
+            searchMethod: 'findPermissionsByTerm',
+            displayField: 'name',
+            valueField: 'id'
         }
     ];
 
@@ -70,6 +77,7 @@ export class RolesComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit(): void {
+        this.loadInitialPermissions();
     }
 
     ngAfterViewInit(): void {
@@ -87,6 +95,11 @@ export class RolesComponent implements OnInit, AfterViewInit {
     }
 
     public onCreate(): void {
+        if (this.isPermissionsLoading) {
+            NotificationUtils.showInfo(this.dialog, 'Please wait while permissions are loading...');
+            return;
+        }
+
         const dialogRef = this.dialog.open(BaseDialogComponent<CreateRole>, {
             width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
@@ -114,6 +127,11 @@ export class RolesComponent implements OnInit, AfterViewInit {
     }
 
     public onEdit(role: RoleResponse): void {
+        if (this.isPermissionsLoading) {
+            NotificationUtils.showInfo(this.dialog, 'Please wait while permissions are loading...');
+            return;
+        }
+
         const dialogRef = this.dialog.open(BaseDialogComponent<UpdateRole>, {
             width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
@@ -241,17 +259,6 @@ export class RolesComponent implements OnInit, AfterViewInit {
     }
 
     private setupSearchAndSort(): void {
-        const permissionsField = this.roleFields.find(field => field.name === 'permissionIds');
-        if (!permissionsField) {
-            console.error('Permissions field not found');
-            return;
-        }
-
-        this.permissionService.getPermissions(DefaultValues.QUERY_PARAMS)
-            .subscribe(permissions => {
-                permissionsField.options = FormUtils.toOptions(permissions.items);
-            });
-
         merge(
             this.searchTerm.pipe(
                 debounceTime(300),
@@ -290,6 +297,27 @@ export class RolesComponent implements OnInit, AfterViewInit {
                     this.isLoading = false;
                 }
             });
+    }
+
+    private loadInitialPermissions(): void {
+        this.isPermissionsLoading = true;
+        this.permissionService.getPermissions({ page: 1, pageSize: 1000 }).subscribe({
+            next: (response) => {
+                const permissionField = this.roleFields.find(f => f.name === 'permissionIds');
+                if (permissionField) {
+                    permissionField.options = response.items.map(item => ({
+                        value: item.id,
+                        display: item.name
+                    }));
+                }
+                this.isPermissionsLoading = false;
+            },
+            error: (error) => {
+                console.error('Error loading permissions:', error);
+                NotificationUtils.showError(this.dialog, 'Failed to load permissions', error);
+                this.isPermissionsLoading = false;
+            }
+        });
     }
 
 }

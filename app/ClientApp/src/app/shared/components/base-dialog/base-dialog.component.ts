@@ -56,10 +56,38 @@ export class BaseDialogComponent<T> implements OnInit {
 
     ngOnInit(): void {
         this.data.fields.forEach(field => {
-            if (field.type === 'select' && field.searchable) {
-                this.loadOptions(field);
+            if ((field.type === 'select' || field.type === 'multiselect') && field.searchable) {
+                if (field.options && field.options.length > 0) {
+                    return; // Skip if options are already loaded
+                }
+                this.loadInitialOptions(field);
             }
         });
+    }
+
+    private loadInitialOptions(field: DialogField): void {
+        if (field.searchService && field.searchMethod) {
+            const service = field.searchService as any;
+            const method = 'get' + field.searchMethod.replace('find', '').replace('ByTerm', '') + 's';
+            
+            if (typeof service[method] === 'function') {
+                service[method]({ page: 1, pageSize: 1000 }).subscribe({
+                    next: (response: any) => {
+                        if (response && response.items) {
+                            field.options = response.items.map((item: any) => {
+                                const option: any = {};
+                                option.display = item[field.displayField || 'username'];
+                                option.value = item[field.valueField || 'id'];
+                                return option;
+                            });
+                        }
+                    },
+                    error: (error: any) => {
+                        console.error('Error loading initial options:', error);
+                    }
+                });
+            }
+        }
     }
 
     private loadOptions(field: DialogField): void {
