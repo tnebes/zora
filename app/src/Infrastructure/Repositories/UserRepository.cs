@@ -26,7 +26,6 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
 
     public async Task<Result<User>> GetByIdAsync(long id, bool includeProperties = false)
     {
-        await Semaphore.WaitAsync();
         try
         {
             IQueryable<User> query = this.FilteredDbSet.AsQueryable();
@@ -35,17 +34,13 @@ public sealed class UserRepository : BaseRepository<User>, IUserRepository, IZor
                 query = this.IncludeProperties(query);
             }
 
-            User? user = await query.FirstOrDefaultAsync(user => user.Id == id);
+            User? user = await query.AsNoTracking().FirstOrDefaultAsync(user => user.Id == id);
             return user == null ? Result.Fail<User>(new Error("User not found")) : Result.Ok(user);
         }
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "Error getting user by id {Id}", id);
             return Result.Fail<User>(new Error("Failed to get user by id"));
-        }
-        finally
-        {
-            Semaphore.Release();
         }
     }
 

@@ -358,31 +358,29 @@ public sealed class TaskService : ITaskService, IZoraService
             IQueryable<ZoraTask> query = this._taskRepository.GetQueryable();
             IQueryable<ZoraTask> filteredQuery = await this._authorisationService.FilterByPermission(query, userId, PermissionFlag.Read);
 
-            DynamicQueryTaskParamsDto searchParams = new DynamicQueryTaskParamsDto
-            {
-                Status = "In Progress",
-                SortColumn = "priority",
-                SortDirection = "desc",
-                Page = 1,
-                PageSize = 5
-            };
-
+            // Filter for "In Progress" status
             filteredQuery = filteredQuery.Where(t => t.Status == "In Progress");
             
-            // Use the repository's search method which will apply proper sorting
-            Result<(IEnumerable<ZoraTask>, int total)> searchResult = 
-                await this._taskRepository.SearchAsync(searchParams, true);
-
-            if (searchResult.IsFailed)
-            {
-                this._logger.LogError("Failed to search priority tasks. Errors: {Errors}", searchResult.Errors);
-                return Result.Fail<TaskResponseDto>(searchResult.Errors);
-            }
-
-            (IEnumerable<ZoraTask> tasks, _) = searchResult.Value;
+            // Apply sorting by priority descending with proper priority ordering
+            filteredQuery = filteredQuery.OrderByDescending(t => 
+                t.Priority == "Critical" ? 4 :
+                t.Priority == "High" ? 3 :
+                t.Priority == "Medium" ? 2 :
+                t.Priority == "Low" ? 1 : 0);
             
-            // Take only top 5
-            tasks = tasks.Take(5);
+            // Include related entities
+            filteredQuery = filteredQuery
+                .Include(t => t.Assignee)
+                .Include(t => t.CreatedBy)
+                .Include(t => t.UpdatedBy);
+                
+            // Count total after filtering
+            int totalCount = await filteredQuery.CountAsync();
+            
+            // Get only top 5 tasks
+            IEnumerable<ZoraTask> tasks = await filteredQuery
+                .Take(5)
+                .ToListAsync();
 
             IEnumerable<ReadTaskDto> taskDtos = this._mapper.Map<IEnumerable<ReadTaskDto>>(tasks);
             TaskResponseDto response = new TaskResponseDto

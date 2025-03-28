@@ -85,6 +85,12 @@ export class AuthenticationService {
             return of(null);
         }
         
+        // Return the current value from the subject if it exists to prevent unnecessary API calls
+        const currentUserValue = this.currentUserSubject.getValue();
+        if (currentUserValue) {
+            return of(currentUserValue);
+        }
+        
         return this.http.get<User>(`${Constants.CURRENT_USER}`)
             .pipe(
                 tap((user: User) => this.currentUserSubject.next(user)),

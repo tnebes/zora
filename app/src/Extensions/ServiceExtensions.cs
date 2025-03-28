@@ -303,6 +303,7 @@ public static class ServiceExtensions
                     3,
                     TimeSpan.FromSeconds(3),
                     null);
+                sqlOptions.CommandTimeout(60);
             }).LogTo(
                 message => Log.Information(message),
                 [
