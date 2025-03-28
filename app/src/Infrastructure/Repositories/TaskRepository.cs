@@ -38,6 +38,11 @@ public class TaskRepository : BaseRepository<ZoraTask>, ITaskRepository, IZoraSe
                     .Include(t => t.UpdatedBy);
             }
 
+            if (searchParams.Ids != null && searchParams.Ids.Length > 0)
+            {
+                query = query.Where(t => searchParams.Ids.Contains(t.Id));
+            }
+
             if (!string.IsNullOrWhiteSpace(searchParams.SearchTerm))
             {
                 string searchTerm = $"%{searchParams.SearchTerm}%";

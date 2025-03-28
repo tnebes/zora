@@ -10,6 +10,7 @@ using zora.Core.DTOs.Tasks;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
+using Microsoft.EntityFrameworkCore;
 
 #endregion
 
@@ -272,12 +273,33 @@ public sealed class TaskService : ITaskService, IZoraService
     {
         try
         {
-            IQueryable<ZoraTask> query = this._taskRepository.GetQueryable();
-            IQueryable<ZoraTask> filteredQuery =
-                await this._authorisationService.FilterByPermission(query, userId, PermissionFlag.Read);
-
-            Result<(IEnumerable<ZoraTask>, int total)> searchResult =
-                await this._taskRepository.SearchAsync(searchParams, true);
+            Result<(IEnumerable<ZoraTask>, int total)> searchResult;
+            
+            if (searchParams.Ids != null && searchParams.Ids.Length > 0)
+            {
+                IQueryable<ZoraTask> query = this._taskRepository.GetQueryable();
+                query = query.Where(t => searchParams.Ids.Contains(t.Id));
+                
+                IQueryable<ZoraTask> filteredQuery = 
+                    await this._authorisationService.FilterByPermission(query, userId, PermissionFlag.Read);
+                
+                int totalCount = await filteredQuery.CountAsync();
+                
+                int skip = (searchParams.Page - 1) * searchParams.PageSize;
+                IEnumerable<ZoraTask> filteredTasks = await filteredQuery
+                    .Include(t => t.Assignee)
+                    .Include(t => t.CreatedBy)
+                    .Include(t => t.UpdatedBy)
+                    .Skip(skip)
+                    .Take(searchParams.PageSize)
+                    .ToListAsync();
+                
+                searchResult = Result.Ok((filteredTasks, totalCount));
+            }
+            else
+            {
+                searchResult = await this._taskRepository.SearchAsync(searchParams, true);
+            }
 
             if (searchResult.IsFailed)
             {

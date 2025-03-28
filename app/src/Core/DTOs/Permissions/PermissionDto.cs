@@ -8,4 +8,5 @@ public sealed class PermissionDto
     public string PermissionString { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public required IEnumerable<long> RoleIds { get; set; }
+    public required IEnumerable<long> WorkItemIds { get; set; }
 }

@@ -46,6 +46,74 @@ public sealed class PermissionWorkItemRepository : BaseCompositeRepository<Permi
         }
     }
 
+    public async Task<Result<PermissionWorkItem>> CreateAsync(PermissionWorkItem permissionWorkItem)
+    {
+        try
+        {
+            await this.DbSet.AddAsync(permissionWorkItem);
+            await this.DbContext.SaveChangesAsync();
+            return Result.Ok(permissionWorkItem);
+        }
+        catch (Exception e)
+        {
+            this.Logger.LogError(e, "Error while creating permission work item");
+            return Result.Fail<PermissionWorkItem>("Error while creating permission work item");
+        }
+    }
+
+    public async Task<bool> DeleteAsync(PermissionWorkItem permissionWorkItem)
+    {
+        try
+        {
+            this.DbSet.Remove(permissionWorkItem);
+            await this.DbContext.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            this.Logger.LogError(e, "Error while deleting permission work item");
+            return false;
+        }
+    }
+
+    public async Task<Result<IEnumerable<PermissionWorkItem>>> CreateRangeAsync(IEnumerable<PermissionWorkItem> permissionWorkItems)
+    {
+        try
+        {
+            await this.DbSet.AddRangeAsync(permissionWorkItems);
+            await this.DbContext.SaveChangesAsync();
+            return Result.Ok(permissionWorkItems);
+        }
+        catch (Exception e)
+        {
+            this.Logger.LogError(e, "Error while creating permission work items");
+            return Result.Fail<IEnumerable<PermissionWorkItem>>("Error while creating permission work items");
+        }
+    }
+
+    public async Task<Result<IEnumerable<PermissionWorkItem>>> GetByPermissionIdAsync(long permissionId, bool includeProperties = false)
+    {
+        try
+        {
+            IQueryable<PermissionWorkItem> query = this.DbSet.AsQueryable();
+            if (includeProperties)
+            {
+                query = this.IncludeProperties(query);
+            }
+
+            IEnumerable<PermissionWorkItem> permissionWorkItems = await query
+                .Where(pwi => pwi.PermissionId == permissionId)
+                .ToListAsync();
+
+            return Result.Ok(permissionWorkItems);
+        }
+        catch (Exception e)
+        {
+            this.Logger.LogError(e, "Error while getting permission work items by permission id");
+            return Result.Fail<IEnumerable<PermissionWorkItem>>("Error while getting permission work items by permission id");
+        }
+    }
+
     private IQueryable<PermissionWorkItem> IncludeProperties(IQueryable<PermissionWorkItem> query)
     {
         return query.Include(pwi => pwi.Permission)

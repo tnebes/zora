@@ -120,6 +120,20 @@ public sealed class PermissionService : IPermissionService, IZoraService
             };
 
             await this._permissionRepository.CreateAsync(permission);
+
+            if (permissionDto.WorkItemIds?.Any() == true)
+            {
+                foreach (long workItemId in permissionDto.WorkItemIds)
+                {
+                    PermissionWorkItem permissionWorkItem = new PermissionWorkItem
+                    {
+                        PermissionId = permission.Id,
+                        WorkItemId = workItemId
+                    };
+                    await this._permissionWorkItemRepository.CreateAsync(permissionWorkItem);
+                }
+            }
+
             return Result.Ok(permission);
         }
         catch (Exception ex)
@@ -133,7 +147,7 @@ public sealed class PermissionService : IPermissionService, IZoraService
     {
         try
         {
-            Result<Permission> permissionResult = await this._permissionRepository.GetByIdAsync(id);
+            Result<Permission> permissionResult = await this._permissionRepository.GetByIdAsync(id, true);
             if (permissionResult.IsFailed)
             {
                 this._logger.LogError("Error updating permission: {Error}", permissionResult.Errors);
@@ -146,6 +160,28 @@ public sealed class PermissionService : IPermissionService, IZoraService
             permission.Name = updateDto.Name;
             permission.Description = updateDto.Description;
             permission.PermissionString = updateDto.PermissionString;
+
+            if (updateDto.WorkItemIds != null)
+            {
+                var existingAssignments = permission.PermissionWorkItems.ToList();
+                foreach (PermissionWorkItem existingAssignment in existingAssignments)
+                {
+                    await this._permissionWorkItemRepository.DeleteAsync(existingAssignment);
+                }
+
+                if (updateDto.WorkItemIds.Any())
+                {
+                    foreach (long workItemId in updateDto.WorkItemIds)
+                    {
+                        PermissionWorkItem permissionWorkItem = new PermissionWorkItem
+                        {
+                            PermissionId = permission.Id,
+                            WorkItemId = workItemId
+                        };
+                        await this._permissionWorkItemRepository.CreateAsync(permissionWorkItem);
+                    }
+                }
+            }
 
             Result<Permission> result = await this._permissionRepository.UpdateAsync(permission);
             return result;

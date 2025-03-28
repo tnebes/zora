@@ -6,5 +6,6 @@ export interface QueryParams {
     sortDirection?: 'asc' | 'desc';
     status?: string;
     priority?: string;
+    ids?: number[];
     [key: string]: any;
 }

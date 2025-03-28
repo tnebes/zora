@@ -13,11 +13,11 @@ import {ConfirmDialogComponent} from "../../shared/components/confirm-dialog/con
 import {Constants} from '../../core/constants';
 import {QueryParams} from '../../core/models/query-params.interface';
 import {QueryService} from '../../core/services/query.service';
-import {
-    EntitySelectorDialogComponent
-} from '../../shared/components/entity-display-dialog/entity-display-dialog.component';
+import {EntitySelectorDialogComponent} from '../../shared/components/entity-display-dialog/entity-display-dialog.component';
 import {RoleService} from '../../core/services/role.service';
 import {NotificationUtils} from '../../core/utils/notification.utils';
+import {TaskService} from '../../core/services/task.service';
+import {Task} from '../../tasks/models/task';
 
 interface PermissionFlagOption {
     value: number;
@@ -31,7 +31,7 @@ interface PermissionFlagOption {
     styleUrls: ['./permissions.component.scss']
 })
 export class PermissionsComponent implements OnInit, AfterViewInit {
-    public readonly displayedColumns: string[] = ['name', 'description', 'createdAt', 'roles', 'actions'];
+    public readonly displayedColumns: string[] = ['name', 'description', 'createdAt', 'roles', 'workItems', 'actions'];
     public readonly dataSource: MatTableDataSource<PermissionResponse> = new MatTableDataSource();
     public searchTerm: Subject<string> = new Subject<string>();
     public isLoading: boolean = false;
@@ -70,20 +70,36 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
             type: 'text',
             label: 'Description',
             required: false
+        },
+        {
+            name: 'selectedWorkItems',
+            type: 'multiselect',
+            label: 'Work Items',
+            required: false,
+            options: [],
+            validators: [],
+            searchable: true,
+            searchService: this.taskService,
+            searchMethod: 'searchTasks',
+            displayField: 'name',
+            valueField: 'id'
         }
     ];
 
     private dataSubscription: any;
+    private workItems: Task[] = [];
 
     constructor(
         private readonly dialog: MatDialog,
         private readonly permissionService: PermissionService,
         private readonly queryService: QueryService,
-        private readonly roleService: RoleService
+        private readonly roleService: RoleService,
+        private readonly taskService: TaskService
     ) {
     }
 
     ngOnInit(): void {
+        this.loadWorkItems();
     }
 
     ngAfterViewInit(): void {
@@ -99,6 +115,25 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
         });
         
         this.loadPermissions();
+    }
+
+    private loadWorkItems(): void {
+        this.taskService.getTasks({ page: 1, pageSize: 1000 }).subscribe({
+            next: (response) => {
+                this.workItems = response.items;
+                const workItemField = this.permissionFields.find(f => f.name === 'selectedWorkItems');
+                if (workItemField) {
+                    workItemField.options = this.workItems.map(item => ({
+                        value: item.id,
+                        display: item.name
+                    }));
+                }
+            },
+            error: (error) => {
+                console.error('Error loading work items:', error);
+                NotificationUtils.showError(this.dialog, 'Failed to load work items', error);
+            }
+        });
     }
 
     public loadPermissions(): void {
@@ -171,8 +206,10 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                 switchMap(result => {
                     const permissionString = this.convertFlagsToPermissionString(result.selectedFlags);
                     return this.permissionService.create({
-                        ...result,
-                        permissionString
+                        name: result.name,
+                        description: result.description,
+                        permissionString,
+                        workItemIds: result.selectedWorkItems || []
                     });
                 })
             )
@@ -200,7 +237,8 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                     id: permission.id,
                     name: permission.name,
                     description: permission.description,
-                    selectedFlags
+                    selectedFlags,
+                    selectedWorkItems: permission.workItemIds
                 }
             }
         });
@@ -214,7 +252,8 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                         id: permission.id,
                         name: result.name,
                         description: result.description,
-                        permissionString
+                        permissionString,
+                        workItemIds: result.selectedWorkItems || []
                     });
                 })
             )
@@ -288,6 +327,30 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
             const data = roles.items.map(role => ({
                 id: role.id,
                 name: role.name
+            }));
+            this.openEntitySelectorDialog(data, [
+                {id: 'name', label: 'Name'}
+            ]);
+        });
+    }
+
+    public openWorkItemDialog(workItemIds: number[]): void {
+        if (workItemIds.length === 0) {
+            NotificationUtils.showInfo(this.dialog, 'No work items assigned to this permission');
+            return;
+        }
+
+        this.taskService.searchTasks({ 
+            page: 1,
+            pageSize: 1000,
+            searchTerm: '',
+            sortColumn: 'name',
+            sortDirection: 'asc',
+            ids: workItemIds
+        }).subscribe((response) => {
+            const data = response.items.map(item => ({
+                id: item.id,
+                name: item.name
             }));
             this.openEntitySelectorDialog(data, [
                 {id: 'name', label: 'Name'}

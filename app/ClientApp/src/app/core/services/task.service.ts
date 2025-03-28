@@ -25,8 +25,12 @@ export class TaskService {
   }
 
   searchTasks(queryParams: QueryParams): Observable<TaskResponseDto> {
-    const params = this.queryService.getHttpParams(queryParams);
-    
+    let params = this.queryService.getHttpParams(queryParams);
+    if (queryParams.ids?.length) {
+      queryParams.ids.forEach(id => {
+        params = params.append('Ids', id.toString());
+      });
+    }
     return this.http.get<TaskResponseDto>(`${this.apiUrl}/search`, { params });
   }
 

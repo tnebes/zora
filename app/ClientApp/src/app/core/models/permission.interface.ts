@@ -15,12 +15,14 @@ export interface PermissionResponse extends AbstractPermission {
     createdAt: Date;
     deleted: boolean;
     roleIds: number[];
+    workItemIds?: number[];
 }
 
 export interface CreatePermission {
     name: string;
     description: string;
     permissionString: string;
+    workItemIds: number[];
 }
 
 export interface UpdatePermission {
@@ -28,6 +30,7 @@ export interface UpdatePermission {
     name: string;
     description: string;
     permissionString: string;
+    workItemIds: number[];
 }
 
 export interface QueryParams {
@@ -35,4 +38,5 @@ export interface QueryParams {
     pageSize: number;
     searchTerm?: string;
     roleIds?: number[];
+    workItemIds?: number[];
 }

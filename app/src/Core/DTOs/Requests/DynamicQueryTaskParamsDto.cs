@@ -41,6 +41,10 @@ public sealed class DynamicQueryTaskParamsDto : DynamicQueryParamsDto
     [JsonPropertyName("sortDirection")]
     public string? SortDirection { get; set; }
 
+    [FromQuery(Name = "ids")]
+    [JsonPropertyName("ids")]
+    public long[]? Ids { get; set; }
+
     protected override Dictionary<string, string> GetParameters()
     {
         try
@@ -77,6 +81,11 @@ public sealed class DynamicQueryTaskParamsDto : DynamicQueryParamsDto
                 parameters.Add("assigneeId", this.AssigneeId.Value.ToString());
             }
 
+            if (this.Ids != null && this.Ids.Length > 0)
+            {
+                parameters.Add("ids", string.Join(",", this.Ids));
+            }
+
             if (!string.IsNullOrEmpty(this.SortColumn))
             {
                 parameters.Add("sortColumn", this.SortColumn);
@@ -89,7 +98,7 @@ public sealed class DynamicQueryTaskParamsDto : DynamicQueryParamsDto
 
             return parameters;
         }
-        catch
+        catch (Exception)
         {
             return new Dictionary<string, string>();
         }
