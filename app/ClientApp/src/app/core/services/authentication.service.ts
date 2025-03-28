@@ -52,6 +52,14 @@ export class AuthenticationService {
     }
 
     public checkAuthStatus(): Observable<{ isAuthenticated: boolean }> {
+        const token: string = this.getToken();
+        
+        if (!token) {
+            this.setAuthState(false);
+            this.currentUserSubject.next(null);
+            return of({ isAuthenticated: false });
+        }
+        
         return this.http.get<{ isAuthenticated: boolean }>(`${Constants.AUTHENTICATION_CHECK}`)
             .pipe(
                 tap(() => this.setAuthState(true)),
@@ -59,18 +67,35 @@ export class AuthenticationService {
                     console.error('Authentication check failed:', error);
                     this.setAuthState(false);
                     this.currentUserSubject.next(null);
+                    
+                    if (error.status === 401) {
+                        this.logout();
+                    }
+                    
                     return of({isAuthenticated: false});
                 })
             );
     }
 
     public currentUser(): Observable<User | null> {
+        const token: string = this.getToken();
+        
+        if (!token) {
+            this.currentUserSubject.next(null);
+            return of(null);
+        }
+        
         return this.http.get<User>(`${Constants.CURRENT_USER}`)
             .pipe(
                 tap((user: User) => this.currentUserSubject.next(user)),
                 catchError((error: HttpErrorResponse) => {
                     console.error('Current user fetch failed:', error);
                     this.currentUserSubject.next(null);
+                    
+                    if (error.status === 401) {
+                        this.logout();
+                    }
+                    
                     return of(null);
                 })
             );
@@ -81,7 +106,13 @@ export class AuthenticationService {
     }
 
     public getToken(): string {
-        return localStorage.getItem(Constants.JWT_TOKEN_KEY) ?? '';
+        try {
+            const storedToken: string | null = localStorage.getItem(Constants.JWT_TOKEN_KEY);
+            return storedToken || '';
+        } catch (error) {
+            console.error('Error accessing localStorage:', error);
+            return '';
+        }
     }
 
     public logout(): void {
