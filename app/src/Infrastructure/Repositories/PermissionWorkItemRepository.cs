@@ -76,7 +76,8 @@ public sealed class PermissionWorkItemRepository : BaseCompositeRepository<Permi
         }
     }
 
-    public async Task<Result<IEnumerable<PermissionWorkItem>>> CreateRangeAsync(IEnumerable<PermissionWorkItem> permissionWorkItems)
+    public async Task<Result<IEnumerable<PermissionWorkItem>>> CreateRangeAsync(
+        IEnumerable<PermissionWorkItem> permissionWorkItems)
     {
         try
         {
@@ -91,7 +92,8 @@ public sealed class PermissionWorkItemRepository : BaseCompositeRepository<Permi
         }
     }
 
-    public async Task<Result<IEnumerable<PermissionWorkItem>>> GetByPermissionIdAsync(long permissionId, bool includeProperties = false)
+    public async Task<Result<IEnumerable<PermissionWorkItem>>> GetByPermissionIdAsync(long permissionId,
+        bool includeProperties = false)
     {
         try
         {
@@ -110,7 +112,8 @@ public sealed class PermissionWorkItemRepository : BaseCompositeRepository<Permi
         catch (Exception e)
         {
             this.Logger.LogError(e, "Error while getting permission work items by permission id");
-            return Result.Fail<IEnumerable<PermissionWorkItem>>("Error while getting permission work items by permission id");
+            return Result.Fail<IEnumerable<PermissionWorkItem>>(
+                "Error while getting permission work items by permission id");
         }
     }
 
