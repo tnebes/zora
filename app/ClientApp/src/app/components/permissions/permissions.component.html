@@ -1,9 +1,10 @@
 <div class="permissions-container">
     <div class="header">
         <h1>Permissions</h1>
-        <button mat-raised-button color="primary" (click)="onCreate()">
+        <button mat-raised-button color="primary" (click)="onCreate()" [disabled]="isWorkItemsLoading">
             <mat-icon>add</mat-icon>
             Create Permission
+            <mat-spinner diameter="20" *ngIf="isWorkItemsLoading" class="button-spinner"></mat-spinner>
         </button>
     </div>
 
@@ -51,10 +52,10 @@
             <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef> Actions </th>
                 <td mat-cell *matCellDef="let permission">
-                    <button mat-icon-button color="primary" (click)="onEdit(permission)">
+                    <button mat-icon-button color="primary" (click)="onEdit(permission)" [disabled]="isWorkItemsLoading">
                         <mat-icon>edit</mat-icon>
                     </button>
-                    <button mat-icon-button color="warn" (click)="onDelete(permission)">
+                    <button mat-icon-button color="warn" (click)="onDelete(permission)" [disabled]="isWorkItemsLoading">
                         <mat-icon>delete</mat-icon>
                     </button>
                 </td>

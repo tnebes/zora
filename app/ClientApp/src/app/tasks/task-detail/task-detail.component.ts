@@ -283,7 +283,6 @@ export class TaskDetailComponent implements OnInit {
       )
       .subscribe({
         next: (result) => {
-          console.log('Asset upload successful:', result);
           this.loadAssets();
         },
         error: (error) => {

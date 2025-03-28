@@ -4,6 +4,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Task } from '../models/task';
 import { TaskService } from '../../core/services/task.service';
+import { UserService } from '../../core/services/user.service';
+import { UserResponse } from '../../core/models/user.interface';
+import { forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 interface EntityOption {
   value: number;
@@ -32,6 +36,7 @@ export class TaskEditComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private taskService: TaskService,
+    private userService: UserService,
     private route: ActivatedRoute,
     private router: Router,
     private dialog: MatDialog
@@ -40,14 +45,14 @@ export class TaskEditComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadRelatedEntities();
-
     this.route.paramMap.subscribe(params => {
       const idParam = params.get('id');
       if (idParam) {
         this.taskId = +idParam;
         this.isEdit = true;
-        this.loadTask();
+        this.loadTaskAndUsers();
+      } else {
+        this.loadUsers();
       }
     });
   }
@@ -67,20 +72,39 @@ export class TaskEditComponent implements OnInit {
     });
   }
 
-  loadRelatedEntities(): void {
-    this.users = [
-      { value: 1, display: 'User 1' },
-      { value: 2, display: 'User 2' },
-      { value: 997, display: 'User 997' }
-    ];
+  private loadUsers(): void {
+    this.loading = true;
+    this.userService.getUsers({ page: 1, pageSize: 1000 }).subscribe({
+      next: (response) => {
+        this.users = response.items.map(user => ({
+          value: user.id,
+          display: user.username
+        }));
+        this.loading = false;
+      },
+      error: (error) => {
+        this.error = 'Error loading users. Please try again later.';
+        this.loading = false;
+      }
+    });
   }
 
-  loadTask(): void {
-    if (!this.taskId) return;
-    
+  private loadTaskAndUsers(): void {
     this.loading = true;
-    this.taskService.getTask(this.taskId).subscribe({
-      next: (task) => {
+    
+    const users$ = this.userService.getUsers({ page: 1, pageSize: 1000 });
+    const task$ = this.taskService.getTask(this.taskId!);
+
+    forkJoin({
+      users: users$,
+      task: task$
+    }).subscribe({
+      next: ({ users, task }) => {
+        this.users = users.items.map(user => ({
+          value: user.id,
+          display: user.username
+        }));
+
         this.taskForm.patchValue({
           name: task.name,
           description: task.description,
@@ -93,10 +117,11 @@ export class TaskEditComponent implements OnInit {
           actualHours: task.actualHours,
           assigneeId: task.assigneeId
         });
+
         this.loading = false;
       },
       error: (err) => {
-        this.error = 'Error loading task. Please try again later.';
+        this.error = 'Error loading data. Please try again later.';
         this.loading = false;
       }
     });

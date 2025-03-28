@@ -9,6 +9,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatDialogModule} from '@angular/material/dialog';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {SharedModule} from '../shared/shared.module';
 
 import {ControlPanelComponent} from './control-panel.component';
@@ -41,6 +42,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
         MatButtonModule,
         MatFormFieldModule,
         MatDialogModule,
+        MatProgressSpinnerModule,
         SharedModule,
         MatTooltipModule,
         RouterModule.forChild([

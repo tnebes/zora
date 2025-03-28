@@ -35,6 +35,7 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
     public readonly dataSource: MatTableDataSource<PermissionResponse> = new MatTableDataSource();
     public searchTerm: Subject<string> = new Subject<string>();
     public isLoading: boolean = false;
+    public isWorkItemsLoading: boolean = false;
     public totalItems: number = 0;
     public currentSearchValue: string = '';
     public errorMessage: string = '';
@@ -118,6 +119,7 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
     }
 
     private loadWorkItems(): void {
+        this.isWorkItemsLoading = true;
         this.taskService.getTasks({ page: 1, pageSize: 1000 }).subscribe({
             next: (response) => {
                 this.workItems = response.items;
@@ -128,10 +130,12 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
                         display: item.name
                     }));
                 }
+                this.isWorkItemsLoading = false;
             },
             error: (error) => {
                 console.error('Error loading work items:', error);
                 NotificationUtils.showError(this.dialog, 'Failed to load work items', error);
+                this.isWorkItemsLoading = false;
             }
         });
     }
@@ -191,6 +195,11 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
     }
 
     public onCreate(): void {
+        if (this.isWorkItemsLoading) {
+            NotificationUtils.showInfo(this.dialog, 'Please wait while work items are loading...');
+            return;
+        }
+
         const dialogRef = this.dialog.open(BaseDialogComponent<CreatePermission>, {
             width: Constants.ENTITY_DIALOG_WIDTH,
             data: {
@@ -226,6 +235,11 @@ export class PermissionsComponent implements OnInit, AfterViewInit {
     }
 
     public onEdit(permission: PermissionResponse): void {
+        if (this.isWorkItemsLoading) {
+            NotificationUtils.showInfo(this.dialog, 'Please wait while work items are loading...');
+            return;
+        }
+
         const selectedFlags = this.convertPermissionStringToFlags(permission.permissionString);
         const dialogRef = this.dialog.open(BaseDialogComponent<UpdatePermission>, {
             width: Constants.ENTITY_DIALOG_WIDTH,

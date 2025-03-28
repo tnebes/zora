@@ -55,59 +55,37 @@ export class BaseDialogComponent<T> implements OnInit {
     }
 
     ngOnInit(): void {
-        // Preload options for searchable selects with default values
+        // Load options for all searchable fields immediately
         this.data.fields.forEach(field => {
-            if (field.type === 'select' && field.searchable && field.value !== undefined) {
-                this.preloadSelectedOptions(field);
+            if (field.type === 'select' && field.searchable) {
+                this.loadOptions(field);
             }
         });
     }
 
-    private preloadSelectedOptions(field: DialogField): void {
+    private loadOptions(field: DialogField): void {
         if (field.searchService && field.searchMethod) {
             const service = field.searchService as any;
             const method = field.searchMethod as keyof typeof service;
             
             if (typeof service[method] === 'function') {
-                // First load a list of options
                 service[method]('').subscribe({
                     next: (response: any) => {
                         if (response && response.items) {
-                            // Map the items to options
-                            const options = response.items.map((item: any) => {
+                            field.options = response.items.map((item: any) => {
                                 const option: any = {};
                                 option.display = item[field.displayField || 'username'];
                                 option.value = item[field.valueField || 'id'];
                                 return option;
                             });
-                            
-                            field.options = options;
-
-                            // If we have a specific default value, ensure it's in the list
-                            if (field.value && !options.some((o: any) => o.value === field.value)) {
-                                // If default value not in initial list, try to fetch it specifically
-                                this.fetchSpecificOption(field, field.value);
-                            }
                         }
                     },
                     error: (error: any) => {
-                        console.error('Error loading initial options:', error);
+                        console.error('Error loading options:', error);
                     }
                 });
             }
         }
-    }
-
-    private fetchSpecificOption(field: DialogField, value: any): void {
-        // This would be a method that could fetch a specific user by ID
-        // For simplicity, we'll create a placeholder option until the real one loads
-        if (!field.options) {
-            field.options = [];
-        }
-        const tempOption: any = {};
-        tempOption.display = `Loading user ${value}...`;
-        tempOption.value = value;
-        field.options.push(tempOption);
     }
 
     private createForm(): FormGroup {
@@ -205,30 +183,19 @@ export class BaseDialogComponent<T> implements OnInit {
         if (file) {
             this.form.get(fieldName)?.setValue(file);
             
-            // If this is the asset file field, set the name field if it's empty
             if (fieldName === 'asset') {
                 const nameField = this.form.get('name');
                 const currentName = nameField?.value;
                 
-                console.log('Current name value before update:', currentName);
-                
                 if (!currentName || currentName === '') {
                     const fileName = file.name;
-                    // Remove extension from filename
                     const lastDotIndex = fileName.lastIndexOf('.');
                     const nameWithoutExtension = lastDotIndex !== -1 ? 
                         fileName.substring(0, lastDotIndex) : 
                         fileName;
                     
-                    console.log('File selected:', file.name);
-                    console.log('Setting name to:', nameWithoutExtension);
-                    
                     nameField?.setValue(nameWithoutExtension);
                     
-                    // Verify the name was set
-                    setTimeout(() => {
-                        console.log('Name after update:', this.form.get('name')?.value);
-                    }, 0);
                 }
             }
         }
@@ -240,27 +207,9 @@ export class BaseDialogComponent<T> implements OnInit {
     }
 
     public onSearchableSelectFocus(field: DialogField): void {
-        if (field.searchService && field.searchMethod) {
-            const service = field.searchService as any;
-            const method = field.searchMethod as keyof typeof service;
-            
-            if (typeof service[method] === 'function') {
-                service[method]('').subscribe({
-                    next: (response: any) => {
-                        if (response && response.items) {
-                            field.options = response.items.map((item: any) => {
-                                const option: any = {};
-                                option.display = item[field.displayField || 'username'];
-                                option.value = item[field.valueField || 'id'];
-                                return option;
-                            });
-                        }
-                    },
-                    error: (error: any) => {
-                        console.error('Error loading options:', error);
-                    }
-                });
-            }
+        // Only reload if options are not already loaded
+        if (!field.options || field.options.length === 0) {
+            this.loadOptions(field);
         }
     }
 
