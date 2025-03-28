@@ -55,7 +55,6 @@ export class BaseDialogComponent<T> implements OnInit {
     }
 
     ngOnInit(): void {
-        // Load options for all searchable fields immediately
         this.data.fields.forEach(field => {
             if (field.type === 'select' && field.searchable) {
                 this.loadOptions(field);
@@ -97,19 +96,15 @@ export class BaseDialogComponent<T> implements OnInit {
                 validators.push(Validators.required);
             }
 
-            // Set initial value based on the context (edit or create)
             let initialValue;
             if (this.data.entity) {
-                // Editing existing entity
                 initialValue = (this.data.entity as any)[field.name];
             } else {
-                // Creating new entity - use default value if provided
                 initialValue = field.value !== undefined ? field.value : 
                                field.type === 'multiselect' ? [] :
                                field.type === 'file' ? null : '';
             }
 
-            // Handle date fields
             if ((field.type === 'date' || field.isDate) && initialValue) {
                 initialValue = new Date(initialValue);
             }
@@ -146,7 +141,6 @@ export class BaseDialogComponent<T> implements OnInit {
                     }
                 });
                 
-                // Add hidden data to formData if present
                 if (this.data.hiddenData) {
                     Object.keys(this.data.hiddenData).forEach(key => {
                         formData.append(key, this.data.hiddenData[key]);
@@ -157,14 +151,12 @@ export class BaseDialogComponent<T> implements OnInit {
             } else {
                 let formValue = {...this.form.value};
                 
-                // Process date values before submitting
                 this.data.fields.forEach(field => {
                     if ((field.type === 'date' || field.isDate) && formValue[field.name] instanceof Date) {
                         formValue[field.name] = formValue[field.name].toISOString();
                     }
                 });
                 
-                // Merge with hidden data if present
                 if (this.data.hiddenData) {
                     formValue = {
                         ...formValue,
@@ -207,7 +199,6 @@ export class BaseDialogComponent<T> implements OnInit {
     }
 
     public onSearchableSelectFocus(field: DialogField): void {
-        // Only reload if options are not already loaded
         if (!field.options || field.options.length === 0) {
             this.loadOptions(field);
         }

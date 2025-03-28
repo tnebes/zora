@@ -15,12 +15,10 @@ export class ViewOnlyDialogComponent<T> implements OnInit {
         public dialogRef: MatDialogRef<ViewOnlyDialogComponent<T>>,
         @Inject(MAT_DIALOG_DATA) public data: ViewOnlyDialogData<T>
     ) {
-        // Set the dialog width using the provided width or the default from Constants
         this.dialogRef.updateSize(this.data.width || Constants.VIEW_ONLY_DIALOG_WIDTH);
     }
 
     ngOnInit(): void {
-        // Initialize component
     }
 
     public fieldHasValue(fieldName: string): boolean {

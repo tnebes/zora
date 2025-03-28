@@ -59,14 +59,12 @@ const ALLOWED_FILE_TYPES = [
   styleUrls: ['./asset-unified.component.scss']
 })
 export class AssetUnifiedComponent implements OnInit {
-  // View mode properties
   public isImage: boolean = false;
   public previewUrl: SafeUrl | null = null;
   public createdByUser: UserResponse | null = null;
   public updatedByUser: UserResponse | null = null;
   public isLoadingPreview: boolean = false;
 
-  // Upload/Edit mode properties
   public uploadForm: FormGroup;
   public selectedFile: File | null = null;
   public uploading: boolean = false;
@@ -121,7 +119,6 @@ export class AssetUnifiedComponent implements OnInit {
     return this.data.mode === 'edit';
   }
 
-  // View mode methods
   private loadUsers(): void {
     if (!this.data.asset) return;
 
@@ -175,13 +172,11 @@ export class AssetUnifiedComponent implements OnInit {
     });
   }
 
-  // Upload mode methods
   public onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files?.length) {
       const file = input.files[0];
       
-      // Set the asset name to the file name if the name field is empty
       const currentName = this.uploadForm.get('name')?.value;
       
       if (!currentName || currentName === '') {
