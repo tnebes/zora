@@ -2,17 +2,17 @@
 
 \usepackage{fontspec}
 \usepackage[croatian]{babel}
-\usepackage{polyglossia}
-\setmainlanguage{croatian}
-\setmainfont{Times New Roman}
+\setsansfont{Latin Modern Sans}
+\renewcommand{\familydefault}{\sfdefault}
 
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{tikz}
 
-\usetheme{Madrid}
-\usecolortheme{default}
+\usetheme{PaloAlto}
+\usecolortheme{spruce}
 
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{footline}[frame number]
@@ -39,8 +39,8 @@
     \frametitle{O aplikaciji}
     \begin{itemize}
         \item Web aplikacija za organizaciju rada
-        \item Razvijena u Angular i .NET 9
-        \item Moderno sučelje i jednostavna uporaba
+        \item Razvoj: Angular 19, .NET 9
+        \item Moderno sučelje, jednostavna uporaba
     \end{itemize}
 \end{frame}
 
@@ -49,26 +49,18 @@
 \begin{frame}
     \frametitle{Arhitektura sustava}
     \begin{center}
-        \includegraphics[height=0.8\textheight]{../zora_diagram.png}
+        \includegraphics[height=0.75\textheight]{../zora_diagram.png}
     \end{center}
 \end{frame}
 
 \begin{frame}
-    \frametitle{Deployment arhitektura}
+    \frametitle{Deployment arhitektura i proces}
     \begin{itemize}
-        \item VPS na Ubuntu Server 22.04 LTS
-        \item Nginx kao reverse proxy
-        \item Let's Encrypt SSL certifikati
-        \item Systemd service za backend
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Deployment proces}
-    \begin{itemize}
-        \item CI/CD kroz Jenkins
-        \item Automatsko testiranje
-        \item Monitoring kroz journalctl
+        \item VPS (Ubuntu Server 22.04 LTS)
+        \item Nginx reverse proxy, SSL (Let's Encrypt)
+        \item Systemd backend service
+        \item CI/CD putem Jenkins (webhook)
+        \item Monitoring (journalctl)
     \end{itemize}
 \end{frame}
 
@@ -77,40 +69,59 @@
 \begin{frame}
     \frametitle{Backend tehnologije}
     \begin{itemize}
-        \item .NET 9 Web API
-        \item Entity Framework Core
-        \item SQL Server
-        \item JWT autentifikacija
-        \item Swagger dokumentacija
+        \item .NET 9 Web API, Entity Framework Core
+        \item SQL Server, JWT, Swagger
+        \item AutoMapper, Dapper, FluentResults
+        \item Serilog, Bcrypt.Net, CryptoHelper
     \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Backend struktura}
-    \begin{itemize}
-        \item Clean Architecture
-        \begin{itemize}
-            \item Controllers
-            \item Services
-            \item Repositories
-            \item Models
-            \item DTOs
-        \end{itemize}
-        \item Dependency Injection
-        \item Middleware
-        \item Custom Authentication
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Backend servisi}
-    \begin{itemize}
-        \item Systemd service konfiguracija
-        \item Environment varijable
-        \item Logging kroz journalctl
-        \item Health checks
-        \item Rate limiting
-    \end{itemize}
+    \begin{columns}
+        \begin{column}{0.45\textwidth}
+            \begin{itemize}
+                \item Clean Architecture
+                \begin{itemize}
+                    \item Controllers
+                    \item Services
+                    \item Repositories
+                    \item Models, DTOs
+                \end{itemize}
+                \item Dependency Injection
+                \item Middleware
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.6\textwidth}
+            \textbf{Struktura direktorija:}
+            \begin{itemize}
+                \item \texttt{app/src/}
+                \begin{itemize}
+                    \item \texttt{API/}
+                    \begin{itemize}
+                        \item Controllers
+                        \item Mapping
+                        \item Interfaces
+                        \item Middleware
+                    \end{itemize}
+                    \item \texttt{Core/}
+                    \begin{itemize}
+                        \item Domain
+                        \item DTOs
+                        \item Interfaces
+                        \item Enums
+                    \end{itemize}
+                    \item \texttt{Infrastructure/}
+                    \begin{itemize}
+                        \item Controllers
+                        \item Services
+                        \item Repositories
+                        \item Data
+                    \end{itemize}
+                \end{itemize}
+            \end{itemize}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 \section{Frontend}
@@ -118,38 +129,18 @@
 \begin{frame}
     \frametitle{Frontend tehnologije}
     \begin{itemize}
-        \item Angular 17
-        \item Angular Material
-        \item RxJS
-        \item NgRx za state management
-        \item Jest za testiranje
+        \item Angular 19, Angular Material
+        \item RxJS, NgRx (State management)
+        \item Jest (Testiranje)
     \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Frontend struktura}
     \begin{itemize}
-        \item Feature-based organizacija
-        \begin{itemize}
-            \item Core modul
-            \item Shared modul
-            \item Feature moduli
-            \item Auth modul
-        \end{itemize}
-        \item Lazy loading
-        \item Interceptors
-        \item Guards
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Frontend deployment}
-    \begin{itemize}
-        \item PM2 process manager
-        \item Nginx konfiguracija
-        \item SSL/TLS
-        \item Caching strategija
-        \item Error tracking
+        \item Feature-based moduli
+        \item Lazy loading, Interceptors, Guards
+        \item Core, Shared, Auth moduli
     \end{itemize}
 \end{frame}
 
@@ -157,21 +148,20 @@
 
 \begin{frame}
     \frametitle{Demo koraci}
-    \begin{itemize}
-        \item Prijava u sustav
-        \item Pregled glavnog zaslona
-        \item Upravljanje projektima
-        \item Upravljanje zadacima
-    \end{itemize}
-\end{frame}
-
-\section{Demo}
-
-\begin{frame}
-    \frametitle{Demo}
-    \begin{center}
-        {\Huge Demo}
-    \end{center}
+    \begin{enumerate}
+        \item prijava u sustav s administratorskim pristupom
+        \item Swagger i ERA dijagram
+        \item pregledavanje profila
+        \item stvaranje zadatka s resursom
+        \item pregled kontrolne ploče i pregled resursa iz kontrolne ploče
+        \item stvaranje ovlasti nad zadatkom
+        \item stvaranje uloge sa ovlašću
+        \item stvaranje korisnika s ulogom
+        \item postavljanje novog korisnika kao izvršavatelja zadatka
+        \item prijava s novim korisnikom
+        \item pregled zadatka i resursa
+        \item završetak zadatka
+    \end{enumerate}
 \end{frame}
 
 \section{Zaključak}
@@ -179,17 +169,18 @@
 \begin{frame}
     \frametitle{Zaključak}
     \begin{itemize}
-        \item Uspješno implementirana web aplikacija
-        \item Moderne tehnologije i best practices
+        \item Implementirana web aplikacija
         \item Skalabilno i održivo rješenje
+        \item Napredno upravljanje zadacima
+        \item Integrirano praćenje i izvještavanje
     \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Pitanja?}
     \begin{center}
-        \Huge Hvala.
+        {\Huge Hvala.}
     \end{center}
 \end{frame}
 
-\end{document} 
+\end{document}
