@@ -55,7 +55,12 @@ export class UsersComponent implements OnInit, AfterViewInit {
             type: 'multiselect',
             label: 'Roles',
             required: true,
-            options: []
+            options: [],
+            searchable: true,
+            searchService: this.roleService,
+            searchMethod: 'findRolesByTerm',
+            displayField: 'name',
+            valueField: 'id'
         }
     ];
     private readonly createUserFields: DialogField[] = [
@@ -147,7 +152,6 @@ export class UsersComponent implements OnInit, AfterViewInit {
     }
 
     public onEdit(user: UserResponse): void {
-        console.debug('Editing user:', user);
         const roleIds = this.userService.formatRolesForSelection(user.roles);
         let updateUser: UpdateUser = {
             id: user.id,
@@ -185,8 +189,6 @@ export class UsersComponent implements OnInit, AfterViewInit {
                 next: () => {
                     NotificationUtils.showSuccess(this.dialog, `User ${user.username} has been updated successfully`);
                     this.loadUsers();
-                    this.addRoles();
-                    this.setupSearchAndSort();
                 },
                 error: (error) => {
                     console.error('Error updating user:', error);
@@ -281,11 +283,20 @@ export class UsersComponent implements OnInit, AfterViewInit {
             console.error('Roles field not found');
             return;
         }
-        // TODO FIXME what happens if a user wishes to choose a role that is not in the list?
-        // TODO add a search for roles
+        
+        // Load initial roles for the dropdown
         this.roleService.getRoles(DefaultValues.QUERY_PARAMS)
-            .subscribe(response => {
-                rolesField.options = FormUtils.toOptions(response.items);
+            .subscribe({
+                next: (response) => {
+                    rolesField.options = response.items.map(role => ({
+                        value: role.id,
+                        display: role.name
+                    }));
+                },
+                error: (error) => {
+                    console.error('Error loading roles:', error);
+                    NotificationUtils.showError(this.dialog, 'Failed to load roles', error);
+                }
             });
     }
 }

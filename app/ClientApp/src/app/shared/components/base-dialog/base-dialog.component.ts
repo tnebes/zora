@@ -1,13 +1,14 @@
-import {Component, Inject, OnInit} from '@angular/core';
+import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
+import {Subscription} from 'rxjs';
 
 export interface DialogField {
     name: string;
     type: 'text' | 'email' | 'password' | 'select' | 'multiselect' | 'file' | 'date';
     label: string;
     required?: boolean;
-    options?: Array<{ [key: string]: any }>;
+    options?: Array<{ value: any; display: string; [key: string]: any }>;
     validators?: Array<any>;
     accept?: string;
     isDate?: boolean;
@@ -42,9 +43,10 @@ export interface ViewOnlyDialogData<T> {
     templateUrl: './base-dialog.component.html',
     styleUrls: ['./base-dialog.component.scss']
 })
-export class BaseDialogComponent<T> implements OnInit {
+export class BaseDialogComponent<T> implements OnInit, OnDestroy {
     public form: FormGroup;
     public isSubmitting: boolean = false;
+    private subscriptions: Subscription[] = [];
 
     constructor(
         public dialogRef: MatDialogRef<BaseDialogComponent<T>>,
@@ -55,64 +57,26 @@ export class BaseDialogComponent<T> implements OnInit {
     }
 
     ngOnInit(): void {
+        this.initializeSearchableFields();
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(subscription => subscription.unsubscribe());
+    }
+
+    private initializeSearchableFields(): void {
         this.data.fields.forEach(field => {
             if ((field.type === 'select' || field.type === 'multiselect') && field.searchable) {
                 if (field.options && field.options.length > 0) {
-                    return; // Skip if options are already loaded
+                    return;
                 }
-                this.loadInitialOptions(field);
+                this.loadOptions(field, '');
             }
         });
     }
 
-    private loadInitialOptions(field: DialogField): void {
-        if (field.searchService && field.searchMethod) {
-            const service = field.searchService as any;
-            const method = 'get' + field.searchMethod.replace('find', '').replace('ByTerm', '') + 's';
-            
-            if (typeof service[method] === 'function') {
-                service[method]({ page: 1, pageSize: 1000 }).subscribe({
-                    next: (response: any) => {
-                        if (response && response.items) {
-                            field.options = response.items.map((item: any) => {
-                                const option: any = {};
-                                option.display = item[field.displayField || 'username'];
-                                option.value = item[field.valueField || 'id'];
-                                return option;
-                            });
-                        }
-                    },
-                    error: (error: any) => {
-                        console.error('Error loading initial options:', error);
-                    }
-                });
-            }
-        }
-    }
-
-    private loadOptions(field: DialogField): void {
-        if (field.searchService && field.searchMethod) {
-            const service = field.searchService as any;
-            const method = field.searchMethod as keyof typeof service;
-            
-            if (typeof service[method] === 'function') {
-                service[method]('').subscribe({
-                    next: (response: any) => {
-                        if (response && response.items) {
-                            field.options = response.items.map((item: any) => {
-                                const option: any = {};
-                                option.display = item[field.displayField || 'username'];
-                                option.value = item[field.valueField || 'id'];
-                                return option;
-                            });
-                        }
-                    },
-                    error: (error: any) => {
-                        console.error('Error loading options:', error);
-                    }
-                });
-            }
-        }
+    private loadOptions(field: DialogField, searchTerm: string = ''): void {
+        this.onSearchInput(field, searchTerm);
     }
 
     private createForm(): FormGroup {
@@ -122,6 +86,22 @@ export class BaseDialogComponent<T> implements OnInit {
             const validators = field.validators || [];
             if (field.required) {
                 validators.push(Validators.required);
+            }
+            
+            if (field.pattern) {
+                validators.push(Validators.pattern(field.pattern));
+            }
+            
+            if (field.min !== undefined) {
+                validators.push(Validators.min(field.min));
+            }
+            
+            if (field.max !== undefined) {
+                validators.push(Validators.max(field.max));
+            }
+
+            if (field.type === 'email') {
+                validators.push(Validators.email);
             }
 
             let initialValue;
@@ -149,6 +129,23 @@ export class BaseDialogComponent<T> implements OnInit {
 
         if (control.errors['required']) return 'This field is required';
         if (control.errors['email']) return 'Invalid email format';
+        if (control.errors['minlength']) {
+            const requiredLength = control.errors['minlength'].requiredLength;
+            return `Minimum length is ${requiredLength} characters`;
+        }
+        if (control.errors['maxlength']) {
+            const requiredLength = control.errors['maxlength'].requiredLength;
+            return `Maximum length is ${requiredLength} characters`;
+        }
+        if (control.errors['min']) {
+            return `Minimum value is ${control.errors['min'].min}`;
+        }
+        if (control.errors['max']) {
+            return `Maximum value is ${control.errors['max'].max}`;
+        }
+        if (control.errors['pattern']) {
+            return 'Invalid format';
+        }
 
         return 'Invalid input';
     }
@@ -162,10 +159,20 @@ export class BaseDialogComponent<T> implements OnInit {
                 const formData = new FormData();
                 Object.keys(this.form.controls).forEach(key => {
                     const control = this.form.get(key);
-                    if (control?.value instanceof File) {
-                        formData.append(key, control.value);
+                    const value = control?.value;
+                    
+                    if (!control || value === null || value === undefined) {
+                        return;
+                    }
+
+                    if (value instanceof File) {
+                        formData.append(key, value);
+                    } else if (Array.isArray(value)) {
+                        value.forEach((item: any) => {
+                            formData.append(key, item);
+                        });
                     } else {
-                        formData.append(key, control?.value);
+                        formData.append(key, value);
                     }
                 });
                 
@@ -203,6 +210,7 @@ export class BaseDialogComponent<T> implements OnInit {
         if (file) {
             this.form.get(fieldName)?.setValue(file);
             
+            // Auto-populate name field if empty
             if (fieldName === 'asset') {
                 const nameField = this.form.get('name');
                 const currentName = nameField?.value;
@@ -215,7 +223,6 @@ export class BaseDialogComponent<T> implements OnInit {
                         fileName;
                     
                     nameField?.setValue(nameWithoutExtension);
-                    
                 }
             }
         }
@@ -227,33 +234,71 @@ export class BaseDialogComponent<T> implements OnInit {
     }
 
     public onSearchableSelectFocus(field: DialogField): void {
+        // Load options if they haven't been loaded already
         if (!field.options || field.options.length === 0) {
-            this.loadOptions(field);
+            this.loadOptions(field, '');
         }
     }
 
     public onSearchInput(field: DialogField, searchTerm: string): void {
-        if (field.searchService && field.searchMethod) {
-            const service = field.searchService as any;
-            const method = field.searchMethod as keyof typeof service;
-            
-            if (typeof service[method] === 'function') {
-                service[method](searchTerm).subscribe({
-                    next: (response: any) => {
-                        if (response && response.items) {
-                            field.options = response.items.map((item: any) => {
-                                const option: any = {};
-                                option.display = item[field.displayField || 'username'];
-                                option.value = item[field.valueField || 'id'];
-                                return option;
-                            });
-                        }
-                    },
-                    error: (error: any) => {
-                        console.error('Error searching options:', error);
-                    }
-                });
+        if (!field.searchService || !field.searchMethod) {
+            return;
+        }
+
+        const service = field.searchService;
+        let methodName: string;
+        let params: any;
+        
+        // Handle different method naming patterns
+        if (searchTerm.length < 3) {
+            // For short search terms or initial load, try to use a "get all" method
+            if (field.searchMethod.startsWith('search')) {
+                // Convert searchXXXByTerm to getXXXs
+                const entityName = field.searchMethod.replace('search', '').replace('ByTerm', '');
+                methodName = `get${entityName}s`;
+                
+                // Check if the method exists, otherwise fall back to the search method with empty term
+                if (typeof service[methodName] !== 'function') {
+                    methodName = field.searchMethod;
+                    params = '';
+                } else {
+                    params = { page: 1, pageSize: 50 };
+                }
+            } else {
+                // Use the standard pattern from before
+                methodName = 'get' + field.searchMethod.replace('find', '').replace('ByTerm', '') + 's';
+                params = { page: 1, pageSize: 50 };
+                
+                // If the calculated method doesn't exist, fall back to the original method
+                if (typeof service[methodName] !== 'function') {
+                    methodName = field.searchMethod;
+                    params = '';
+                }
             }
+        } else {
+            // For search terms with 3+ characters, use the search method
+            methodName = field.searchMethod;
+            params = searchTerm;
+        }
+        
+        if (typeof service[methodName] === 'function') {
+            const subscription = service[methodName](params).subscribe({
+                next: (response: any) => {
+                    if (response && response.items) {
+                        field.options = response.items.map((item: any) => ({
+                            display: item[field.displayField || 'username'],
+                            value: item[field.valueField || 'id']
+                        }));
+                    }
+                },
+                error: (error: any) => {
+                    console.error(`Error fetching options with ${methodName}:`, error);
+                }
+            });
+            
+            this.subscriptions.push(subscription);
+        } else {
+            console.error(`Method ${methodName} not found on service:`, service);
         }
     }
 }

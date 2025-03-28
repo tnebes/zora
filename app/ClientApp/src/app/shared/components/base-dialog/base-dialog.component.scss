@@ -2,6 +2,9 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 0.5rem;
 }
 
 mat-form-field {
@@ -19,20 +22,69 @@ mat-form-field {
 }
 
 .search-container {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background-color: white;
-  padding: 8px 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: white;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 
-  .search-input {
-    width: 100%;
-    margin: 0;
+    .search-input {
+        width: 100%;
+        margin: 0;
     
-    ::ng-deep .mat-mdc-form-field-infix {
-      width: auto;
-      padding: 0.5em 0;
+        ::ng-deep .mat-mdc-form-field-infix {
+            width: auto;
+            padding: 0.5em 0;
+        }
     }
-  }
+}
+
+mat-dialog-content {
+    max-height: 70vh !important;
+}
+
+mat-dialog-actions {
+    margin-top: 1rem;
+    padding: 0.5rem 0;
+}
+
+@media (max-width: 599px) {
+    .form-fields {
+        max-height: 70vh;
+    }
+    
+    mat-dialog-content {
+        max-height: 80vh !important;
+        padding: 0.5rem;
+    }
+}
+
+.error-message {
+    color: var(--warn-color, #f44336);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.datepicker-field {
+    mat-datepicker-toggle {
+        color: rgba(0, 0, 0, 0.6);
+    }
+}
+
+.multiselect-field {
+    mat-select {
+        min-height: 32px;
+    }
+}
+
+.selected-file {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.04);
+    border-radius: 4px;
+    font-size: 0.875rem;
 }
