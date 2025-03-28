@@ -18,5 +18,6 @@ public interface IPermissionWorkItemRepository
 
     Task<Result<IEnumerable<PermissionWorkItem>>> CreateRangeAsync(IEnumerable<PermissionWorkItem> permissionWorkItems);
 
-    Task<Result<IEnumerable<PermissionWorkItem>>> GetByPermissionIdAsync(long permissionId, bool includeProperties = false);
+    Task<Result<IEnumerable<PermissionWorkItem>>> GetByPermissionIdAsync(long permissionId,
+        bool includeProperties = false);
 }

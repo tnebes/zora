@@ -2,6 +2,7 @@
 
 using AutoMapper;
 using FluentResults;
+using Microsoft.EntityFrameworkCore;
 using zora.Core.Attributes;
 using zora.Core.Domain;
 using zora.Core.DTOs.Permissions;
@@ -10,7 +11,6 @@ using zora.Core.DTOs.Tasks;
 using zora.Core.Enums;
 using zora.Core.Interfaces.Repositories;
 using zora.Core.Interfaces.Services;
-using Microsoft.EntityFrameworkCore;
 
 #endregion
 
@@ -274,17 +274,17 @@ public sealed class TaskService : ITaskService, IZoraService
         try
         {
             Result<(IEnumerable<ZoraTask>, int total)> searchResult;
-            
+
             if (searchParams.Ids != null && searchParams.Ids.Length > 0)
             {
                 IQueryable<ZoraTask> query = this._taskRepository.GetQueryable();
                 query = query.Where(t => searchParams.Ids.Contains(t.Id));
-                
-                IQueryable<ZoraTask> filteredQuery = 
+
+                IQueryable<ZoraTask> filteredQuery =
                     await this._authorisationService.FilterByPermission(query, userId, PermissionFlag.Read);
-                
+
                 int totalCount = await filteredQuery.CountAsync();
-                
+
                 int skip = (searchParams.Page - 1) * searchParams.PageSize;
                 IEnumerable<ZoraTask> filteredTasks = await filteredQuery
                     .Include(t => t.Assignee)
@@ -293,7 +293,7 @@ public sealed class TaskService : ITaskService, IZoraService
                     .Skip(skip)
                     .Take(searchParams.PageSize)
                     .ToListAsync();
-                
+
                 searchResult = Result.Ok((filteredTasks, totalCount));
             }
             else

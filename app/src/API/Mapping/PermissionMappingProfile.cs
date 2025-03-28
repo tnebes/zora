@@ -21,6 +21,8 @@ public sealed class PermissionMappingProfile : Profile
             .ForMember(dest => dest.RoleIds, opt => opt.MapFrom(src =>
                 src.RolePermissions != null ? src.RolePermissions.Select(rp => rp.RoleId) : Enumerable.Empty<long>()))
             .ForMember(dest => dest.WorkItemIds, opt => opt.MapFrom(src =>
-                src.PermissionWorkItems != null ? src.PermissionWorkItems.Select(pwi => pwi.WorkItemId) : Enumerable.Empty<long>()));
+                src.PermissionWorkItems != null
+                    ? src.PermissionWorkItems.Select(pwi => pwi.WorkItemId)
+                    : Enumerable.Empty<long>()));
     }
 }
