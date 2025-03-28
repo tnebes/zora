@@ -14,4 +14,5 @@ public interface ITaskService : IBaseServiceWithPermissionFilter<ZoraTask, Creat
     DynamicQueryTaskParamsDto>
 {
     Task<Result<ZoraTask>> UpdateEntityAsync(ZoraTask task, long userId);
+    Task<Result<TaskResponseDto>> GetPriorityTasksAsync(long userId);
 }

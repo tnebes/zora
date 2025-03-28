@@ -350,4 +350,55 @@ public sealed class TaskService : ITaskService, IZoraService
             return Result.Fail<ZoraTask>($"Error updating task with id {task.Id}");
         }
     }
+
+    public async Task<Result<TaskResponseDto>> GetPriorityTasksAsync(long userId)
+    {
+        try
+        {
+            IQueryable<ZoraTask> query = this._taskRepository.GetQueryable();
+            IQueryable<ZoraTask> filteredQuery = await this._authorisationService.FilterByPermission(query, userId, PermissionFlag.Read);
+
+            DynamicQueryTaskParamsDto searchParams = new DynamicQueryTaskParamsDto
+            {
+                Status = "In Progress",
+                SortColumn = "priority",
+                SortDirection = "desc",
+                Page = 1,
+                PageSize = 5
+            };
+
+            filteredQuery = filteredQuery.Where(t => t.Status == "In Progress");
+            
+            // Use the repository's search method which will apply proper sorting
+            Result<(IEnumerable<ZoraTask>, int total)> searchResult = 
+                await this._taskRepository.SearchAsync(searchParams, true);
+
+            if (searchResult.IsFailed)
+            {
+                this._logger.LogError("Failed to search priority tasks. Errors: {Errors}", searchResult.Errors);
+                return Result.Fail<TaskResponseDto>(searchResult.Errors);
+            }
+
+            (IEnumerable<ZoraTask> tasks, _) = searchResult.Value;
+            
+            // Take only top 5
+            tasks = tasks.Take(5);
+
+            IEnumerable<ReadTaskDto> taskDtos = this._mapper.Map<IEnumerable<ReadTaskDto>>(tasks);
+            TaskResponseDto response = new TaskResponseDto
+            {
+                Total = tasks.Count(),
+                Page = 1,
+                PageSize = 5,
+                Items = taskDtos
+            };
+
+            return Result.Ok(response);
+        }
+        catch (Exception ex)
+        {
+            this._logger.LogError(ex, "Error getting priority tasks");
+            return Result.Fail<TaskResponseDto>("Error getting priority tasks");
+        }
+    }
 }

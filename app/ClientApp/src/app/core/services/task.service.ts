@@ -6,6 +6,7 @@ import { Constants } from '../constants';
 import { QueryParams } from '../models/query-params.interface';
 import { QueryService } from './query.service';
 import { AssetResponseDto } from '../models/asset.interface';
+import { AuthenticationService } from './authentication.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,12 +16,22 @@ export class TaskService {
 
   constructor(
     private readonly http: HttpClient,
-    private readonly queryService: QueryService
+    private readonly queryService: QueryService,
+    private readonly authService: AuthenticationService
   ) { }
+
+  private getUserId(): string {
+    let userId = '';
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        userId = user.id.toString();
+      }
+    });
+    return userId;
+  }
 
   getTasks(queryParams: QueryParams): Observable<TaskResponseDto> {
     const params = this.queryService.getHttpParams(queryParams);
-
     return this.http.get<TaskResponseDto>(this.apiUrl, { params });
   }
 
@@ -76,5 +87,17 @@ export class TaskService {
       .set('searchTerm', searchTerm);
 
     return this.http.get<TaskResponseDto>(`${this.apiUrl}/search`, { params });
+  }
+
+  getPriorityTasks(): Observable<TaskResponseDto> {
+    const params = new HttpParams()
+      .set('page', '1')
+      .set('pageSize', '5')
+      .set('sortColumn', 'priority')
+      .set('sortDirection', 'desc')
+      .set('status', 'Active')
+      .set('userId', this.getUserId());
+
+    return this.http.get<TaskResponseDto>(`${this.apiUrl}/priority`, { params });
   }
 }

@@ -24,13 +24,7 @@ export class PriorityTasksComponent implements OnInit {
         private readonly taskService: TaskService,
         private readonly router: Router
     ) {
-        this.tasks$ = this.taskService.searchTasks({
-            page: 1,
-            pageSize: 5,
-            sortColumn: 'priority',
-            sortDirection: 'desc',
-            status: 'Active'
-        }).pipe(
+        this.tasks$ = this.taskService.getPriorityTasks().pipe(
             map(response => response.items)
         );
     }

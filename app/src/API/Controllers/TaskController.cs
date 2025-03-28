@@ -518,12 +518,12 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
         }
     }
 
-    [HttpGet("priority/{userId:long}")]
+    [HttpGet("priority")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<TaskResponseDto>> GetPriorityTasks(long userId)
+    public async Task<ActionResult<TaskResponseDto>> GetPriorityTasks([FromQuery] long userId)
     {
         try
         {
@@ -533,17 +533,7 @@ public sealed class TaskController : BaseCrudController<ZoraTask, CreateTaskDto,
                 return this.Unauthorized();
             }
 
-            DynamicQueryTaskParamsDto searchParams = new DynamicQueryTaskParamsDto
-            {
-                Page = 1,
-                PageSize = 5,
-                AssigneeId = userId,
-                SortColumn = "priority",
-                SortDirection = "desc",
-                Status = "Active"
-            };
-
-            Result<TaskResponseDto> result = await this._taskService.SearchAsync(searchParams, userId);
+            Result<TaskResponseDto> result = await this._taskService.GetPriorityTasksAsync(userId);
 
             if (result.IsFailed)
             {
