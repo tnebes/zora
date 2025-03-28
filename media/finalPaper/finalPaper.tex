@@ -1,34 +1,59 @@
 \documentclass[a4paper,12pt]{article}
+
+% Font and language
 \usepackage{fontspec}
 \usepackage[croatian]{babel}
-\usepackage{graphicx}
-\usepackage{hyperref}
-\usepackage{geometry}
-\usepackage{setspace}   
-\usepackage{enumitem}
-\usepackage{listings}
-\usepackage{xcolor}
-\usepackage{multicol}
-\usepackage{url}
-\usepackage{titlesec}
-\usepackage{caption}
+\usepackage{polyglossia}
+\setmainlanguage{croatian}
 \setmainfont{Times New Roman}
+
+% Page and layout
+\usepackage{geometry}
 \geometry{a4paper, margin=2.5cm}
+\usepackage{setspace}
 \onehalfspacing
 \setlength{\parindent}{1.5cm}
+\usepackage{titlesec}
 
+% Header & footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{ZORA}
+\fancyhead[R]{\leftmark}
+\fancyfoot[L]{Tomislav Nebes, 2025}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Visuals and colour
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black!70,
+    urlcolor=black!70,
+    citecolor=black!70
+}
+
+% Listings (code)
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{url}
+
+% Section formatting
 \titleformat{\section}
-  {\normalfont\Large\bfseries\color{blue!80!black}}
-  {\thesection}{1em}{}
+  {\normalfont\Large\bfseries}{\thesection}{1em}{}
   [\titlerule]
-  
+
 \titleformat{\subsection}
-  {\normalfont\large\bfseries\color{blue!60!black}}
-  {\thesubsection}{1em}{}
+  {\normalfont\large\bfseries}{\thesubsection}{1em}{}
 
 \titleformat{\subsubsection}
-  {\normalfont\normalsize\bfseries\color{blue!40!black}}
-  {\thesubsubsection}{1em}{}
+  {\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
 
 \titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
 \titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
@@ -36,10 +61,10 @@
 
 \setcounter{secnumdepth}{4}
 \titleformat{\paragraph}
-  {\normalfont\normalsize\bfseries\color{blue!20!black}}
-  {\theparagraph}{1em}{}
+  {\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
 \titlespacing*{\paragraph}{0pt}{3.25ex plus 1ex minus .2ex}{1em}
 
+% Code listings: SQL and C#
 \lstdefinestyle{sqlstyle}{
     language=SQL,
     basicstyle=\small\ttfamily,
@@ -67,7 +92,6 @@
   morekeywords={abstract,event,new,struct,as,explicit,null,switch,base,extern,object,this,bool,false,operator,throw,break,finally,out,true,byte,fixed,override,try,case,float,params,typeof,catch,for,private,uint,char,foreach,protected,ulong,checked,goto,public,unchecked,class,if,readonly,unsafe,const,implicit,ref,ushort,continue,in,return,using,decimal,int,sbyte,virtual,default,interface,sealed,volatile,delegate,internal,short,void,do,is,sizeof,while,double,lock,stackalloc,else,long,static,enum,namespace,string,var,dynamic,async,await,yield}
 }
 
-% Set global options for all code listings
 \lstset{
   basicstyle=\fontsize{10}{12}\ttfamily,
   numbers=left,
@@ -82,44 +106,28 @@
 
 \begin{document}
 
-\begin{center}
-    \includegraphics[width=0.3\textwidth]{edunova_logo.png}
-\end{center}
+% Title Page
+\begin{titlepage}
+    \begin{center}
+        \includegraphics[width=0.3\textwidth]{edunova_logo.png}\\[2cm]
+        {\Large Program obrazovanja za stjecanje mikrokvalifikacije web programiranje}\\[1ex]
+        GRUPA WP7\\[4cm]
+        {\Huge \textbf{Dokumentacija završne provjere}}\\[2ex]
+        {\LARGE Platforma za organizaciju rada (ZORA)}\\[4cm]
+        \textbf{git URL aplikacije:} \url{https://github.com/tnebes/zora}\\[1ex]
+        \textbf{URL produkcije:} \url{https://zora.draucode.com}\\[4cm]
+        {\Huge{\textbf{Tomislav Nebes}}}\\[2cm]
+        {\large Osijek, ožujak 2025.}
+    \end{center}
+\end{titlepage}
 
-\begin{center}
-    {\Large Program obrazovanja za stjecanje mikrokvalifikacije web programiranje}\\[2ex]
-    GRUPA WP7\\[2ex]
-    \vspace{10em}
-    {\Huge \textbf{Dokumentacija završne provjere}}\\[2ex]
-\end{center}
-
-\begin{center}
-    \vspace{2em}
-    {\Large {Platforma za organizaciju rada (ZORA)}}\\[2ex]
-\end{center}
-
-\begin{center}
-    \vspace{2em}
-    \noindent\textbf{git URL aplikacije:} \url{https://github.com/tnebes/zora}\\[1ex]
-    \textbf{URL produkcije:} \url{https://zora.draucode.com}
-\end{center}
-
-\vspace{2cm}
-
-\begin{center}
-    \noindent{\Huge{\textbf{Tomislav Nebes}}}
-\end{center}
-
-\vfill
-\begin{center}
-    {\large Osijek, ožujak 2025.}
-\end{center}
-
-\newpage
-
+% Table of Contents
+\pagenumbering{roman}
 \tableofcontents
 \newpage
+\pagenumbering{arabic}
 
+% Include document content
 \input{sections/uvod}
 \newpage
 \input{sections/vjezbe}
